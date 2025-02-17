@@ -6,8 +6,6 @@
 
 ## Installation
 
-## Installation
-
 ### React
 
 Add the Grovs react-native wrapper as a `package.json` depedency.
