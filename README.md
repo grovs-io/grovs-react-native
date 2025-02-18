@@ -104,16 +104,13 @@ import Grovs
 1. Initialize the SDK with your API key (usually in AppDelegate):
 
 ```swift
-    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
+func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
+    Grovs.configure(APIKey: "your-api-key", delegate: yourDelegate)
+    # Optionally, you can adjust the debug level for logging:
+    Grovs.setDebug(level: .info)
 
-        Grovs.configure(APIKey: "your-api-key", delegate: yourDelegate)
-
-        # Optionally, you can adjust the debug level for logging:
-
-        Grovs.setDebug(level: .info)
-
-        ... Your other code ...
-    }
+    ... Your other code ...
+}
 ```
 
 
@@ -153,10 +150,18 @@ try {
 }
 ```
 
-## Contributing
+## Demo project
 
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
+You can download and run a demo project [from here](https://github.com/grovs-io/grovs-react-native-example-app).
 
-## License
+## Further Assistance
 
-MIT
+For further assistance and detailed documentation, refer to the Grovs documentation available at [https://grovs.io/docs](https://docs.grovs.io/s/docs).
+
+For technical support and inquiries, contact our support team at [support@grovs.io](mailto:support@grovs.io).
+
+Thank you for choosing Grovs! We're excited to see what you build with our SDK.
+
+<br />
+<br />
+Copyright grovs.
