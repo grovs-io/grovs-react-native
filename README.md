@@ -119,11 +119,39 @@ import Grovs
 
 ## Usage
 
+Once configured, you can utilize the various functionalities provided by Grovs.
 
 ```js
 import { Grovs } from 'react-native-grovs-wrapper';
 ```
 
+### Handling deeplinks
+
+You can receive deep link events by registering a listener. Here's how you can implement it:
+
+```kotlin
+const listener = Grovs.onDeeplinkReceived((data) => {
+    console.log(data);
+    setLabel1(`Opened link data: ${JSON.stringify(data)}`);
+});
+
+// When you don't want to receive events anymore
+listener.remove(); // Stop receiving events
+```
+
+### Generating Links
+
+You can generate links using `generateLink` functions, below are some examples:
+
+```js
+try {
+    const link = await Grovs.generateLink("Title", "Subtitle", "url_to_some_image", { param1: "value", param2: "value" }, ["tag1", "tag2"]);
+    console.log(`Generated link: ${link}`);
+    setLabel2(`Generated link: ${link}`);
+} catch (error) {
+    console.log("Error generating link:", error);
+}
+```
 
 ## Contributing
 
