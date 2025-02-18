@@ -150,6 +150,37 @@ try {
 }
 ```
 
+### Using messages
+
+IMPORTANT: if console messages have automatic display enabled, they will appear in your app without any additional integration required.
+
+To receive push notifications for the received messages attach the device token to the SDK.
+
+```js
+import messaging from "@react-native-firebase/messaging";
+
+const token = await messaging().getToken();
+if (token) {
+    Grovs.setPushToken(token);
+    console.log("FCM Token:", token);
+} else {
+    console.log("Failed to get FCM token");
+}
+```
+
+To get the number of unread messages, for instance if you want to display an unread number bullet, you can use the following method.
+
+```js
+const unreadCount = await Grovs.numberOfUnreadMessages();
+console.log(`Unread messages: ${unreadCount}`);
+```
+
+To display the list of the messages on top of everthing else use:
+
+```js
+Grovs.displayMessages();
+```
+
 ## Demo project
 
 You can download and run a demo project [from here](https://github.com/grovs-io/grovs-react-native-example-app).
