@@ -173,7 +173,7 @@ const unreadCount = await Grovs.numberOfUnreadMessages();
 console.log(`Unread messages: ${unreadCount}`);
 ```
 
-To display the list of the messages on top of everthing else use:
+To display the list of the messages on top of everything else use:
 
 ```js
 Grovs.displayMessages();
