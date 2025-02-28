@@ -8,7 +8,7 @@
 
 ### React
 
-Add the Grovs react-native wrapper as a `package.json` depedency.
+Add the Grovs react-native wrapper as a `package.json` dependency.
 
 **yarn**
 ```sh
