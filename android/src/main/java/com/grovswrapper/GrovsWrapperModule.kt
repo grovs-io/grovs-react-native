@@ -107,7 +107,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
     activity?.let { activity ->
       Grovs.setOnDeeplinkReceivedListener(activity) { link, payload ->
         val writableMap = Arguments.createMap()
-        writableMap.putString("link", link)
+        writableMap.putString("grovs_link", link)
         payload?.let { writableMap.putMap("data", it.toWritableMap()) }
 
         emitOnDeeplinkReceived(writableMap)
