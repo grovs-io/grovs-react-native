@@ -101,7 +101,7 @@ To configure the Grovs SDK within your application, follow these steps:
 import Grovs
 ```
 
-1. Initialize the SDK with your API key (usually in AppDelegate):
+2. Initialize the SDK with your API key (usually in AppDelegate):
 
 ```swift
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
@@ -113,6 +113,17 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
 }
 ```
 
+3. Also add the following code to handle incoming deeplinks in your AppDelegate:
+
+```swift
+func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
+    return Grovs.handleAppDelegate(continue: userActivity, restorationHandler: restorationHandler)
+}
+
+func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    return Grovs.handleAppDelegate(open: url, options: options)
+}
+```
 
 ## Usage
 
