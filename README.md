@@ -152,7 +152,27 @@ You can generate links using `generateLink` functions, below are some examples:
 
 ```js
 try {
-    const link = await Grovs.generateLink("Title", "Subtitle", "url_to_some_image", { param1: "value", param2: "value" }, ["tag1", "tag2"]);
+    const link = await Grovs.generateLink("Title",
+                                          "Subtitle",
+                                          "url_to_some_image",
+                                          { param1: "value", param2: "value" },
+                                          ["tag1", "tag2"],
+                                          {
+                                            android: {
+                                              link: 'https://www.grovs.io/android',
+                                              open_if_app_installed: true,
+                                            },
+                                            ios: {
+                                              link: 'https://www.grovs.io/ios',
+                                              open_if_app_installed: false,
+                                            },
+                                            desktop: {
+                                              link: 'https://www.grovs.io/desktop',
+                                              open_if_app_installed: true,
+                                            },
+                                          },
+                                          false
+    );
     console.log(`Generated link: ${link}`);
 } catch (error) {
     console.log("Error generating link:", error);
