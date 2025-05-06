@@ -26,7 +26,7 @@ Add Grovs Android SDK as a dependency in your `PROJECT_DIR/android/app/build.gra
 
 ```sh
 dependencies {
-  implementation 'io.grovs:Grovs:1.0.1'
+  implementation 'io.grovs:Grovs:1.0.6'
 }
 ```
 
