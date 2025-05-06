@@ -16,6 +16,8 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 import io.grovs.Grovs;
+import io.grovs.model.CustomLinkRedirect
+import io.grovs.service.CustomRedirects
 
 fun ReadableMap.toMap(): Map<String, Any?> {
     val result = mutableMapOf<String, Any?>()
@@ -143,13 +145,52 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
     }
   }
 
-  override fun generateLink(title: String?, subtitle: String?, imageURL: String?, data: ReadableMap?, tags: ReadableArray?, promise: Promise) {
+  override fun generateLink(title: String?,
+                            subtitle: String?,
+                            imageURL: String?,
+                            data: ReadableMap?,
+                            tags: ReadableArray?,
+                            customRedirects: ReadableMap?,
+                            showPreview: Boolean?,
+                            promise: Promise) {
+
+    val redirects = customRedirects?.toMap()?.toSerializableMap()
+    val ios = redirects?.get("ios") as? Map<*, *>
+    val iosUrl = ios?.get("link") as? String
+    val iosOpenIfInstalled = ios?.get("open_if_app_installed") as? Boolean
+
+    val android = redirects?.get("android") as? Map<*, *>
+    val androidUrl = android?.get("link") as? String
+    val androidOpenIfInstalled = android?.get("open_if_app_installed") as? Boolean
+
+    val desktop = redirects?.get("desktop") as? Map<*, *>
+    val desktopUrl = desktop?.get("link") as? String
+
+    var nativeCustomRedirectIos: CustomLinkRedirect? = null
+    iosUrl?.let {
+      nativeCustomRedirectIos = CustomLinkRedirect(link = iosUrl, openAppIfInstalled = iosOpenIfInstalled ?: true)
+    }
+
+    var nativeCustomRedirectAndroid: CustomLinkRedirect? = null
+    androidUrl?.let {
+      nativeCustomRedirectAndroid = CustomLinkRedirect(link = androidUrl, openAppIfInstalled = androidOpenIfInstalled ?: true)
+    }
+
+    var nativeCustomRedirectDesktop: CustomLinkRedirect? = null
+    desktopUrl?.let {
+      nativeCustomRedirectDesktop = CustomLinkRedirect(link = desktopUrl, openAppIfInstalled = iosOpenIfInstalled ?: true)
+    }
+
+    val nativeCustomRedirect = CustomRedirects(ios = nativeCustomRedirectIos, android = nativeCustomRedirectAndroid, desktop = nativeCustomRedirectDesktop)
+
     Grovs.generateLink(title = title,
                         subtitle = subtitle,
                         imageURL = imageURL,
                         data = data?.toMap()?.toSerializableMap(),
                         tags = tags?.toList()?.toStringList(),
                         lifecycleOwner = null,
+                        customRedirects = nativeCustomRedirect,
+                        showPreview = showPreview,
                         listener = { link, error ->
                           link?.let { link ->
                             promise.resolve(link)

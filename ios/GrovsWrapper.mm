@@ -39,14 +39,25 @@ RCT_EXPORT_MODULE()
             imageURL:(NSString *)imageURL
                 data:(NSDictionary *)data
                 tags:(NSArray *)tags
+     customRedirects:(JS::NativeGrovsWrapper::CustomRedirects &)customRedirects
+         showPreview:(NSNumber *)showPreview
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
   
+  NSDictionary * redirects = @{@"android": @{@"link": customRedirects.android().link(),
+                                             @"open_if_app_installed": @(customRedirects.android().open_if_app_installed())},
+                               @"ios": @{@"link": customRedirects.ios().link(),
+                                                                          @"open_if_app_installed": @(customRedirects.ios().open_if_app_installed())},
+                               @"desktop": @{@"link": customRedirects.desktop().link(),
+                                             @"open_if_app_installed": @(customRedirects.desktop().open_if_app_installed())},
+  };
   [GrovsWrapperSwift.shared generateLinkWithTitle:title
                                          subtitle:subtitle
                                          imageURL:imageURL
                                              data:data
                                              tags:tags
+                                  customRedirects:redirects
+                                      showPreview:showPreview
                                        completion:^(NSURL * _Nullable link) {
     if (link.absoluteString != nil) {
       resolve(link.absoluteString);

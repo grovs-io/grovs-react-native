@@ -1,13 +1,22 @@
-import { Text, View, StyleSheet, Alert, EventSubscription, TouchableOpacity, Button, Clipboard } from 'react-native';
+import {
+  Text,
+  View,
+  StyleSheet,
+  TouchableOpacity,
+  Button,
+  Clipboard,
+} from 'react-native';
 import { Grovs } from 'react-native-grovs-wrapper';
 import { useEffect, useState } from 'react';
 
-Grovs.setIdentifier("React native id")
-Grovs.setAttributes({ "string": "string value", "boolean": true, "number": 13, "number 2": 13.2, "array": ["1", 2, true] })
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+Grovs.setIdentifier('React native id');
+Grovs.setAttributes({
+  'string': 'string value',
+  'boolean': true,
+  'number': 13,
+  'number 2': 13.2,
+  'array': ['1', 2, true],
+});
 
 export default function App() {
   useEffect(() => {
@@ -23,9 +32,9 @@ export default function App() {
     };
   }, []);
 
-  const [label1, setLabel1] = useState("Opened link data:");
-  const [label2, setLabel2] = useState("Generated link:");
-  const [label3, setLabel3] = useState("Unread messages:");
+  const [label1, setLabel1] = useState('Opened link data:');
+  const [label2, setLabel2] = useState('Generated link:');
+  const [label3, setLabel3] = useState('Unread messages:');
 
   const handleGenerateLinkPress = () => {
     generateLink();
@@ -42,50 +51,83 @@ export default function App() {
 
   async function generateLink() {
     try {
-        const link = await Grovs.generateLink("Test link", "Test subtitle", undefined, { age: 25, city: "New York" }, undefined);
-        console.log(`Generated link: ${link}`);
-        setLabel2(`Generated link: ${link}`);
+      const link = await Grovs.generateLink(
+        'Test link',
+        'Test subtitle',
+        undefined,
+        { age: 25, city: 'New York' },
+        undefined,
+        {
+          android: {
+            link: 'https://www.grovs.io/android',
+            open_if_app_installed: true,
+          },
+          ios: {
+            link: 'https://www.grovs.io/ios',
+            open_if_app_installed: false,
+          },
+          desktop: {
+            link: 'https://www.grovs.io/desktop',
+            open_if_app_installed: true,
+          },
+        },
+        false
+      );
+      console.log(`Generated link: ${link}`);
+      setLabel2(`Generated link: ${link}`);
     } catch (error) {
-        console.log("Error generating link:", error);
+      console.log('Error generating link:', error);
     }
-  };
+  }
 
   async function fetchUnreadMessages() {
     try {
-        const unreadCount = await Grovs.numberOfUnreadMessages();
-        console.log(`Unread messages: ${unreadCount}`);
-        setLabel3(`Unread messages: ${unreadCount}`);
+      const unreadCount = await Grovs.numberOfUnreadMessages();
+      console.log(`Unread messages: ${unreadCount}`);
+      setLabel3(`Unread messages: ${unreadCount}`);
     } catch (error) {
-        console.log("Error fetching unread messages:", error);
+      console.log('Error fetching unread messages:', error);
     }
-  };
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label1}</Text>
-        <TouchableOpacity onPress={() => copyToClipboard(label1)} style={styles.copyButton}>
+        <TouchableOpacity
+          onPress={() => copyToClipboard(label1)}
+          style={styles.copyButton}
+        >
           <Text style={styles.copyText}>📋</Text>
         </TouchableOpacity>
       </View>
       <View style={{ height: 20 }} />
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label2}</Text>
-        <TouchableOpacity onPress={() => copyToClipboard(label2)} style={styles.copyButton}>
+        <TouchableOpacity
+          onPress={() => copyToClipboard(label2)}
+          style={styles.copyButton}
+        >
           <Text style={styles.copyText}>📋</Text>
         </TouchableOpacity>
       </View>
       <View style={{ height: 20 }} />
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label3}</Text>
-        <TouchableOpacity onPress={() => copyToClipboard(label3)} style={styles.copyButton}>
+        <TouchableOpacity
+          onPress={() => copyToClipboard(label3)}
+          style={styles.copyButton}
+        >
           <Text style={styles.copyText}>📋</Text>
         </TouchableOpacity>
       </View>
       <View style={{ height: 20 }} />
       <Button title="Generate link" onPress={handleGenerateLinkPress} />
       <View style={{ height: 20 }} />
-      <Button title="Show notifications" onPress={handleShowNotificationsPress} />
+      <Button
+        title="Show notifications"
+        onPress={handleShowNotificationsPress}
+      />
     </View>
   );
 }
@@ -97,10 +139,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   labelContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    maxWidth: "90%",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    alignItems: 'center',
+    maxWidth: '90%',
+    flexWrap: 'wrap',
     marginBottom: 10,
   },
   label: {
@@ -110,10 +152,10 @@ const styles = StyleSheet.create({
   copyButton: {
     padding: 8,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     borderRadius: 5,
   },
   copyText: {
     fontSize: 18,
-  }
+  },
 });

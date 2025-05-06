@@ -51,8 +51,40 @@ public class GrovsWrapperSwift: NSObject {
                                   imageURL: String?,
                                   data: [String: Any]?,
                                   tags: [String]?,
+                                  customRedirects: [String: Any]?,
+                                  showPreview: Bool,
                                   completion: @escaping GrovsURLClosure) {
-    Grovs.generateLink(title: title, subtitle: subtitle, imageURL: imageURL, data: data, tags: tags, completion: completion)
+    let iosRedirect = customRedirects?["ios"] as? [String: Any?]
+    let androidRedirect = customRedirects?["android"] as? [String: Any?]
+    let desktopRedirect = customRedirects?["desktop"] as? [String: Any?]
+
+    var customRedirectIos: CustomLinkRedirect?
+    if let iosLink = iosRedirect?["link"] as? String {
+      customRedirectIos = CustomLinkRedirect(link: iosLink, openAppIfInstalled: iosRedirect?["open_if_app_installed"] as? Bool ?? true)
+    }
+
+    var customRedirectAndroid: CustomLinkRedirect?
+    if let androidLink = androidRedirect?["link"] as? String {
+      customRedirectAndroid = CustomLinkRedirect(link: androidLink, openAppIfInstalled: androidRedirect?["open_if_app_installed"] as? Bool ?? true)
+    }
+
+    var customRedirectDesktop: CustomLinkRedirect?
+    if let desktopLink = desktopRedirect?["link"] as? String {
+      customRedirectDesktop = CustomLinkRedirect(link: desktopLink, openAppIfInstalled: desktopRedirect?["open_if_app_installed"] as? Bool ?? true)
+    }
+
+    let redirects = CustomRedirects(ios: customRedirectIos,
+                                    android: customRedirectAndroid,
+                                    desktop: customRedirectDesktop)
+
+    Grovs.generateLink(title: title,
+                       subtitle: subtitle,
+                       imageURL: imageURL,
+                       data: data,
+                       tags: tags,
+                       customRedirects: redirects,
+                       showPreview: showPreview,
+                       completion: completion)
   }
   
   @objc
