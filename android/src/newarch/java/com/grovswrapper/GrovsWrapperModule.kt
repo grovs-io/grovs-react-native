@@ -1,23 +1,21 @@
 package com.grovswrapper
 
-import java.io.Serializable;
-import android.app.Activity;
-
+import android.app.Activity
+import com.facebook.react.bridge.Arguments
+import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
+import com.facebook.react.bridge.ReadableArray
+import com.facebook.react.bridge.ReadableMap
+import com.facebook.react.bridge.ReadableType
+import com.facebook.react.bridge.WritableArray
+import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
-
-import com.facebook.react.bridge.Promise;
-import com.facebook.react.bridge.ReadableArray;
-import com.facebook.react.bridge.ReadableMap;
-import com.facebook.react.bridge.ReadableType;
-import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableArray;
-import com.facebook.react.bridge.Arguments;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
-
-import io.grovs.Grovs;
+import com.facebook.react.modules.core.DeviceEventManagerModule
+import io.grovs.Grovs
 import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
+import java.io.Serializable
+
 
 fun ReadableMap.toMap(): Map<String, Any?> {
     val result = mutableMapOf<String, Any?>()
@@ -112,7 +110,10 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
         writableMap.putString("grovs_link", link)
         payload?.let { writableMap.putMap("data", it.toWritableMap()) }
 
-        emitOnDeeplinkReceived(writableMap)
+        reactApplicationContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+          .emit("onGrovsDeeplinkReceived", writableMap)
+        //emitOnDeeplinkReceived(writableMap)
       }
     }
   }
@@ -151,7 +152,8 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                             data: ReadableMap?,
                             tags: ReadableArray?,
                             customRedirects: ReadableMap?,
-                            showPreview: Boolean?,
+                            showPreviewIos: Boolean?,
+                            showPreviewAndroid: Boolean?,
                             promise: Promise) {
 
     val redirects = customRedirects?.toMap()?.toSerializableMap()
@@ -188,9 +190,10 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                         imageURL = imageURL,
                         data = data?.toMap()?.toSerializableMap(),
                         tags = tags?.toList()?.toStringList(),
-                        lifecycleOwner = null,
                         customRedirects = nativeCustomRedirect,
-                        showPreview = showPreview,
+                        showPreviewIos = showPreviewIos,
+                        showPreviewAndroid = showPreviewIos,
+                        lifecycleOwner = null,
                         listener = { link, error ->
                           link?.let { link ->
                             promise.resolve(link)
@@ -218,6 +221,16 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
         promise.reject("Error", "Failed to fetch messages number.")
       }
     })
+  }
+
+  override fun addListener(eventName: String?) {
+    // Required for Turbo Module event emitters
+    // This is called automatically when JS adds a listener
+  }
+
+  override fun removeListeners(count: Double) {
+    // Required for Turbo Module event emitters
+    // This is called automatically when JS adds a listener
   }
 
   companion object {

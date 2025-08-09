@@ -117,7 +117,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'io.grovs:Grovs:1.0.0'
+    implementation 'io.grovs:Grovs:1.0.14'
 }
 
 def isNewArchitectureEnabled() {

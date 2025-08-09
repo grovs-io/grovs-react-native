@@ -84,7 +84,12 @@ android {
       if (isNewArchitectureEnabled()) {
           java.srcDirs += [
             "generated/java",
-            "generated/jni"
+            "generated/jni",
+            "src/newarch/java"
+          ]
+      } else {
+          java.srcDirs += [
+            "src/legacy/java"
           ]
       }
     }
@@ -101,7 +106,7 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation 'io.grovs:Grovs:1.0.6'
+  implementation "io.grovs:Grovs:1.0.14"
 }
 
 if (isNewArchitectureEnabled()) {

@@ -52,7 +52,8 @@ public class GrovsWrapperSwift: NSObject {
                                   data: [String: Any]?,
                                   tags: [String]?,
                                   customRedirects: [String: Any]?,
-                                  showPreview: Bool,
+                                  showPreviewIos: Bool,
+                                  showPreviewAndroid: Bool,
                                   completion: @escaping GrovsURLClosure) {
     let iosRedirect = customRedirects?["ios"] as? [String: Any?]
     let androidRedirect = customRedirects?["android"] as? [String: Any?]
@@ -83,7 +84,8 @@ public class GrovsWrapperSwift: NSObject {
                        data: data,
                        tags: tags,
                        customRedirects: redirects,
-                       showPreview: showPreview,
+                       showPreviewiOS: showPreviewIos,
+                       showPreviewAndroid: showPreviewAndroid,
                        completion: completion)
   }
   

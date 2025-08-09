@@ -1,6 +1,6 @@
 {
   "name": "react-native-grovs-wrapper",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Grovs react native SDK",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -38,10 +38,11 @@
   ],
   "scripts": {
     "example": "yarn workspace react-native-grovs-wrapper-example",
+    "example-old-arch": "yarn workspace react-native-grovs-wrapper-example-old-arch",
     "test": "jest",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
+    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build example_old_arch/android/build example_old_arch/android/app/build example_old_arch/ios/build lib",
     "prepare": "bob build",
     "release": "release-it"
   },
@@ -99,13 +100,15 @@
     "react-native": "*"
   },
   "workspaces": [
-    "example"
+    "example",
+    "example_old_arch"
   ],
   "packageManager": "yarn@3.6.1",
   "jest": {
     "preset": "react-native",
     "modulePathIgnorePatterns": [
       "<rootDir>/example/node_modules",
+      "<rootDir>/example_old_arch/node_modules",
       "<rootDir>/lib/"
     ]
   },

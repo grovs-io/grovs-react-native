@@ -6,7 +6,7 @@ import {
   Button,
   Clipboard,
 } from 'react-native';
-import { Grovs } from 'react-native-grovs-wrapper';
+import Grovs from 'react-native-grovs-wrapper';
 import { useEffect, useState } from 'react';
 
 Grovs.setIdentifier('React native id');
@@ -71,7 +71,8 @@ export default function App() {
             open_if_app_installed: true,
           },
         },
-        false
+        true,
+        true
       );
       console.log(`Generated link: ${link}`);
       setLabel2(`Generated link: ${link}`);
