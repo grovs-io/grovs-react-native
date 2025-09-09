@@ -26,7 +26,7 @@ Add Grovs Android SDK as a dependency in your `PROJECT_DIR/android/app/build.gra
 
 ```sh
 dependencies {
-  implementation 'io.grovs:Grovs:1.0.6'
+  implementation 'io.grovs:Grovs:1.0.14'
 }
 ```
 
@@ -130,7 +130,7 @@ func application(_ app: UIApplication, open url: URL, options: [UIApplication.Op
 Once configured, you can utilize the various functionalities provided by Grovs.
 
 ```js
-import { Grovs } from 'react-native-grovs-wrapper';
+import Grovs from 'react-native-grovs-wrapper';
 ```
 
 ### Handling deeplinks
@@ -171,6 +171,7 @@ try {
                                               open_if_app_installed: true,
                                             },
                                           },
+                                          false,
                                           false
     );
     console.log(`Generated link: ${link}`);
