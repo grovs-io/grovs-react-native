@@ -112,11 +112,14 @@ public class GrovsWrapperSwift: NSObject {
 extension GrovsWrapperSwift: GrovsDelegate {
 
   public func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?) {
-    var payload = payload
+    var deeplinkData = [String : Any]()
     if let link = link {
-      payload?["grovs_link"] = link
+      deeplinkData["link"] = link
     }
-    didReceiveDeeplink?(payload ?? [:])
+    if let payload = payload {
+      deeplinkData["data"] = payload
+    }
+    didReceiveDeeplink?(deeplinkData)
   }
 
 }
