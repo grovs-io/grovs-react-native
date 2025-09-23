@@ -26,7 +26,7 @@ Add Grovs Android SDK as a dependency in your `PROJECT_DIR/android/app/build.gra
 
 ```sh
 dependencies {
-  implementation 'io.grovs:Grovs:1.0.14'
+  implementation 'io.grovs:Grovs:1.0.17'
 }
 ```
 
@@ -56,13 +56,13 @@ override fun onCreate() {
 override fun onStart() {
     super.onStart()
 
-    Grovs.onStart()
+    Grovs.onStart(this)
 }
 
 override fun onNewIntent(intent: Intent?) {
     super.onNewIntent(intent)
 
-    Grovs.onNewIntent(intent)
+    Grovs.onNewIntent(intent, this)
 }
 ```
 
