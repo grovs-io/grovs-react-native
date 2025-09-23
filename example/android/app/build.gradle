@@ -117,7 +117,13 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation 'io.grovs:Grovs:1.0.14'
+    implementation 'io.grovs:grovs:1.0.17'
+}
+
+repositories {
+  mavenCentral()
+  google()
+  mavenLocal()
 }
 
 def isNewArchitectureEnabled() {

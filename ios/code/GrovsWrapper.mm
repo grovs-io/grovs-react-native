@@ -6,6 +6,12 @@
 @implementation GrovsWrapper
 RCT_EXPORT_MODULE()
 
++ (void)initialize {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    GrovsWrapperSwift *wrapper = GrovsWrapperSwift.shared;
+  });
+}
+
 - (instancetype)init {
   //self = [super init];
   if (self) {
@@ -23,6 +29,13 @@ RCT_EXPORT_MODULE()
 
 - (void)addListener:(NSString *)eventName {
   [super addListener:eventName];
+  
+}
+
+- (void)markReadyToHandleDeeplinks {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    GrovsWrapperSwift.shared.bridgeLoaded = YES;
+  });
 }
 
 - (void)removeListeners:(double)count {
@@ -118,6 +131,12 @@ RCT_EXPORT_MODULE()
 
 RCT_EXPORT_MODULE()
 
++ (void)initialize {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    GrovsWrapperSwift *wrapper = GrovsWrapperSwift.shared;
+  });
+}
+
 + (BOOL)requiresMainQueueSetup {
   return YES;
 }
@@ -185,29 +204,29 @@ RCT_EXPORT_METHOD(numberOfUnreadMessages:(RCTPromiseResolveBlock)resolve
 }
 
 RCT_EXPORT_METHOD(generateLink:(NSString *)title
-                        subtitle:(NSString *)subtitle
-                        imageURL:(NSString *)imageURL
-                            data:(NSDictionary *)data
-                            tags:(NSArray *)tags
-                 customRedirects:(NSDictionary *)customRedirects
-                     showPreviewIos:(nonnull NSNumber *)showPreviewIos
-                showPreviewAndroid:(nonnull NSNumber *)showPreviewAndroid
-                         resolve:(RCTPromiseResolveBlock)resolve
-                          reject:(RCTPromiseRejectBlock)reject) {
-//  NSDictionary * redirects = @{@"android": @{@"link": customRedirects.android().link(),
-//                                             @"open_if_app_installed": @(customRedirects.android().open_if_app_installed())},
-//                               @"ios": @{@"link": customRedirects.ios().link(),
-//                                         @"open_if_app_installed": @(customRedirects.ios().open_if_app_installed())},
-//                               @"desktop": @{@"link": customRedirects.desktop().link(),
-//                                             @"open_if_app_installed": @(customRedirects.desktop().open_if_app_installed())},
-//  };
+                  subtitle:(NSString *)subtitle
+                  imageURL:(NSString *)imageURL
+                  data:(NSDictionary *)data
+                  tags:(NSArray *)tags
+                  customRedirects:(NSDictionary *)customRedirects
+                  showPreviewIos:(nonnull NSNumber *)showPreviewIos
+                  showPreviewAndroid:(nonnull NSNumber *)showPreviewAndroid
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  //  NSDictionary * redirects = @{@"android": @{@"link": customRedirects.android().link(),
+  //                                             @"open_if_app_installed": @(customRedirects.android().open_if_app_installed())},
+  //                               @"ios": @{@"link": customRedirects.ios().link(),
+  //                                         @"open_if_app_installed": @(customRedirects.ios().open_if_app_installed())},
+  //                               @"desktop": @{@"link": customRedirects.desktop().link(),
+  //                                             @"open_if_app_installed": @(customRedirects.desktop().open_if_app_installed())},
+  //  };
   [GrovsWrapperSwift.shared generateLinkWithTitle:title
                                          subtitle:subtitle
                                          imageURL:imageURL
                                              data:data
                                              tags:tags
                                   customRedirects:customRedirects
-                                      showPreviewIos:showPreviewIos
+                                   showPreviewIos:showPreviewIos
                                showPreviewAndroid:showPreviewAndroid
                                        completion:^(NSURL * _Nullable link) {
     if (link.absoluteString != nil) {
@@ -217,6 +236,13 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
     }
   }];
 }
+
+RCT_EXPORT_METHOD(markReadyToHandleDeeplinks) {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    GrovsWrapperSwift.shared.bridgeLoaded = YES;
+  });
+}
+
 
 @end
 

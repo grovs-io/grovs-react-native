@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import {
   Text,
   View,
@@ -23,7 +24,7 @@ export default function App() {
     fetchUnreadMessages();
 
     const listener = Grovs.onDeeplinkReceived((data) => {
-      console.log(data);
+      console.log(`Opened link data: ${JSON.stringify(data)}`);
       setLabel1(`Opened link data: ${JSON.stringify(data)}`);
     });
 
@@ -64,15 +65,15 @@ export default function App() {
           },
           ios: {
             link: 'https://www.grovs.io/ios',
-            open_if_app_installed: false,
+            open_if_app_installed: true,
           },
           desktop: {
             link: 'https://www.grovs.io/desktop',
             open_if_app_installed: true,
           },
         },
-        true,
-        true
+        false,
+        false
       );
       console.log(`Generated link: ${link}`);
       setLabel2(`Generated link: ${link}`);

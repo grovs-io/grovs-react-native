@@ -27,12 +27,12 @@ class MainActivity : ReactActivity() {
   override fun onStart() {
     super.onStart()
 
-    Grovs.onStart()
+    Grovs.onStart(launcherActivity = this)
   }
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
 
-    Grovs.onNewIntent(intent)
+    Grovs.onNewIntent(intent, launcherActivity = this)
   }
 }

@@ -34,6 +34,7 @@ interface GrovsWrapperInterface {
   onDeeplinkReceived: (callback: (data: DeeplinkResponse) => void) => {
     remove: () => void;
   };
+  markReadyToHandleDeeplinks(): void;
 }
 
 function hasOnDeeplinkReceived(obj: unknown): obj is {
@@ -233,12 +234,17 @@ class GrovsWrapper implements GrovsWrapperInterface {
 
     log('info', 'Bridge mode - registering callback');
     this.listeners.add(callback);
+    this.markReadyToHandleDeeplinks();
 
     return {
       remove: () => {
         this.listeners.delete(callback);
       },
     };
+  }
+
+  markReadyToHandleDeeplinks(): void {
+    this.module.markReadyToHandleDeeplinks();
   }
 
   // Trigger all listeners when a deeplink is received

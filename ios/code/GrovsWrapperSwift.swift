@@ -4,6 +4,17 @@ import Grovs
 public class GrovsWrapperSwift: NSObject {
   @objc
   public static let shared = GrovsWrapperSwift()
+  @objc
+  public var bridgeLoaded: Bool = false {
+    didSet {
+      if bridgeLoaded, let deferredDeeplinkData {
+        didReceiveDeeplink?(deferredDeeplinkData)
+      }
+      deferredDeeplinkData = nil
+    }
+  }
+  
+  private var deferredDeeplinkData: [String : Any]?
   
   // JS API
   
@@ -119,7 +130,11 @@ extension GrovsWrapperSwift: GrovsDelegate {
     if let payload = payload {
       deeplinkData["data"] = payload
     }
-    didReceiveDeeplink?(deeplinkData)
+    if bridgeLoaded {
+      didReceiveDeeplink?(deeplinkData)
+    } else {
+      deferredDeeplinkData = deeplinkData
+    }
   }
 
 }

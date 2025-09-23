@@ -1,6 +1,9 @@
 package com.grovswrapper
 
 import android.app.Activity
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -15,6 +18,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.grovs.Grovs
 import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
+import io.grovs.utils.flow
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import java.io.Serializable
 
 fun ReadableMap.toMap(): Map<String, Any?> {
@@ -100,6 +106,8 @@ fun List<*>.toWritableArray(): WritableArray {
 
 class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
+
+  private var incomingDeeplinksJob: Job? = null
 
   init {
 
@@ -218,6 +226,44 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
     Grovs.numberOfUnreadMessages {
       it?.let { promise.resolve(it) } ?: promise.reject("Error", "Failed to fetch messages number.")
     }
+  }
+
+  @ReactMethod
+  fun markReadyToHandleDeeplinks(promise: Promise) {
+    val activity: AppCompatActivity? = reactApplicationContext.currentActivity as? AppCompatActivity
+    activity?.let { activity ->
+      incomingDeeplinksJob?.cancel()
+      incomingDeeplinksJob = activity.lifecycleScope.launchWhenStarted {
+        Grovs.Companion::openedLinkDetails.flow.collect { deeplinkDetails ->
+          deeplinkDetails?.let {
+            val writableMap = Arguments.createMap()
+            writableMap.putString("link", it.link)
+            it.data?.let { writableMap.putMap("data", it.toWritableMap()) }
+
+            if (!isActive) {
+              return@collect
+            }
+
+            reactContext
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+              .emit("onGrovsDeeplinkReceived", writableMap)
+            //emitOnDeeplinkReceived(writableMap)
+          }
+        }
+      }
+    }
+
+    promise.resolve(null)
+  }
+
+  @ReactMethod
+  fun addListener(eventName: String?, promise: Promise) {
+    promise.resolve(null)
+  }
+
+  @ReactMethod
+  fun removeListeners(count: Double, promise: Promise) {
+    promise.resolve(null)
   }
 
   // Emit event to JS

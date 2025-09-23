@@ -1,6 +1,9 @@
 package com.grovswrapper
 
 import android.app.Activity
+import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -14,6 +17,11 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.grovs.Grovs
 import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
+import io.grovs.utils.flow
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.io.Serializable
 
 
@@ -102,21 +110,7 @@ fun List<*>.toWritableArray(): WritableArray {
 class GrovsWrapperModule(reactContext: ReactApplicationContext) :
   NativeGrovsWrapperSpec(reactContext) {
 
-  init {
-    val activity: Activity? = reactApplicationContext.currentActivity
-    activity?.let { activity ->
-      Grovs.setOnDeeplinkReceivedListener(activity) { link, payload ->
-        val writableMap = Arguments.createMap()
-        writableMap.putString("link", link)
-        payload?.let { writableMap.putMap("data", it.toWritableMap()) }
-
-        reactApplicationContext
-          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-          .emit("onGrovsDeeplinkReceived", writableMap)
-        //emitOnDeeplinkReceived(writableMap)
-      }
-    }
-  }
+    private var incomingDeeplinksJob: Job? = null
 
   override fun getName(): String {
     return NAME
@@ -231,6 +225,31 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
   override fun removeListeners(count: Double) {
     // Required for Turbo Module event emitters
     // This is called automatically when JS adds a listener
+  }
+
+  override fun markReadyToHandleDeeplinks() {
+    val activity: AppCompatActivity? = reactApplicationContext.currentActivity as? AppCompatActivity
+    activity?.let { activity ->
+      incomingDeeplinksJob?.cancel()
+      incomingDeeplinksJob = activity.lifecycleScope.launchWhenStarted {
+        Grovs.Companion::openedLinkDetails.flow.collect { deeplinkDetails ->
+          deeplinkDetails?.let {
+            val writableMap = Arguments.createMap()
+            writableMap.putString("link", it.link)
+            it.data?.let { writableMap.putMap("data", it.toWritableMap()) }
+
+            if (!isActive) {
+              return@collect
+            }
+
+            reactApplicationContext
+              .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+              .emit("onGrovsDeeplinkReceived", writableMap)
+            //emitOnDeeplinkReceived(writableMap)
+          }
+        }
+      }
+    }
   }
 
   companion object {

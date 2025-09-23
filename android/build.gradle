@@ -6,6 +6,7 @@ buildscript {
   repositories {
     google()
     mavenCentral()
+    mavenLocal()
   }
 
   dependencies {
@@ -99,6 +100,7 @@ android {
 repositories {
   mavenCentral()
   google()
+  mavenLocal()
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -106,7 +108,7 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "io.grovs:Grovs:1.0.14"
+  implementation "io.grovs:grovs:1.0.17"
 }
 
 if (isNewArchitectureEnabled()) {

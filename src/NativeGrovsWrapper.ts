@@ -41,6 +41,8 @@ export interface Spec extends TurboModule {
   //readonly onDeeplinkReceived: EventEmitter<DeeplinkResponse>;
   addListener(eventName: string): void;
   removeListeners(count: number): void;
+
+  markReadyToHandleDeeplinks(): void;
 }
 
 // Get the native module from RN's registry
@@ -127,6 +129,8 @@ export class TurboModuleGrovs {
       'onGrovsDeeplinkReceived',
       callback
     );
+
+    NativeModule?.markReadyToHandleDeeplinks();
     return {
       remove: () => subscription?.remove(),
     };
