@@ -1,5 +1,12 @@
 #import "GrovsWrapper.h"
+#if __has_include(<react_native_grovs_wrapper/react_native_grovs_wrapper-Swift.h>)
+#import <react_native_grovs_wrapper/react_native_grovs_wrapper-Swift.h>
+#elif __has_include("react_native_grovs_wrapper-Swift.h")
 #import "react_native_grovs_wrapper-Swift.h"
+#else
+// Fall back if neither header is found
+#warning "Swift bridging header not found"
+#endif
 
 #ifdef RCT_NEW_ARCH_ENABLED
 
