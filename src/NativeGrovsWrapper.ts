@@ -18,6 +18,11 @@ export interface CustomRedirects {
   android: CustomLinkRedirect;
   desktop: CustomLinkRedirect;
 }
+export interface Tracking {
+  utm_medium?: string;
+  utm_source?: string;
+  utm_campaign?: string;
+}
 
 export interface Spec extends TurboModule {
   setIdentifier(identifier?: string): void;
@@ -33,7 +38,8 @@ export interface Spec extends TurboModule {
     tags?: Array<Any>,
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
-    showPreviewAndroid?: boolean
+    showPreviewAndroid?: boolean,
+    tracking?: Tracking
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
@@ -88,7 +94,8 @@ export class TurboModuleGrovs {
     tags?: Array<Any>,
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
-    showPreviewAndroid?: boolean
+    showPreviewAndroid?: boolean,
+    tracking?: Tracking
   ): Promise<string> {
     if (!NativeModule) {
       throw new Error('Native module GrovsWrapper is not linked');
@@ -102,7 +109,8 @@ export class TurboModuleGrovs {
       tags,
       customRedirects,
       showPreviewIos,
-      showPreviewAndroid
+      showPreviewAndroid,
+      tracking
     );
   }
 

@@ -77,16 +77,23 @@ RCT_EXPORT_MODULE()
      customRedirects:(JS::NativeGrovsWrapper::CustomRedirects &)customRedirects
          showPreviewIos:(NSNumber *)showPreviewIos
       showPreviewAndroid:(NSNumber *)showPreviewAndroid
+            tracking:(JS::NativeGrovsWrapper::Tracking &)tracking
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
   
-  NSDictionary * redirects = @{@"android": @{@"link": customRedirects.android().link(),
+  NSDictionary *redirects = @{@"android": @{@"link": customRedirects.android().link(),
                                              @"open_if_app_installed": @(customRedirects.android().open_if_app_installed())},
                                @"ios": @{@"link": customRedirects.ios().link(),
                                                                           @"open_if_app_installed": @(customRedirects.ios().open_if_app_installed())},
                                @"desktop": @{@"link": customRedirects.desktop().link(),
                                              @"open_if_app_installed": @(customRedirects.desktop().open_if_app_installed())},
   };
+
+  NSDictionary *nativeTracking = @{@"utm_campaign": tracking.utm_campaign(),
+                             @"utm_source": tracking.utm_source(),
+                             @"utm_medium": tracking.utm_medium()
+  };
+  
   [GrovsWrapperSwift.shared generateLinkWithTitle:title
                                          subtitle:subtitle
                                          imageURL:imageURL
@@ -95,6 +102,7 @@ RCT_EXPORT_MODULE()
                                   customRedirects:redirects
                                       showPreviewIos:showPreviewIos
                                showPreviewAndroid:showPreviewAndroid
+                                         tracking:nativeTracking
                                        completion:^(NSURL * _Nullable link) {
     if (link.absoluteString != nil) {
       resolve(link.absoluteString);
@@ -218,6 +226,7 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
                   customRedirects:(NSDictionary *)customRedirects
                   showPreviewIos:(nonnull NSNumber *)showPreviewIos
                   showPreviewAndroid:(nonnull NSNumber *)showPreviewAndroid
+                  tracking:(NSDictionary *)tracking
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
   //  NSDictionary * redirects = @{@"android": @{@"link": customRedirects.android().link(),
@@ -235,6 +244,7 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
                                   customRedirects:customRedirects
                                    showPreviewIos:showPreviewIos
                                showPreviewAndroid:showPreviewAndroid
+                                         tracking:tracking
                                        completion:^(NSURL * _Nullable link) {
     if (link.absoluteString != nil) {
       resolve(link.absoluteString);

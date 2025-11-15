@@ -4,6 +4,7 @@ import type {
   LogLevel,
   DeeplinkResponse,
   CustomRedirects,
+  Tracking,
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
@@ -27,7 +28,8 @@ interface GrovsWrapperInterface {
     tags?: Array<Any>,
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
-    showPreviewAndroid?: boolean
+    showPreviewAndroid?: boolean,
+    tracking?: Tracking
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
@@ -173,7 +175,8 @@ class GrovsWrapper implements GrovsWrapperInterface {
     tags?: Array<Any>,
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
-    showPreviewAndroid?: boolean
+    showPreviewAndroid?: boolean,
+    tracking?: Tracking
   ): Promise<string> {
     try {
       const link = await this.module.generateLink(
@@ -184,7 +187,8 @@ class GrovsWrapper implements GrovsWrapperInterface {
         tags,
         customRedirects,
         showPreviewIos,
-        showPreviewAndroid
+        showPreviewAndroid,
+        tracking
       );
       return link;
     } catch (error) {

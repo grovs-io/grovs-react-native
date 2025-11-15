@@ -65,6 +65,7 @@ public class GrovsWrapperSwift: NSObject {
                                   customRedirects: [String: Any]?,
                                   showPreviewIos: Bool,
                                   showPreviewAndroid: Bool,
+                                  tracking: [String: String]?,
                                   completion: @escaping GrovsURLClosure) {
     let iosRedirect = customRedirects?["ios"] as? [String: Any?]
     let androidRedirect = customRedirects?["android"] as? [String: Any?]
@@ -97,6 +98,9 @@ public class GrovsWrapperSwift: NSObject {
                        customRedirects: redirects,
                        showPreviewiOS: showPreviewIos,
                        showPreviewAndroid: showPreviewAndroid,
+                       trackingCampaign: tracking?["utm_campaign"] as? String,
+                       trackingSource: tracking?["utm_source"] as? String,
+                       trackingMedium: tracking?["utm_medium"] as? String,
                        completion: completion)
   }
   
@@ -121,14 +125,16 @@ public class GrovsWrapperSwift: NSObject {
 }
 
 extension GrovsWrapperSwift: GrovsDelegate {
-
-  public func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?) {
+  public func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
     var deeplinkData = [String : Any]()
-    if let link = link {
+    if let link {
       deeplinkData["link"] = link
     }
-    if let payload = payload {
+    if let payload {
       deeplinkData["data"] = payload
+    }
+    if let tracking {
+      deeplinkData["tracking"] = tracking
     }
     if bridgeLoaded {
       didReceiveDeeplink?(deeplinkData)

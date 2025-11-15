@@ -73,7 +73,12 @@ export default function App() {
           },
         },
         false,
-        false
+        false,
+        {
+          utm_medium: 'social',
+          utm_source: 'social_network',
+          utm_campaign: 'react_native_integration',
+        }
       );
       console.log(`Generated link: ${link}`);
       setLabel2(`Generated link: ${link}`);

@@ -17,6 +17,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.grovs.Grovs
 import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
+import io.grovs.service.TrackingParams
 import io.grovs.utils.flow
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
@@ -148,6 +149,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                             customRedirects: ReadableMap?,
                             showPreviewIos: Boolean?,
                             showPreviewAndroid: Boolean?,
+                            tracking: ReadableMap?,
                             promise: Promise) {
 
     val redirects = customRedirects?.toMap()?.toSerializableMap()
@@ -179,6 +181,17 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
 
     val nativeCustomRedirect = CustomRedirects(ios = nativeCustomRedirectIos, android = nativeCustomRedirectAndroid, desktop = nativeCustomRedirectDesktop)
 
+    val trackingParams = tracking?.toMap()?.toSerializableMap()
+    val utmCampaign = trackingParams?.get("utm_campaign") as? String
+    val utmSource = trackingParams?.get("utm_source") as? String
+    val utmMedium = trackingParams?.get("utm_medium") as? String
+
+    val nativeTracking = TrackingParams(
+      utmCampaign = utmCampaign,
+      utmSource = utmSource,
+      utmMedium = utmMedium
+    )
+
     Grovs.generateLink(title = title,
                         subtitle = subtitle,
                         imageURL = imageURL,
@@ -187,6 +200,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                         customRedirects = nativeCustomRedirect,
                         showPreviewIos = showPreviewIos,
                         showPreviewAndroid = showPreviewIos,
+                        tracking = nativeTracking,
                         lifecycleOwner = null,
                         listener = { link, error ->
                           link?.let { link ->
@@ -237,6 +251,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
             val writableMap = Arguments.createMap()
             writableMap.putString("link", it.link)
             it.data?.let { writableMap.putMap("data", it.toWritableMap()) }
+            it.tracking?.let { writableMap.putMap("tracking", it.toWritableMap()) }
 
             if (!isActive) {
               return@collect

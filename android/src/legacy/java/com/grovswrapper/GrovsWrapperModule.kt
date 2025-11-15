@@ -18,6 +18,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import io.grovs.Grovs
 import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
+import io.grovs.service.TrackingParams
 import io.grovs.utils.flow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -120,10 +121,11 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   fun addDeeplinkListener() {
     val activity: Activity? = reactContext.currentActivity
     activity?.let {
-      Grovs.setOnDeeplinkReceivedListener(it) { link, payload ->
+      Grovs.setOnDeeplinkReceivedListener(it) { details ->
         val writableMap = Arguments.createMap()
-        writableMap.putString("grovs_link", link)
-        payload?.let { writableMap.putMap("data", it.toWritableMap()) }
+        writableMap.putString("grovs_link", details.link)
+        details.data?.let { writableMap.putMap("data", it.toWritableMap()) }
+        details.tracking?.let { writableMap.putMap("tracking", it.toWritableMap()) }
 
         emitOnDeeplinkReceived(writableMap)
       }
@@ -168,6 +170,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
     customRedirects: ReadableMap?,
     showPreviewIos: Boolean?,
     showPreviewAndroid: Boolean?,
+    tracking: ReadableMap?,
     promise: Promise
   ) {
     val redirects = customRedirects?.toMap()?.toSerializableMap()
@@ -194,6 +197,17 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
       }
     )
 
+    val trackingParams = tracking?.toMap()?.toSerializableMap()
+    val utmCampaign = trackingParams?.get("utm_campaign") as? String
+    val utmSource = trackingParams?.get("utm_source") as? String
+    val utmMedium = trackingParams?.get("utm_medium") as? String
+
+    val nativeTracking = TrackingParams(
+      utmCampaign = utmCampaign,
+      utmSource = utmSource,
+      utmMedium = utmMedium
+    )
+
     Grovs.generateLink(
       title = title,
       subtitle = subtitle,
@@ -203,6 +217,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
       customRedirects = nativeCustomRedirect,
       showPreviewIos = showPreviewIos,
       showPreviewAndroid = showPreviewAndroid,
+      tracking = nativeTracking,
       lifecycleOwner = null,
       listener = { link, error ->
         link?.let {
