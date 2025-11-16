@@ -81,18 +81,58 @@ RCT_EXPORT_MODULE()
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
   
-  NSDictionary *redirects = @{@"android": @{@"link": customRedirects.android().link(),
-                                             @"open_if_app_installed": @(customRedirects.android().open_if_app_installed())},
-                               @"ios": @{@"link": customRedirects.ios().link(),
-                                                                          @"open_if_app_installed": @(customRedirects.ios().open_if_app_installed())},
-                               @"desktop": @{@"link": customRedirects.desktop().link(),
-                                             @"open_if_app_installed": @(customRedirects.desktop().open_if_app_installed())},
-  };
+  NSMutableDictionary *redirects = nil;
+  
+  // Check if customRedirects is not null before accessing its properties
+  if (&customRedirects != nullptr) {
+    NSMutableDictionary *androidDict = [NSMutableDictionary dictionary];
+    JS::NativeGrovsWrapper::CustomLinkRedirect android = customRedirects.android();
+    if (&android != nullptr) {
+      if (android.link()) {
+        androidDict[@"link"] = android.link();
+      }
+      androidDict[@"open_if_app_installed"] = @(android.open_if_app_installed());
+    }
+    
+    NSMutableDictionary *iosDict = [NSMutableDictionary dictionary];
+    JS::NativeGrovsWrapper::CustomLinkRedirect ios = customRedirects.ios();
+    if (&ios != nullptr) {
+      if (ios.link()) {
+        iosDict[@"link"] = ios.link();
+      }
+      iosDict[@"open_if_app_installed"] = @(ios.open_if_app_installed());
+    }
+    
+    NSMutableDictionary *desktopDict = [NSMutableDictionary dictionary];
+    JS::NativeGrovsWrapper::CustomLinkRedirect desktop = customRedirects.desktop();
+    if (&desktop != nullptr) {
+      desktopDict[@"link"] = desktop.link();
+    }
+    desktopDict[@"open_if_app_installed"] = @(desktop.open_if_app_installed());
+    
+    redirects = [@{
+      @"android": androidDict,
+      @"ios": iosDict,
+      @"desktop": desktopDict
+    } mutableCopy];
+  }
 
-  NSDictionary *nativeTracking = @{@"utm_campaign": tracking.utm_campaign(),
-                             @"utm_source": tracking.utm_source(),
-                             @"utm_medium": tracking.utm_medium()
-  };
+  NSMutableDictionary *nativeTracking = nil;
+  
+  // Check if tracking is not null before accessing its properties
+  if (&tracking != nullptr) {
+    nativeTracking = [NSMutableDictionary dictionary];
+    
+    if (tracking.utm_campaign()) {
+      nativeTracking[@"utm_campaign"] = tracking.utm_campaign();
+    }
+    if (tracking.utm_source()) {
+      nativeTracking[@"utm_source"] = tracking.utm_source();
+    }
+    if (tracking.utm_medium()) {
+      nativeTracking[@"utm_medium"] = tracking.utm_medium();
+    }
+  }
   
   [GrovsWrapperSwift.shared generateLinkWithTitle:title
                                          subtitle:subtitle
