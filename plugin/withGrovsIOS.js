@@ -67,15 +67,17 @@ function addGrovsImport(contents) {
   );
 }
 
-function addGrovsConfiguration(contents, { apiKey, useTestEnvironment }) {
+function addGrovsConfiguration(
+  contents,
+  { apiKey, useTestEnvironment, baseURL }
+) {
   if (contents.includes('Grovs.configure')) {
     return contents;
   }
 
-  const configCode = [
-    '',
-    `    Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, delegate: nil)`,
-  ].join('\n');
+  const configCode = baseURL
+    ? `\n    Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, baseURL: "${baseURL}", delegate: nil)`
+    : `\n    Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, delegate: nil)`;
 
   // Insert before `return super.application(` in didFinishLaunchingWithOptions
   const returnSuperIndex = contents.indexOf(

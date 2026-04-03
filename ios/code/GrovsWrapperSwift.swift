@@ -121,7 +121,51 @@ public class GrovsWrapperSwift: NSObject {
       Grovs.displayMessagesViewController(completion: completion)
     }
   }
-  
+
+  @objc
+  public func logInAppPurchase(_ transactionId: String, completion: @escaping (_ success: Bool) -> Void) {
+    guard let id = UInt64(transactionId) else {
+      completion(false)
+      return
+    }
+    if #available(iOS 15.0, *) {
+      Grovs.logInAppPurchase(transactionID: id) { success in
+        completion(success)
+      }
+    } else {
+      completion(false)
+    }
+  }
+
+  @objc
+  public func logCustomPurchase(type: String,
+                                priceInCents: Int,
+                                currency: String,
+                                productId: String,
+                                startDate: String?,
+                                completion: @escaping (_ success: Bool) -> Void) {
+    let transactionType: TransactionType
+    switch type {
+    case "cancel": transactionType = .cancel
+    case "refund": transactionType = .refund
+    default: transactionType = .buy
+    }
+
+    var date: Date? = nil
+    if let startDate = startDate {
+      let formatter = ISO8601DateFormatter()
+      date = formatter.date(from: startDate)
+    }
+
+    Grovs.logCustomPurchase(type: transactionType,
+                            priceInCents: priceInCents,
+                            currency: currency,
+                            productID: productId,
+                            startDate: date) { success in
+      completion(success)
+    }
+  }
+
 }
 
 extension GrovsWrapperSwift: GrovsDelegate {

@@ -5,6 +5,7 @@ import type {
   DeeplinkResponse,
   CustomRedirects,
   Tracking,
+  TransactionType,
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
@@ -33,6 +34,14 @@ interface GrovsWrapperInterface {
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
+  logInAppPurchase(transactionId: string): Promise<boolean>;
+  logCustomPurchase(
+    type: TransactionType,
+    priceInCents: number,
+    currency: string,
+    productId: string,
+    startDate?: string
+  ): Promise<boolean>;
   onDeeplinkReceived: (callback: (data: DeeplinkResponse) => void) => {
     remove: () => void;
   };
@@ -224,6 +233,38 @@ class GrovsWrapper implements GrovsWrapperInterface {
     }
   }
 
+  async logInAppPurchase(transactionId: string): Promise<boolean> {
+    try {
+      return await this.module.logInAppPurchase(transactionId);
+    } catch (error) {
+      throw new Error(
+        `Failed to log in-app purchase: ${(error as Error).message}`
+      );
+    }
+  }
+
+  async logCustomPurchase(
+    type: TransactionType,
+    priceInCents: number,
+    currency: string,
+    productId: string,
+    startDate?: string
+  ): Promise<boolean> {
+    try {
+      return await this.module.logCustomPurchase(
+        type,
+        priceInCents,
+        currency,
+        productId,
+        startDate
+      );
+    } catch (error) {
+      throw new Error(
+        `Failed to log custom purchase: ${(error as Error).message}`
+      );
+    }
+  }
+
   /**
    * Event emitter for deeplink received events
    * @returns Event emitter with addListener and removeAllListeners methods
@@ -273,4 +314,5 @@ export type {
   DeeplinkResponse,
   CustomLinkRedirect,
   CustomRedirects,
+  TransactionType,
 } from './NativeGrovsWrapper';

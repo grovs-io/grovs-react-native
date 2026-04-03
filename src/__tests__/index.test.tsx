@@ -7,6 +7,8 @@ const mockGenerateLink = jest.fn();
 const mockDisplayMessages = jest.fn();
 const mockNumberOfUnreadMessages = jest.fn();
 const mockMarkReadyToHandleDeeplinks = jest.fn();
+const mockLogInAppPurchase = jest.fn();
+const mockLogCustomPurchase = jest.fn();
 const mockAddListener = jest.fn(() => ({ remove: jest.fn() }));
 
 jest.mock('react-native', () => {
@@ -30,6 +32,8 @@ jest.mock('react-native', () => {
         displayMessages: mockDisplayMessages,
         numberOfUnreadMessages: mockNumberOfUnreadMessages,
         markReadyToHandleDeeplinks: mockMarkReadyToHandleDeeplinks,
+        logInAppPurchase: mockLogInAppPurchase,
+        logCustomPurchase: mockLogCustomPurchase,
         addListener: mockAddListener,
         removeListeners: jest.fn(),
       },
@@ -313,6 +317,91 @@ describe('GrovsWrapper', () => {
     it('forwards to native module', () => {
       Grovs.markReadyToHandleDeeplinks();
       expect(mockMarkReadyToHandleDeeplinks).toHaveBeenCalled();
+    });
+  });
+
+  describe('logInAppPurchase', () => {
+    it('resolves with true on success', async () => {
+      mockLogInAppPurchase.mockResolvedValue(true);
+      const result = await Grovs.logInAppPurchase('12345');
+      expect(result).toBe(true);
+      expect(mockLogInAppPurchase).toHaveBeenCalledWith('12345');
+    });
+
+    it('throws on native error', async () => {
+      mockLogInAppPurchase.mockRejectedValue(new Error('Purchase failed'));
+      await expect(Grovs.logInAppPurchase('12345')).rejects.toThrow(
+        'Failed to log in-app purchase: Purchase failed'
+      );
+    });
+  });
+
+  describe('logCustomPurchase', () => {
+    it('resolves with true on success', async () => {
+      mockLogCustomPurchase.mockResolvedValue(true);
+      const result = await Grovs.logCustomPurchase(
+        'buy',
+        999,
+        'USD',
+        'premium_monthly'
+      );
+      expect(result).toBe(true);
+      expect(mockLogCustomPurchase).toHaveBeenCalledWith(
+        'buy',
+        999,
+        'USD',
+        'premium_monthly',
+        undefined
+      );
+    });
+
+    it('passes startDate when provided', async () => {
+      mockLogCustomPurchase.mockResolvedValue(true);
+      await Grovs.logCustomPurchase(
+        'buy',
+        999,
+        'USD',
+        'premium_monthly',
+        '2026-01-15T00:00:00Z'
+      );
+      expect(mockLogCustomPurchase).toHaveBeenCalledWith(
+        'buy',
+        999,
+        'USD',
+        'premium_monthly',
+        '2026-01-15T00:00:00Z'
+      );
+    });
+
+    it('supports cancel type', async () => {
+      mockLogCustomPurchase.mockResolvedValue(true);
+      await Grovs.logCustomPurchase('cancel', 999, 'USD', 'premium_monthly');
+      expect(mockLogCustomPurchase).toHaveBeenCalledWith(
+        'cancel',
+        999,
+        'USD',
+        'premium_monthly',
+        undefined
+      );
+    });
+
+    it('supports refund type', async () => {
+      mockLogCustomPurchase.mockResolvedValue(true);
+      await Grovs.logCustomPurchase('refund', 999, 'USD', 'premium_monthly');
+      expect(mockLogCustomPurchase).toHaveBeenCalledWith(
+        'refund',
+        999,
+        'USD',
+        'premium_monthly',
+        undefined
+      );
+    });
+
+    it('throws on native error', async () => {
+      mockLogCustomPurchase.mockRejectedValue(new Error('Track failed'));
+      await expect(
+        Grovs.logCustomPurchase('buy', 999, 'USD', 'product')
+      ).rejects.toThrow('Failed to log custom purchase: Track failed');
     });
   });
 });

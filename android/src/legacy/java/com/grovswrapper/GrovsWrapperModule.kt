@@ -19,6 +19,7 @@ import io.grovs.Grovs
 import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
 import io.grovs.service.TrackingParams
+import io.grovs.model.events.PaymentEventType
 import io.grovs.utils.flow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -241,6 +242,40 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
     Grovs.numberOfUnreadMessages {
       it?.let { promise.resolve(it) } ?: promise.reject("Error", "Failed to fetch messages number.")
     }
+  }
+
+  @ReactMethod
+  fun logInAppPurchase(transactionId: String?, promise: Promise) {
+    if (transactionId == null) {
+      promise.resolve(false)
+      return
+    }
+    Grovs.logInAppPurchase(originalJson = transactionId)
+    promise.resolve(true)
+  }
+
+  @ReactMethod
+  fun logCustomPurchase(
+    type: String,
+    priceInCents: Double,
+    currency: String,
+    productId: String,
+    startDate: String?,
+    promise: Promise
+  ) {
+    val paymentType = when (type) {
+      "cancel" -> PaymentEventType.CANCEL
+      "refund" -> PaymentEventType.REFUND
+      else -> PaymentEventType.BUY
+    }
+
+    Grovs.logCustomPurchase(
+      type = paymentType,
+      priceInCents = priceInCents.toInt(),
+      currency = currency,
+      productId = productId
+    )
+    promise.resolve(true)
   }
 
   @ReactMethod

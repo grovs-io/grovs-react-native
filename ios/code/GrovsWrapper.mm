@@ -170,6 +170,31 @@ RCT_EXPORT_MODULE()
   }];
 }
 
+- (void)logInAppPurchase:(NSString *)transactionId
+                 resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject {
+  [GrovsWrapperSwift.shared logInAppPurchase:transactionId completion:^(BOOL success) {
+    resolve(@(success));
+  }];
+}
+
+- (void)logCustomPurchase:(NSString *)type
+             priceInCents:(double)priceInCents
+                 currency:(NSString *)currency
+                productId:(NSString *)productId
+                startDate:(NSString *)startDate
+                  resolve:(RCTPromiseResolveBlock)resolve
+                   reject:(RCTPromiseRejectBlock)reject {
+  [GrovsWrapperSwift.shared logCustomPurchaseWithType:type
+                                         priceInCents:(NSInteger)priceInCents
+                                             currency:currency
+                                            productId:productId
+                                            startDate:startDate
+                                           completion:^(BOOL success) {
+    resolve(@(success));
+  }];
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
@@ -291,6 +316,31 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
     } else {
       reject(@"100", @"Failed to generate the link!", nil);
     }
+  }];
+}
+
+RCT_EXPORT_METHOD(logInAppPurchase:(NSString *)transactionId
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  [GrovsWrapperSwift.shared logInAppPurchase:transactionId completion:^(BOOL success) {
+    resolve(@(success));
+  }];
+}
+
+RCT_EXPORT_METHOD(logCustomPurchase:(NSString *)type
+                  priceInCents:(double)priceInCents
+                  currency:(NSString *)currency
+                  productId:(NSString *)productId
+                  startDate:(NSString *)startDate
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  [GrovsWrapperSwift.shared logCustomPurchaseWithType:type
+                                         priceInCents:(NSInteger)priceInCents
+                                             currency:currency
+                                            productId:productId
+                                            startDate:startDate
+                                           completion:^(BOOL success) {
+    resolve(@(success));
   }];
 }
 

@@ -24,6 +24,8 @@ export interface Tracking {
   utm_campaign?: string;
 }
 
+export type TransactionType = 'buy' | 'cancel' | 'refund';
+
 export interface Spec extends TurboModule {
   setIdentifier(identifier?: string): void;
   setPushToken(pushToken?: string): void;
@@ -43,6 +45,14 @@ export interface Spec extends TurboModule {
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
+  logInAppPurchase(transactionId: string): Promise<boolean>;
+  logCustomPurchase(
+    type: string,
+    priceInCents: number,
+    currency: string,
+    productId: string,
+    startDate?: string
+  ): Promise<boolean>;
 
   //readonly onDeeplinkReceived: EventEmitter<DeeplinkResponse>;
   addListener(eventName: string): void;
@@ -124,6 +134,32 @@ export class TurboModuleGrovs {
     }
 
     return NativeModule?.numberOfUnreadMessages();
+  }
+
+  async logInAppPurchase(transactionId: string): Promise<boolean> {
+    if (!NativeModule) {
+      throw new Error('Native module GrovsWrapper is not linked');
+    }
+    return NativeModule.logInAppPurchase(transactionId);
+  }
+
+  async logCustomPurchase(
+    type: string,
+    priceInCents: number,
+    currency: string,
+    productId: string,
+    startDate?: string
+  ): Promise<boolean> {
+    if (!NativeModule) {
+      throw new Error('Native module GrovsWrapper is not linked');
+    }
+    return NativeModule.logCustomPurchase(
+      type,
+      priceInCents,
+      currency,
+      productId,
+      startDate
+    );
   }
 
   // Event subscription wrapper

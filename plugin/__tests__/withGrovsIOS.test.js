@@ -75,6 +75,24 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
       expect(result).toContain('useTestEnvironment: false');
     });
 
+    it('adds baseURL when provided', () => {
+      const result = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
+        apiKey: 'key',
+        useTestEnvironment: false,
+        baseURL: 'https://custom.example.com',
+      });
+      expect(result).toContain('baseURL: "https://custom.example.com"');
+    });
+
+    it('omits baseURL when not provided', () => {
+      const result = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
+        apiKey: 'key',
+        useTestEnvironment: false,
+        baseURL: null,
+      });
+      expect(result).not.toContain('baseURL');
+    });
+
     it('does not duplicate configuration', () => {
       const first = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
         apiKey: 'key',

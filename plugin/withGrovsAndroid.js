@@ -93,12 +93,14 @@ function addGrovsImportToMainApplication(contents) {
   );
 }
 
-function addGrovsConfigure(contents, { apiKey, useTestEnvironment }) {
+function addGrovsConfigure(contents, { apiKey, useTestEnvironment, baseURL }) {
   if (contents.includes('Grovs.configure')) {
     return contents;
   }
 
-  const configCode = `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment})\n`;
+  const configCode = baseURL
+    ? `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = "${baseURL}")\n`
+    : `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment})\n`;
 
   // Insert after super.onCreate()
   const superOnCreate = contents.indexOf('super.onCreate()');

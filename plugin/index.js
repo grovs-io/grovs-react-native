@@ -14,6 +14,7 @@ const pkg = require('../package.json');
  * @param {string} props.apiKey - Grovs API key
  * @param {string} props.scheme - Custom URL scheme (e.g., "grovst5abed1b0fdf8")
  * @param {boolean} [props.useTestEnvironment=false] - Use test environment
+ * @param {string|null} [props.baseURL=null] - Optional custom base URL for the Grovs SDK
  * @param {string[]} [props.associatedDomains] - Universal link domains (e.g., ["grovdc41.sqd.link"])
  */
 function withGrovs(config, props) {
@@ -32,6 +33,7 @@ function withGrovs(config, props) {
     apiKey: props.apiKey,
     scheme: props.scheme,
     useTestEnvironment: props.useTestEnvironment ?? false,
+    baseURL: props.baseURL ?? null,
     associatedDomains: props.associatedDomains ?? [],
   };
 
