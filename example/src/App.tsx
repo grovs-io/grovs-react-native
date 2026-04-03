@@ -36,6 +36,7 @@ export default function App() {
   const [label1, setLabel1] = useState('Opened link data:');
   const [label2, setLabel2] = useState('Generated link:');
   const [label3, setLabel3] = useState('Unread messages:');
+  const [label4, setLabel4] = useState('Revenue:');
 
   const handleGenerateLinkPress = () => {
     generateLink();
@@ -87,6 +88,33 @@ export default function App() {
     }
   }
 
+  async function handleLogInAppPurchase() {
+    try {
+      const success = await Grovs.logInAppPurchase('123456789');
+      setLabel4(`In-app purchase: ${success}`);
+      console.log('In-app purchase tracked:', success);
+    } catch (error) {
+      setLabel4(`In-app purchase error: ${error}`);
+      console.log('Error tracking in-app purchase:', error);
+    }
+  }
+
+  async function handleLogCustomPurchase() {
+    try {
+      const success = await Grovs.logCustomPurchase(
+        'buy',
+        999,
+        'USD',
+        'premium_monthly'
+      );
+      setLabel4(`Custom purchase: ${success}`);
+      console.log('Custom purchase tracked:', success);
+    } catch (error) {
+      setLabel4(`Custom purchase error: ${error}`);
+      console.log('Error tracking custom purchase:', error);
+    }
+  }
+
   async function fetchUnreadMessages() {
     try {
       const unreadCount = await Grovs.numberOfUnreadMessages();
@@ -135,6 +163,13 @@ export default function App() {
         title="Show notifications"
         onPress={handleShowNotificationsPress}
       />
+      <View style={{ height: 20 }} />
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>{label4}</Text>
+      </View>
+      <Button title="Log in-app purchase" onPress={handleLogInAppPurchase} />
+      <View style={{ height: 10 }} />
+      <Button title="Log custom purchase" onPress={handleLogCustomPurchase} />
     </View>
   );
 }
