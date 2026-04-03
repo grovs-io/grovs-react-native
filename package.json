@@ -25,6 +25,8 @@
     "cpp",
     "*.podspec",
     "react-native.config.js",
+    "plugin",
+    "app.plugin.js",
     "!ios/build",
     "!android/build",
     "!android/gradle",
@@ -105,11 +107,26 @@
   ],
   "packageManager": "yarn@3.6.1",
   "jest": {
-    "preset": "react-native",
-    "modulePathIgnorePatterns": [
-      "<rootDir>/example/node_modules",
-      "<rootDir>/example_old_arch/node_modules",
-      "<rootDir>/lib/"
+    "projects": [
+      {
+        "preset": "react-native",
+        "displayName": "src",
+        "testMatch": ["<rootDir>/src/**/__tests__/**/*.{ts,tsx,js}"],
+        "modulePathIgnorePatterns": [
+          "<rootDir>/example/node_modules",
+          "<rootDir>/example_old_arch/node_modules",
+          "<rootDir>/lib/"
+        ]
+      },
+      {
+        "displayName": "plugin",
+        "testMatch": ["<rootDir>/plugin/__tests__/*.{ts,tsx,js}"],
+        "testEnvironment": "node",
+        "moduleFileExtensions": ["js", "json"],
+        "moduleNameMapper": {
+          "^expo/config-plugins$": "<rootDir>/plugin/__tests__/__mocks__/expo-config-plugins.js"
+        }
+      }
     ]
   },
   "commitlint": {
