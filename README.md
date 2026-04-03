@@ -26,7 +26,7 @@ Add Grovs Android SDK as a dependency in your `PROJECT_DIR/android/app/build.gra
 
 ```sh
 dependencies {
-  implementation 'io.grovs:Grovs:1.1.0'
+  implementation 'io.grovs:Grovs:1.1.1'
 }
 ```
 
@@ -34,7 +34,37 @@ dependencies {
 
 On iOS the Grovs SDK dependency is added automatically using cocoapods.
 
-## Configuration
+## Expo Integration
+
+If you're using Expo with a development build, the config plugin automates all native setup. Add to your `app.json`:
+
+```json
+{
+  "plugins": [
+    ["react-native-grovs-wrapper", {
+      "apiKey": "your-api-key",
+      "scheme": "your_app_scheme",
+      "useTestEnvironment": false,
+      "associatedDomains": ["your_app_host", "your_app_test_host"],
+      "baseURL": "https://your-custom-domain.com"
+    }]
+  ]
+}
+```
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `apiKey` | Yes | Your Grovs API key |
+| `scheme` | Yes | Custom URL scheme (e.g., `grovst5abed1b0fdf8`) |
+| `useTestEnvironment` | No | Use test environment (default: `false`) |
+| `associatedDomains` | No | Universal link domains for deep linking |
+| `baseURL` | No | Custom base URL for self-hosted backends |
+
+Then run `npx expo prebuild` and build with `npx expo run:ios` / `npx expo run:android`.
+
+> **Note:** This requires a development build (`expo-dev-client`), not Expo Go.
+
+## Manual Configuration
 
 ### Android
 
@@ -47,6 +77,8 @@ override fun onCreate() {
     super.onCreate()
 
     Grovs.configure(this, "your-api-key")
+    // Optional: use a custom base URL for self-hosted backends
+    // Grovs.configure(this, "your-api-key", useTestEnvironment = false, baseURL = "https://your-domain.com")
 }
 ```
 
@@ -106,7 +138,10 @@ import Grovs
 ```swift
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) {
     Grovs.configure(APIKey: "your-api-key", delegate: yourDelegate)
-    # Optionally, you can adjust the debug level for logging:
+    // Optional: use a custom base URL for self-hosted backends
+    // Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, baseURL: "https://your-domain.com", delegate: nil)
+
+    // Optionally, you can adjust the debug level for logging:
     Grovs.setDebug(level: .info)
 
     ... Your other code ...
@@ -210,6 +245,46 @@ To display the list of the messages on top of everything else use:
 ```js
 Grovs.displayMessages();
 ```
+
+### Revenue Tracking
+
+Track in-app purchases and custom revenue events to measure the impact of your deep links.
+
+#### In-App Purchases
+
+For native store purchases, pass the platform-specific transaction identifier:
+
+```js
+// iOS: pass the StoreKit 2 transaction ID as a string
+// Android: pass the Google Play purchase.originalJson string
+try {
+    const success = await Grovs.logInAppPurchase(transactionId);
+    console.log('Purchase tracked:', success);
+} catch (error) {
+    console.log('Error tracking purchase:', error);
+}
+```
+
+#### Custom Purchases
+
+For non-store or custom revenue events:
+
+```js
+try {
+    const success = await Grovs.logCustomPurchase(
+        'buy',           // type: 'buy' | 'cancel' | 'refund'
+        999,             // priceInCents: $9.99
+        'USD',           // currency code
+        'premium_plan',  // product identifier
+        '2026-01-15T00:00:00Z' // optional ISO 8601 start date
+    );
+    console.log('Custom purchase tracked:', success);
+} catch (error) {
+    console.log('Error tracking custom purchase:', error);
+}
+```
+
+> **Note:** Revenue tracking must be enabled in the Grovs dashboard under **Settings > Revenue Tracking**.
 
 ## Demo project
 
