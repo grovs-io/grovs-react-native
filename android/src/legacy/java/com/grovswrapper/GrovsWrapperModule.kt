@@ -254,6 +254,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
             val writableMap = Arguments.createMap()
             writableMap.putString("link", it.link)
             it.data?.let { writableMap.putMap("data", it.toWritableMap()) }
+            it.tracking?.let { writableMap.putMap("tracking", it.toWritableMap()) }
 
             if (!isActive) {
               return@collect
