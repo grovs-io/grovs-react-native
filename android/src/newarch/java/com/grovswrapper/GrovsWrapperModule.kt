@@ -199,7 +199,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                         tags = tags?.toList()?.toStringList(),
                         customRedirects = nativeCustomRedirect,
                         showPreviewIos = showPreviewIos,
-                        showPreviewAndroid = showPreviewIos,
+                        showPreviewAndroid = showPreviewAndroid,
                         tracking = nativeTracking,
                         lifecycleOwner = null,
                         listener = { link, error ->
