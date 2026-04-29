@@ -51,7 +51,7 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
   });
 
   describe('addGrovsConfiguration', () => {
-    it('adds Grovs.configure before return super.application', () => {
+    it('adds Grovs.configure synchronously after super.application returns', () => {
       const result = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
         apiKey: 'test-key-123',
         useTestEnvironment: true,
@@ -59,12 +59,21 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
       expect(result).toContain(
         'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, delegate: nil)'
       );
-      // Should appear before return super.application
-      const configIndex = result.indexOf('Grovs.configure');
-      const returnIndex = result.indexOf(
-        'return super.application(application, didFinishLaunchingWithOptions'
+      // Configure must run AFTER super.application(_:didFinishLaunchingWithOptions:)
+      // returns (the dev-launcher window setup happens inside super; running
+      // configure before super interrupts it and produces a black screen on
+      // Expo SDK 54). It must also be SYNCHRONOUS — deferring with
+      // DispatchQueue.main.async breaks the Grovs SDK's background NSURLSession
+      // and `generateLink` calls hang forever.
+      const superCallIndex = result.indexOf(
+        'let didFinishLaunchingResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)'
       );
-      expect(configIndex).toBeLessThan(returnIndex);
+      const configIndex = result.indexOf('Grovs.configure');
+      const returnIndex = result.indexOf('return didFinishLaunchingResult');
+      expect(superCallIndex).toBeGreaterThan(-1);
+      expect(configIndex).toBeGreaterThan(superCallIndex);
+      expect(returnIndex).toBeGreaterThan(configIndex);
+      expect(result).not.toContain('DispatchQueue.main.async');
     });
 
     it('uses false for production environment', () => {

@@ -3,7 +3,36 @@ const {
   withAndroidManifest,
   withMainApplication,
   withMainActivity,
+  withAppBuildGradle,
 } = require('expo/config-plugins');
+
+// Pinned to match the Grovs SDK version the wrapper depends on
+// (`react-native-grovs-wrapper@1.0.0` declares `implementation
+// "io.grovs:Grovs:1.1.1"` in its own build.gradle, but uses `implementation`
+// not `api` so the dep isn't transitively visible to the consuming app
+// module — and the plugin injects `import io.grovs.Grovs` into MainActivity /
+// MainApplication, so the app module needs its own dependency to compile.).
+const GROVS_ANDROID_DEP = `implementation 'io.grovs:Grovs:1.1.1'`;
+const GROVS_ANDROID_DEP_MARKER = '// react-native-grovs-wrapper:dep';
+
+function withGrovsAppDependency(config) {
+  return withAppBuildGradle(config, (config) => {
+    if (config.modResults.contents.includes(GROVS_ANDROID_DEP_MARKER)) {
+      return config;
+    }
+    // Insert the implementation line just before the closing `}` of the
+    // top-level `dependencies { ... }` block.
+    const depsBlockRegex = /(dependencies\s*\{[\s\S]*?)(\n\s*\})/;
+    const match = config.modResults.contents.match(depsBlockRegex);
+    if (match) {
+      config.modResults.contents = config.modResults.contents.replace(
+        depsBlockRegex,
+        `$1\n    ${GROVS_ANDROID_DEP} ${GROVS_ANDROID_DEP_MARKER}$2`
+      );
+    }
+    return config;
+  });
+}
 
 function withGrovsManifest(config, { scheme, associatedDomains }) {
   return withAndroidManifest(config, (config) => {
@@ -118,7 +147,7 @@ function addGrovsConfigure(contents, { apiKey, useTestEnvironment, baseURL }) {
 
 function withGrovsMainApplication(config, props) {
   return withMainApplication(config, (config) => {
-    if (config.modResults.language !== 'kotlin') {
+    if (config.modResults.language !== 'kt') {
       throw new Error(
         'react-native-grovs-wrapper config plugin requires a Kotlin MainApplication. ' +
           'Java MainApplication is not supported.'
@@ -204,7 +233,7 @@ function insertBeforeClosingBrace(contents, code) {
 
 function withGrovsMainActivity(config) {
   return withMainActivity(config, (config) => {
-    if (config.modResults.language !== 'kotlin') {
+    if (config.modResults.language !== 'kt') {
       throw new Error(
         'react-native-grovs-wrapper config plugin requires a Kotlin MainActivity. ' +
           'Java MainActivity is not supported.'
@@ -226,6 +255,7 @@ function withGrovsAndroid(config, props) {
   config = withGrovsManifest(config, props);
   config = withGrovsMainApplication(config, props);
   config = withGrovsMainActivity(config);
+  config = withGrovsAppDependency(config);
   return config;
 }
 
