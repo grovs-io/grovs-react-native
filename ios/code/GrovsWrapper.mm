@@ -74,63 +74,49 @@ RCT_EXPORT_MODULE()
             imageURL:(NSString *)imageURL
                 data:(NSDictionary *)data
                 tags:(NSArray *)tags
-     customRedirects:(JS::NativeGrovsWrapper::CustomRedirects &)customRedirects
+     customRedirects:(NSDictionary *)customRedirects
          showPreviewIos:(NSNumber *)showPreviewIos
       showPreviewAndroid:(NSNumber *)showPreviewAndroid
-            tracking:(JS::NativeGrovsWrapper::Tracking &)tracking
+            tracking:(NSDictionary *)tracking
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
   
   NSMutableDictionary *redirects = nil;
-  
-  // Check if customRedirects is not null before accessing its properties
-  if (&customRedirects != nullptr) {
-    NSMutableDictionary *androidDict = [NSMutableDictionary dictionary];
-    JS::NativeGrovsWrapper::CustomLinkRedirect android = customRedirects.android();
-    if (&android != nullptr) {
-      if (android.link()) {
-        androidDict[@"link"] = android.link();
-      }
-      androidDict[@"open_if_app_installed"] = @(android.open_if_app_installed());
-    }
-    
-    NSMutableDictionary *iosDict = [NSMutableDictionary dictionary];
-    JS::NativeGrovsWrapper::CustomLinkRedirect ios = customRedirects.ios();
-    if (&ios != nullptr) {
-      if (ios.link()) {
-        iosDict[@"link"] = ios.link();
-      }
-      iosDict[@"open_if_app_installed"] = @(ios.open_if_app_installed());
-    }
-    
-    NSMutableDictionary *desktopDict = [NSMutableDictionary dictionary];
-    JS::NativeGrovsWrapper::CustomLinkRedirect desktop = customRedirects.desktop();
-    if (&desktop != nullptr) {
-      desktopDict[@"link"] = desktop.link();
-    }
-    desktopDict[@"open_if_app_installed"] = @(desktop.open_if_app_installed());
-    
+
+  if ([customRedirects isKindOfClass:[NSDictionary class]]) {
+    NSMutableDictionary *(^extract)(NSDictionary *, BOOL) =
+      ^NSMutableDictionary *(NSDictionary *src, BOOL includeOpenFlag) {
+        NSMutableDictionary *out = [NSMutableDictionary dictionary];
+        if ([src isKindOfClass:[NSDictionary class]]) {
+          id link = src[@"link"];
+          if ([link isKindOfClass:[NSString class]]) {
+            out[@"link"] = link;
+          }
+          if (includeOpenFlag) {
+            id flag = src[@"open_if_app_installed"];
+            if ([flag respondsToSelector:@selector(boolValue)]) {
+              out[@"open_if_app_installed"] = @([flag boolValue]);
+            }
+          }
+        }
+        return out;
+      };
+
     redirects = [@{
-      @"android": androidDict,
-      @"ios": iosDict,
-      @"desktop": desktopDict
+      @"android": extract(customRedirects[@"android"], YES),
+      @"ios":     extract(customRedirects[@"ios"],     YES),
+      @"desktop": extract(customRedirects[@"desktop"], YES),
     } mutableCopy];
   }
 
   NSMutableDictionary *nativeTracking = nil;
-  
-  // Check if tracking is not null before accessing its properties
-  if (&tracking != nullptr) {
+  if ([tracking isKindOfClass:[NSDictionary class]]) {
     nativeTracking = [NSMutableDictionary dictionary];
-    
-    if (tracking.utm_campaign()) {
-      nativeTracking[@"utm_campaign"] = tracking.utm_campaign();
-    }
-    if (tracking.utm_source()) {
-      nativeTracking[@"utm_source"] = tracking.utm_source();
-    }
-    if (tracking.utm_medium()) {
-      nativeTracking[@"utm_medium"] = tracking.utm_medium();
+    for (NSString *key in @[@"utm_campaign", @"utm_source", @"utm_medium"]) {
+      id value = tracking[key];
+      if ([value isKindOfClass:[NSString class]]) {
+        nativeTracking[key] = value;
+      }
     }
   }
   

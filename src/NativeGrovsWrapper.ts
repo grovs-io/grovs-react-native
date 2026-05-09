@@ -38,10 +38,10 @@ export interface Spec extends TurboModule {
     imageURL?: string,
     data?: { [key: string]: Any },
     tags?: Array<Any>,
-    customRedirects?: CustomRedirects,
+    customRedirects?: { [key: string]: Any },
     showPreviewIos?: boolean,
     showPreviewAndroid?: boolean,
-    tracking?: Tracking
+    tracking?: { [key: string]: Any }
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
@@ -117,10 +117,10 @@ export class TurboModuleGrovs {
       imageURL,
       data,
       tags,
-      customRedirects,
+      customRedirects as { [key: string]: Any } | undefined,
       showPreviewIos,
       showPreviewAndroid,
-      tracking
+      tracking as { [key: string]: Any } | undefined
     );
   }
 
