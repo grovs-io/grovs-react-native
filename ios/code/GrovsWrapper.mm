@@ -20,7 +20,7 @@ RCT_EXPORT_MODULE()
 }
 
 - (instancetype)init {
-  //self = [super init];
+  self = [super init];
   if (self) {
     GrovsWrapperSwift.shared.didReceiveDeeplink = ^(NSDictionary<NSString *,id> * _Nonnull payload) {
       //[self emitOnDeeplinkReceived:payload];
