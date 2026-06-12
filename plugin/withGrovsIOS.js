@@ -56,14 +56,17 @@ function addGrovsImport(contents) {
   if (contents.includes('import Grovs')) {
     return contents;
   }
+  // Both the SDK module and the wrapper module (for GrovsWrapperSwift.shared,
+  // passed as the configure delegate below).
+  const imports = 'import Grovs\nimport react_native_grovs_wrapper';
   // Add after the last import statement
   const lastImportIndex = contents.lastIndexOf('\nimport ');
   if (lastImportIndex === -1) {
-    return `import Grovs\n${contents}`;
+    return `${imports}\n${contents}`;
   }
   const endOfLine = contents.indexOf('\n', lastImportIndex + 1);
   return (
-    contents.slice(0, endOfLine) + '\nimport Grovs' + contents.slice(endOfLine)
+    contents.slice(0, endOfLine) + '\n' + imports + contents.slice(endOfLine)
   );
 }
 
@@ -76,8 +79,8 @@ function addGrovsConfiguration(
   }
 
   const configLine = baseURL
-    ? `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, baseURL: "${baseURL}", delegate: nil)`
-    : `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, delegate: nil)`;
+    ? `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, baseURL: "${baseURL}", delegate: GrovsWrapperSwift.shared)`
+    : `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, delegate: GrovsWrapperSwift.shared)`;
 
   // Run Grovs.configure synchronously AFTER super.application(_:didFinishLaunchingWithOptions:)
   // returns. Two constraints to satisfy at once:
