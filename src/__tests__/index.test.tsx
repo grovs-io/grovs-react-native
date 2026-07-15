@@ -465,4 +465,25 @@ describe('GrovsWrapper', () => {
       expect(mockSetScreenAliases).toHaveBeenCalledWith({ Home: 'Home Page' });
     });
   });
+
+  describe('startScreenTracking', () => {
+    it('tracks screens through trackScreenView', () => {
+      let stateCallback: () => void = () => {};
+      let route = { name: 'Home' };
+      const ref = {
+        getCurrentRoute: () => route,
+        addListener: (_type: string, cb: () => void) => {
+          stateCallback = cb;
+          return jest.fn();
+        },
+      };
+
+      Grovs.startScreenTracking(ref as any);
+      expect(mockTrackScreenView).toHaveBeenCalledWith('Home', undefined);
+
+      route = { name: 'Profile' };
+      stateCallback();
+      expect(mockTrackScreenView).toHaveBeenCalledWith('Profile', undefined);
+    });
+  });
 });

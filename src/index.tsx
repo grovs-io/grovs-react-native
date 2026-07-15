@@ -9,6 +9,8 @@ import type {
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
+import { startScreenTracking } from './ScreenTracking';
+import type { NavigationContainerRefLike } from './ScreenTracking';
 
 const LINKING_ERROR = `The package 'react-native-grovs-wrapper' doesn't seem to be linked. Make sure you properly integrated the native bindings.`;
 
@@ -225,6 +227,26 @@ class GrovsWrapper implements GrovsWrapperInterface {
   }
 
   /**
+   * Automatically track React Navigation screen changes as screen views.
+   * Call from NavigationContainer's onReady:
+   *
+   * ```tsx
+   * const navigationRef = useNavigationContainerRef();
+   * <NavigationContainer
+   *   ref={navigationRef}
+   *   onReady={() => Grovs.startScreenTracking(navigationRef)}>
+   * ```
+   *
+   * @param navigationRef - The navigation container ref
+   * @returns An unsubscribe function that stops tracking
+   */
+  startScreenTracking(navigationRef: NavigationContainerRefLike): () => void {
+    return startScreenTracking(navigationRef, (screenName) =>
+      this.trackScreenView(screenName)
+    );
+  }
+
+  /**
    * Generate a deep link
    * @param title - Link title
    * @param subtitle - Link subtitle
@@ -375,3 +397,4 @@ export type {
   CustomRedirects,
   TransactionType,
 } from './NativeGrovsWrapper';
+export type { NavigationContainerRefLike } from './ScreenTracking';
