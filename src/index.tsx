@@ -114,6 +114,7 @@ if (!GrovsWrapperModule) {
 class GrovsWrapper implements GrovsWrapperInterface {
   private module: GrovsWrapperInterface;
   private listeners: Set<(data: DeeplinkResponse) => void> = new Set();
+  private stopScreenTracking?: () => void;
 
   constructor() {
     this.module = GrovsWrapperModule;
@@ -237,13 +238,19 @@ class GrovsWrapper implements GrovsWrapperInterface {
    *   onReady={() => Grovs.startScreenTracking(navigationRef)}>
    * ```
    *
+   * Calling this again replaces the previous subscription: the earlier
+   * listener is unsubscribed first, so screens are never double-tracked
+   * (e.g. when onReady fires again after a container remount).
+   *
    * @param navigationRef - The navigation container ref
    * @returns An unsubscribe function that stops tracking
    */
   startScreenTracking(navigationRef: NavigationContainerRefLike): () => void {
-    return startScreenTracking(navigationRef, (screenName) =>
+    this.stopScreenTracking?.();
+    this.stopScreenTracking = startScreenTracking(navigationRef, (screenName) =>
       this.trackScreenView(screenName)
     );
+    return this.stopScreenTracking;
   }
 
   /**

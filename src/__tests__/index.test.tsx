@@ -485,5 +485,34 @@ describe('GrovsWrapper', () => {
       stateCallback();
       expect(mockTrackScreenView).toHaveBeenCalledWith('Profile', undefined);
     });
+
+    it('replaces the previous subscription when called again', () => {
+      // Faithful fake: unsubscribing removes the listener, like React Navigation
+      let route = { name: 'Home' };
+      const listeners = new Set<() => void>();
+      const unsubscribes: Array<jest.Mock> = [];
+      const ref = {
+        getCurrentRoute: () => route,
+        addListener: (_type: string, cb: () => void) => {
+          listeners.add(cb);
+          const unsubscribe = jest.fn(() => listeners.delete(cb));
+          unsubscribes.push(unsubscribe);
+          return unsubscribe;
+        },
+      };
+
+      Grovs.startScreenTracking(ref as any);
+      Grovs.startScreenTracking(ref as any);
+
+      // The first subscription was torn down on the second start
+      expect(unsubscribes[0]).toHaveBeenCalledTimes(1);
+
+      // A navigation is tracked exactly once, not once per start call
+      mockTrackScreenView.mockClear();
+      route = { name: 'Profile' };
+      listeners.forEach((cb) => cb());
+      expect(mockTrackScreenView).toHaveBeenCalledTimes(1);
+      expect(mockTrackScreenView).toHaveBeenCalledWith('Profile', undefined);
+    });
   });
 });
