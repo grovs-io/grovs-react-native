@@ -125,6 +125,18 @@ export default function App() {
     }
   }
 
+  const handleTrackEvent = () => {
+    Grovs.track('example_event', { source: 'example_app', count: 1 }, ['demo']);
+  };
+
+  const handleTrackScreenView = () => {
+    Grovs.trackScreenView('ExampleScreen', { origin: 'button' });
+  };
+
+  const handleSetGlobalTags = () => {
+    Grovs.setGlobalTags(['example-global']);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
@@ -170,6 +182,12 @@ export default function App() {
       <Button title="Log in-app purchase" onPress={handleLogInAppPurchase} />
       <View style={{ height: 10 }} />
       <Button title="Log custom purchase" onPress={handleLogCustomPurchase} />
+      <View style={{ height: 20 }} />
+      <Button title="Track event" onPress={handleTrackEvent} />
+      <View style={{ height: 10 }} />
+      <Button title="Track screen view" onPress={handleTrackScreenView} />
+      <View style={{ height: 10 }} />
+      <Button title="Set global tags" onPress={handleSetGlobalTags} />
     </View>
   );
 }
