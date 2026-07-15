@@ -29,6 +29,7 @@ The Grovs React Native SDK provides deep linking, universal links, app links, li
 - **In-app messaging** — display messages and announcements from the Grovs dashboard
 - **Push notifications** — receive push notifications for dashboard-sent messages
 - **Revenue tracking** — log App Store, Google Play, and custom purchases with automatic attribution
+- **Analytics** — automatic lifecycle events, custom events, and screen tracking
 - **User identity** — attach user IDs and attributes for analytics and segmentation
 - **Self-hosting support** — point the SDK at your own backend
 - **Expo support** — config plugin for automated native setup
@@ -55,7 +56,7 @@ Add the Grovs Android SDK to `android/app/build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'io.grovs:Grovs:1.1.1'
+    implementation 'io.grovs:Grovs:1.2.0'
 }
 ```
 
@@ -102,9 +103,9 @@ Then run `npx expo prebuild` and build with `npx expo run:ios` / `npx expo run:a
 ```kotlin
 override fun onCreate() {
     super.onCreate()
-    Grovs.configure(this, "your-api-key", useTestEnvironment = false)
+    Grovs.configure(this, "your-api-key", useTestEnvironment = false, baseURL = null, autoTrackScreenViews = false)
     // Optional: use a custom base URL for self-hosted backends
-    // Grovs.configure(this, "your-api-key", useTestEnvironment = false, baseURL = "https://your-domain.com")
+    // Grovs.configure(this, "your-api-key", useTestEnvironment = false, baseURL = "https://your-domain.com", autoTrackScreenViews = false)
 }
 ```
 
@@ -158,9 +159,9 @@ override fun onNewIntent(intent: Intent?) {
 import Grovs
 
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, delegate: self)
+    Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, autoTrackScreenViews: false, delegate: self)
     // Optional: use a custom base URL for self-hosted backends
-    // Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, baseURL: "https://your-domain.com", delegate: self)
+    // Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, baseURL: "https://your-domain.com", autoTrackScreenViews: false, delegate: self)
     Grovs.setDebug(level: .info)
     return true
 }
@@ -322,6 +323,82 @@ const success = await Grovs.logCustomPurchase(
 
 Use `'cancel'` and `'refund'` types for cancellations and refunds. For store purchases, these are detected automatically via platform server notifications.
 
+## Analytics
+
+### Automatic events
+
+Lifecycle events — `install`, `reinstall`, `app_open`, `reactivation`, and `time_spent` — are captured automatically by the native SDKs. No setup required.
+
+### Custom events
+
+```tsx
+Grovs.track('purchase', { item_id: 'sku-42', price: 19.99 }, ['promo']);
+```
+
+Event names must not be empty or use a reserved system name (`view`, `open`, `install`, `reinstall`, `app_open`, `time_spent`, `reactivation`, `user_referred`, `custom`, `screen_view`). Properties are dropped if they serialize to more than 8KB, and tags are capped at 20 (255 characters each).
+
+### Global tags
+
+Attach tags to every subsequently tracked event:
+
+```tsx
+Grovs.setGlobalTags(['beta']);
+
+// Clear global tags
+Grovs.setGlobalTags();
+```
+
+### Screen tracking
+
+With React Navigation, one line enables automatic screen view tracking:
+
+```tsx
+import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import Grovs from 'react-native-grovs-wrapper';
+
+function App() {
+  const navigationRef = useNavigationContainerRef();
+  return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => Grovs.startScreenTracking(navigationRef)}>
+      {/* navigators */}
+    </NavigationContainer>
+  );
+}
+```
+
+`startScreenTracking` returns an unsubscribe function, and calling it again replaces the previous subscription — screens are never double-tracked. Consecutive duplicate screen views within 1 second are deduplicated natively.
+
+For Expo Router or custom navigators, track screens manually:
+
+```tsx
+Grovs.trackScreenView('Checkout', { section: 'payment' });
+```
+
+Map screen names to friendly names shown in the Grovs dashboard:
+
+```tsx
+Grovs.setScreenAliases({ Home: 'Home Page' });
+```
+
+### Native screen tracking
+
+The native SDKs' own automatic screen tracking only sees the single React Native host Activity/ViewController, so it should be disabled in React Native apps:
+
+- **Expo** — the config plugin disables it automatically. If you're upgrading the plugin, re-run `npx expo prebuild --clean`.
+- **Manual / bare React Native** — pass `autoTrackScreenViews: false` in the native configure calls:
+
+```swift
+// iOS
+Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, delegate: nil)
+```
+
+```kotlin
+// Android
+Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, autoTrackScreenViews = false)
+```
+
 ## API Reference
 
 ### Key Methods
@@ -339,6 +416,11 @@ Use `'cancel'` and `'refund'` types for cancellations and refunds. For store pur
 | `numberOfUnreadMessages()` | Get unread message count |
 | `logInAppPurchase(transactionId)` | Log a store purchase |
 | `logCustomPurchase(type, priceInCents, currency, productId, startDate)` | Log a custom purchase |
+| `track(name, properties, tags)` | Track a custom analytics event |
+| `trackScreenView(screenName, properties)` | Track a screen view |
+| `setGlobalTags(tags)` | Attach tags to every subsequent event (call with no args to clear) |
+| `setScreenAliases(aliases)` | Map screen names to friendly dashboard names |
+| `startScreenTracking(navigationRef)` | Auto-track React Navigation screen changes (returns unsubscribe) |
 
 Full API reference: [docs.grovs.io/docs/sdk/react-native/api-reference](https://docs.grovs.io/docs/sdk/react-native/api-reference)
 
