@@ -127,9 +127,13 @@ function addGrovsConfigure(contents, { apiKey, useTestEnvironment, baseURL }) {
     return contents;
   }
 
+  // autoTrackScreenViews is disabled: native screen tracking only sees
+  // MainActivity. JS-level screens are tracked via Grovs.startScreenTracking
+  // / trackScreenView instead. The 5-arg configure overload has no default
+  // for baseURL, so pass null explicitly.
   const configCode = baseURL
-    ? `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = "${baseURL}")\n`
-    : `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment})\n`;
+    ? `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = "${baseURL}", autoTrackScreenViews = false)\n`
+    : `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = null, autoTrackScreenViews = false)\n`;
 
   // Insert after super.onCreate()
   const superOnCreate = contents.indexOf('super.onCreate()');

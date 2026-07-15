@@ -78,9 +78,12 @@ function addGrovsConfiguration(
     return contents;
   }
 
+  // autoTrackScreenViews is disabled: native screen tracking only sees the
+  // single RN host view controller. JS-level screens are tracked via
+  // Grovs.startScreenTracking / trackScreenView instead.
   const configLine = baseURL
-    ? `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, baseURL: "${baseURL}", delegate: GrovsWrapperSwift.shared)`
-    : `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, delegate: GrovsWrapperSwift.shared)`;
+    ? `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, baseURL: "${baseURL}", autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)`
+    : `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)`;
 
   // Run Grovs.configure synchronously AFTER super.application(_:didFinishLaunchingWithOptions:)
   // returns. Two constraints to satisfy at once:
