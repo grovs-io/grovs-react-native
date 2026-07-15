@@ -68,7 +68,7 @@ describe('withGrovsAndroid - MainApplication transforms', () => {
         useTestEnvironment: true,
       });
       expect(result).toContain(
-        'Grovs.configure(this, "test-key", useTestEnvironment = true)'
+        'Grovs.configure(this, "test-key", useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false)'
       );
       const configIndex = result.indexOf('Grovs.configure');
       const superIndex = result.indexOf('super.onCreate()');
@@ -89,16 +89,21 @@ describe('withGrovsAndroid - MainApplication transforms', () => {
         useTestEnvironment: false,
         baseURL: 'https://custom.example.com',
       });
-      expect(result).toContain('baseURL = "https://custom.example.com"');
+      expect(result).toContain(
+        'Grovs.configure(this, "key", useTestEnvironment = false, baseURL = "https://custom.example.com", autoTrackScreenViews = false)'
+      );
     });
 
-    it('omits baseURL when not provided', () => {
+    it('passes baseURL = null when not provided', () => {
+      // The 5-arg configure overload (with autoTrackScreenViews) has no
+      // default for baseURL, so the generated call must pass null explicitly.
       const result = addGrovsConfigure(SAMPLE_MAIN_APPLICATION, {
         apiKey: 'key',
         useTestEnvironment: false,
         baseURL: null,
       });
-      expect(result).not.toContain('baseURL');
+      expect(result).toContain('baseURL = null');
+      expect(result).not.toContain('baseURL = "');
     });
 
     it('does not duplicate configuration', () => {

@@ -57,7 +57,7 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
         useTestEnvironment: true,
       });
       expect(result).toContain(
-        'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, delegate: nil)'
+        'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)'
       );
       // Configure must run AFTER super.application(_:didFinishLaunchingWithOptions:)
       // returns (the dev-launcher window setup happens inside super; running
@@ -90,7 +90,9 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
         useTestEnvironment: false,
         baseURL: 'https://custom.example.com',
       });
-      expect(result).toContain('baseURL: "https://custom.example.com"');
+      expect(result).toContain(
+        'Grovs.configure(APIKey: "key", useTestEnvironment: false, baseURL: "https://custom.example.com", autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)'
+      );
     });
 
     it('omits baseURL when not provided', () => {
