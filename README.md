@@ -391,7 +391,7 @@ The native SDKs' own automatic screen tracking only sees the single React Native
 
 ```swift
 // iOS
-Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, delegate: nil)
+Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, delegate: self)
 ```
 
 ```kotlin
