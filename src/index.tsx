@@ -21,6 +21,17 @@ interface GrovsWrapperInterface {
   setAttributes(attributes?: { [key: string]: Any }): void;
   setSDK(enabled: boolean): void;
   setDebug(level: LogLevel): void;
+  track(
+    name: string,
+    properties?: { [key: string]: Any },
+    tags?: Array<string>
+  ): void;
+  trackScreenView(
+    screenName: string,
+    properties?: { [key: string]: Any }
+  ): void;
+  setGlobalTags(tags?: Array<string>): void;
+  setScreenAliases(aliases: { [key: string]: string }): void;
   generateLink(
     title?: string,
     subtitle?: string,
@@ -163,6 +174,54 @@ class GrovsWrapper implements GrovsWrapperInterface {
    */
   setDebug(level: LogLevel): void {
     this.module.setDebug(level);
+  }
+
+  /**
+   * Track a custom analytics event.
+   *
+   * Validation happens natively: the name must not be empty or a reserved
+   * system event name (view, open, install, reinstall, app_open, time_spent,
+   * reactivation, user_referred, custom, screen_view); properties over 8KB
+   * are dropped; tags are capped at 20.
+   * @param name - Event name
+   * @param properties - Optional event properties
+   * @param tags - Optional tags, merged with global tags
+   */
+  track(
+    name: string,
+    properties?: { [key: string]: Any },
+    tags?: Array<string>
+  ): void {
+    this.module.track(name, properties, tags);
+  }
+
+  /**
+   * Track a screen view event. Consecutive duplicates within 1 second are
+   * deduplicated natively.
+   * @param screenName - Name of the screen being viewed
+   * @param properties - Optional additional properties
+   */
+  trackScreenView(
+    screenName: string,
+    properties?: { [key: string]: Any }
+  ): void {
+    this.module.trackScreenView(screenName, properties);
+  }
+
+  /**
+   * Set tags attached to every subsequently tracked event.
+   * @param tags - Tags to attach, or undefined to clear
+   */
+  setGlobalTags(tags?: Array<string>): void {
+    this.module.setGlobalTags(tags);
+  }
+
+  /**
+   * Map screen identifiers to friendly names shown in the Grovs dashboard.
+   * @param aliases - e.g. { Home: 'Home Page' }
+   */
+  setScreenAliases(aliases: { [key: string]: string }): void {
+    this.module.setScreenAliases(aliases);
   }
 
   /**

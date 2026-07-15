@@ -53,6 +53,17 @@ export interface Spec extends TurboModule {
     productId: string,
     startDate?: string
   ): Promise<boolean>;
+  track(
+    name: string,
+    properties?: { [key: string]: Any },
+    tags?: Array<string>
+  ): void;
+  trackScreenView(
+    screenName: string,
+    properties?: { [key: string]: Any }
+  ): void;
+  setGlobalTags(tags?: Array<string>): void;
+  setScreenAliases(aliases: { [key: string]: string }): void;
 
   //readonly onDeeplinkReceived: EventEmitter<DeeplinkResponse>;
   addListener(eventName: string): void;
@@ -94,6 +105,26 @@ export class TurboModuleGrovs {
 
   setDebug(level: LogLevel) {
     NativeModule?.setDebug(level);
+  }
+
+  track(
+    name: string,
+    properties?: { [key: string]: Any },
+    tags?: Array<string>
+  ) {
+    NativeModule?.track(name, properties, tags);
+  }
+
+  trackScreenView(screenName: string, properties?: { [key: string]: Any }) {
+    NativeModule?.trackScreenView(screenName, properties);
+  }
+
+  setGlobalTags(tags?: Array<string>) {
+    NativeModule?.setGlobalTags(tags);
+  }
+
+  setScreenAliases(aliases: { [key: string]: string }) {
+    NativeModule?.setScreenAliases(aliases);
   }
 
   async generateLink(
