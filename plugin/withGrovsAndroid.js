@@ -7,12 +7,12 @@ const {
 } = require('expo/config-plugins');
 
 // Pinned to match the Grovs SDK version the wrapper depends on
-// (`react-native-grovs-wrapper@1.0.0` declares `implementation
-// "io.grovs:Grovs:1.1.1"` in its own build.gradle, but uses `implementation`
+// (`react-native-grovs-wrapper` declares `implementation
+// "io.grovs:Grovs:1.2.0"` in its own build.gradle, but uses `implementation`
 // not `api` so the dep isn't transitively visible to the consuming app
 // module — and the plugin injects `import io.grovs.Grovs` into MainActivity /
 // MainApplication, so the app module needs its own dependency to compile.).
-const GROVS_ANDROID_DEP = `implementation 'io.grovs:Grovs:1.1.1'`;
+const GROVS_ANDROID_DEP = `implementation 'io.grovs:Grovs:1.2.0'`;
 const GROVS_ANDROID_DEP_MARKER = '// react-native-grovs-wrapper:dep';
 
 function withGrovsAppDependency(config) {
