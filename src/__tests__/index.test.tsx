@@ -9,6 +9,10 @@ const mockNumberOfUnreadMessages = jest.fn();
 const mockMarkReadyToHandleDeeplinks = jest.fn();
 const mockLogInAppPurchase = jest.fn();
 const mockLogCustomPurchase = jest.fn();
+const mockTrack = jest.fn();
+const mockTrackScreenView = jest.fn();
+const mockSetGlobalTags = jest.fn();
+const mockSetScreenAliases = jest.fn();
 const mockAddListener = jest.fn(() => ({ remove: jest.fn() }));
 
 jest.mock('react-native', () => {
@@ -34,6 +38,10 @@ jest.mock('react-native', () => {
         markReadyToHandleDeeplinks: mockMarkReadyToHandleDeeplinks,
         logInAppPurchase: mockLogInAppPurchase,
         logCustomPurchase: mockLogCustomPurchase,
+        track: mockTrack,
+        trackScreenView: mockTrackScreenView,
+        setGlobalTags: mockSetGlobalTags,
+        setScreenAliases: mockSetScreenAliases,
         addListener: mockAddListener,
         removeListeners: jest.fn(),
       },
@@ -402,6 +410,59 @@ describe('GrovsWrapper', () => {
       await expect(
         Grovs.logCustomPurchase('buy', 999, 'USD', 'product')
       ).rejects.toThrow('Failed to log custom purchase: Track failed');
+    });
+  });
+
+  describe('track', () => {
+    it('forwards name, properties and tags to native module', () => {
+      Grovs.track('purchase', { item_id: 'sku-42', price: 19.99 }, ['promo']);
+      expect(mockTrack).toHaveBeenCalledWith(
+        'purchase',
+        { item_id: 'sku-42', price: 19.99 },
+        ['promo']
+      );
+    });
+
+    it('forwards undefined properties and tags when omitted', () => {
+      Grovs.track('button_tap');
+      expect(mockTrack).toHaveBeenCalledWith(
+        'button_tap',
+        undefined,
+        undefined
+      );
+    });
+  });
+
+  describe('trackScreenView', () => {
+    it('forwards screen name and properties to native module', () => {
+      Grovs.trackScreenView('Checkout', { section: 'payment' });
+      expect(mockTrackScreenView).toHaveBeenCalledWith('Checkout', {
+        section: 'payment',
+      });
+    });
+
+    it('forwards undefined properties when omitted', () => {
+      Grovs.trackScreenView('Home');
+      expect(mockTrackScreenView).toHaveBeenCalledWith('Home', undefined);
+    });
+  });
+
+  describe('setGlobalTags', () => {
+    it('forwards tags to native module', () => {
+      Grovs.setGlobalTags(['beta', 'experiment-A']);
+      expect(mockSetGlobalTags).toHaveBeenCalledWith(['beta', 'experiment-A']);
+    });
+
+    it('forwards undefined to clear tags', () => {
+      Grovs.setGlobalTags();
+      expect(mockSetGlobalTags).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('setScreenAliases', () => {
+    it('forwards aliases to native module', () => {
+      Grovs.setScreenAliases({ Home: 'Home Page' });
+      expect(mockSetScreenAliases).toHaveBeenCalledWith({ Home: 'Home Page' });
     });
   });
 });
