@@ -162,6 +162,36 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun track(name: String, properties: ReadableMap?, tags: ReadableArray?) {
+    Grovs.track(
+      name = name,
+      properties = properties?.toMap()?.toSerializableMap(),
+      tags = tags?.toList()?.toStringList()
+    )
+  }
+
+  @ReactMethod
+  fun trackScreenView(screenName: String, properties: ReadableMap?) {
+    Grovs.trackScreenView(
+      screenName = screenName,
+      properties = properties?.toMap()?.toSerializableMap()
+    )
+  }
+
+  @ReactMethod
+  fun setGlobalTags(tags: ReadableArray?) {
+    Grovs.setGlobalTags(tags = tags?.toList()?.toStringList())
+  }
+
+  @ReactMethod
+  fun setScreenAliases(aliases: ReadableMap?) {
+    val stringAliases = aliases?.toMap()
+      ?.mapNotNull { (key, value) -> (value as? String)?.let { key to it } }
+      ?.toMap() ?: return
+    Grovs.setScreenAliases(stringAliases)
+  }
+
+  @ReactMethod
   fun generateLink(
     title: String?,
     subtitle: String?,

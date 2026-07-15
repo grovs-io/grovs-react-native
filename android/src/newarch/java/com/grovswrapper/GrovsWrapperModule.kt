@@ -142,6 +142,32 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
     }
   }
 
+  override fun track(name: String, properties: ReadableMap?, tags: ReadableArray?) {
+    Grovs.track(
+      name = name,
+      properties = properties?.toMap()?.toSerializableMap(),
+      tags = tags?.toList()?.toStringList()
+    )
+  }
+
+  override fun trackScreenView(screenName: String, properties: ReadableMap?) {
+    Grovs.trackScreenView(
+      screenName = screenName,
+      properties = properties?.toMap()?.toSerializableMap()
+    )
+  }
+
+  override fun setGlobalTags(tags: ReadableArray?) {
+    Grovs.setGlobalTags(tags = tags?.toList()?.toStringList())
+  }
+
+  override fun setScreenAliases(aliases: ReadableMap) {
+    val stringAliases = aliases.toMap()
+      .mapNotNull { (key, value) -> (value as? String)?.let { key to it } }
+      .toMap()
+    Grovs.setScreenAliases(stringAliases)
+  }
+
   override fun generateLink(title: String?,
                             subtitle: String?,
                             imageURL: String?,
