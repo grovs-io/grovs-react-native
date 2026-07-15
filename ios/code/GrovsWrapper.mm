@@ -69,6 +69,22 @@ RCT_EXPORT_MODULE()
   [GrovsWrapperSwift.shared setDebug:level];
 }
 
+- (void)track:(NSString *)name properties:(NSDictionary *)properties tags:(NSArray *)tags {
+  [GrovsWrapperSwift.shared track:name properties:properties tags:tags];
+}
+
+- (void)trackScreenView:(NSString *)screenName properties:(NSDictionary *)properties {
+  [GrovsWrapperSwift.shared trackScreenView:screenName properties:properties];
+}
+
+- (void)setGlobalTags:(NSArray *)tags {
+  [GrovsWrapperSwift.shared setGlobalTags:tags];
+}
+
+- (void)setScreenAliases:(NSDictionary *)aliases {
+  [GrovsWrapperSwift.shared setScreenAliases:aliases];
+}
+
 - (void)generateLink:(NSString *)title
             subtitle:(NSString *)subtitle
             imageURL:(NSString *)imageURL
@@ -249,6 +265,25 @@ RCT_EXPORT_METHOD(setSDK:(BOOL)enabled) {
 
 RCT_EXPORT_METHOD(setDebug:(NSString *)level) {
   [GrovsWrapperSwift.shared setDebug:level];
+}
+
+RCT_EXPORT_METHOD(track:(NSString *)name
+                  properties:(NSDictionary *)properties
+                  tags:(NSArray *)tags) {
+  [GrovsWrapperSwift.shared track:name properties:properties tags:tags];
+}
+
+RCT_EXPORT_METHOD(trackScreenView:(NSString *)screenName
+                  properties:(NSDictionary *)properties) {
+  [GrovsWrapperSwift.shared trackScreenView:screenName properties:properties];
+}
+
+RCT_EXPORT_METHOD(setGlobalTags:(NSArray *)tags) {
+  [GrovsWrapperSwift.shared setGlobalTags:tags];
+}
+
+RCT_EXPORT_METHOD(setScreenAliases:(NSDictionary *)aliases) {
+  [GrovsWrapperSwift.shared setScreenAliases:aliases];
 }
 
 RCT_EXPORT_METHOD(displayMessages:(RCTPromiseResolveBlock)resolve

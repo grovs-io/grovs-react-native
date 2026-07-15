@@ -55,7 +55,29 @@ public class GrovsWrapperSwift: NSObject {
       Grovs.setDebug(level: .error)
     }
   }
-  
+
+  @objc
+  public func track(_ name: String, properties: [String: Any]?, tags: [String]?) {
+    Grovs.track(name, properties: properties, tags: tags)
+  }
+
+  @objc
+  public func trackScreenView(_ screenName: String, properties: [String: Any]?) {
+    Grovs.trackScreenView(screenName, properties: properties)
+  }
+
+  @objc
+  public func setGlobalTags(_ tags: [String]?) {
+    Grovs.setGlobalTags(tags)
+  }
+
+  @objc
+  public func setScreenAliases(_ aliases: [String: Any]) {
+    // The legacy bridge delivers an untyped NSDictionary; keep only string values.
+    let stringAliases = aliases.compactMapValues { $0 as? String }
+    Grovs.setScreenAliases(stringAliases)
+  }
+
   @objc
   public func generateLink(title: String?,
                                   subtitle: String?,
