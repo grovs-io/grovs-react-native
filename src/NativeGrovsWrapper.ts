@@ -23,6 +23,10 @@ export interface Tracking {
   utm_source?: string;
   utm_campaign?: string;
 }
+export interface InAppPurchase {
+  transactionId?: string;
+  originalJson?: string;
+}
 
 export type TransactionType = 'buy' | 'cancel' | 'refund';
 
@@ -45,7 +49,10 @@ export interface Spec extends TurboModule {
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
-  logInAppPurchase(transactionId: string): Promise<boolean>;
+  logInAppPurchase(
+    transactionId?: string,
+    originalJson?: string
+  ): Promise<boolean>;
   logCustomPurchase(
     type: string,
     priceInCents: number,
@@ -167,11 +174,14 @@ export class TurboModuleGrovs {
     return NativeModule?.numberOfUnreadMessages();
   }
 
-  async logInAppPurchase(transactionId: string): Promise<boolean> {
+  async logInAppPurchase(
+    transactionId?: string,
+    originalJson?: string
+  ): Promise<boolean> {
     if (!NativeModule) {
       throw new Error('Native module GrovsWrapper is not linked');
     }
-    return NativeModule.logInAppPurchase(transactionId);
+    return NativeModule.logInAppPurchase(transactionId, originalJson);
   }
 
   async logCustomPurchase(

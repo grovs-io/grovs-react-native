@@ -49,6 +49,7 @@ jest.mock('react-native', () => {
     NativeEventEmitter: jest.fn(() => ({
       addListener: addListenerMock,
     })),
+    Platform: { OS: 'ios', select: (obj: any) => obj.ios },
   };
 });
 
@@ -329,18 +330,59 @@ describe('GrovsWrapper', () => {
   });
 
   describe('logInAppPurchase', () => {
-    it('resolves with true on success', async () => {
-      mockLogInAppPurchase.mockResolvedValue(true);
-      const result = await Grovs.logInAppPurchase('12345');
-      expect(result).toBe(true);
-      expect(mockLogInAppPurchase).toHaveBeenCalledWith('12345');
+    const { Platform } = require('react-native');
+
+    afterEach(() => {
+      Platform.OS = 'ios';
     });
 
-    it('throws on native error', async () => {
+    it('on iOS forwards transactionId and resolves native result', async () => {
+      Platform.OS = 'ios';
+      mockLogInAppPurchase.mockResolvedValue(true);
+      const result = await Grovs.logInAppPurchase({ transactionId: '12345' });
+      expect(result).toBe(true);
+      expect(mockLogInAppPurchase).toHaveBeenCalledWith('12345', undefined);
+    });
+
+    it('on iOS throws when transactionId is missing', async () => {
+      Platform.OS = 'ios';
+      await expect(
+        Grovs.logInAppPurchase({ originalJson: '{"foo":1}' })
+      ).rejects.toThrow('transactionId');
+      expect(mockLogInAppPurchase).not.toHaveBeenCalled();
+    });
+
+    it('on iOS throws when transactionId is not numeric', async () => {
+      Platform.OS = 'ios';
+      await expect(
+        Grovs.logInAppPurchase({ transactionId: 'abc' })
+      ).rejects.toThrow('transactionId');
+      expect(mockLogInAppPurchase).not.toHaveBeenCalled();
+    });
+
+    it('on Android forwards originalJson and resolves native result', async () => {
+      Platform.OS = 'android';
+      mockLogInAppPurchase.mockResolvedValue(true);
+      const json = '{"productId":"premium_monthly"}';
+      const result = await Grovs.logInAppPurchase({ originalJson: json });
+      expect(result).toBe(true);
+      expect(mockLogInAppPurchase).toHaveBeenCalledWith(undefined, json);
+    });
+
+    it('on Android throws when originalJson is missing', async () => {
+      Platform.OS = 'android';
+      await expect(
+        Grovs.logInAppPurchase({ transactionId: '12345' })
+      ).rejects.toThrow('originalJson');
+      expect(mockLogInAppPurchase).not.toHaveBeenCalled();
+    });
+
+    it('throws wrapped error on native failure', async () => {
+      Platform.OS = 'ios';
       mockLogInAppPurchase.mockRejectedValue(new Error('Purchase failed'));
-      await expect(Grovs.logInAppPurchase('12345')).rejects.toThrow(
-        'Failed to log in-app purchase: Purchase failed'
-      );
+      await expect(
+        Grovs.logInAppPurchase({ transactionId: '12345' })
+      ).rejects.toThrow('Failed to log in-app purchase: Purchase failed');
     });
   });
 

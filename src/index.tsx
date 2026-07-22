@@ -1,11 +1,12 @@
 // index.ts - Unified wrapper with backward compatibility
-import { NativeModules, NativeEventEmitter } from 'react-native';
+import { NativeModules, NativeEventEmitter, Platform } from 'react-native';
 import type {
   LogLevel,
   DeeplinkResponse,
   CustomRedirects,
   Tracking,
   TransactionType,
+  InAppPurchase,
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
@@ -47,7 +48,10 @@ interface GrovsWrapperInterface {
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
-  logInAppPurchase(transactionId: string): Promise<boolean>;
+  logInAppPurchase(
+    transactionId?: string,
+    originalJson?: string
+  ): Promise<boolean>;
   logCustomPurchase(
     type: TransactionType,
     priceInCents: number,
@@ -111,7 +115,7 @@ if (!GrovsWrapperModule) {
   throw new Error(LINKING_ERROR);
 }
 
-class GrovsWrapper implements GrovsWrapperInterface {
+class GrovsWrapper {
   private module: GrovsWrapperInterface;
   private listeners: Set<(data: DeeplinkResponse) => void> = new Set();
   private stopScreenTracking?: () => void;
@@ -321,9 +325,28 @@ class GrovsWrapper implements GrovsWrapperInterface {
     }
   }
 
-  async logInAppPurchase(transactionId: string): Promise<boolean> {
+  /**
+   * Log a store in-app purchase for revenue tracking.
+   *
+   * Platform-specific input (each platform ignores the other's field):
+   * - iOS: `transactionId` — the StoreKit 2 transaction identifier (numeric string).
+   * - Android: `originalJson` — the Google Play Billing purchase original JSON.
+   * @param purchase - The purchase to log
+   * @returns Whether the purchase was accepted natively
+   */
+  async logInAppPurchase(purchase: InAppPurchase): Promise<boolean> {
+    const { transactionId, originalJson } = purchase ?? {};
+    if (Platform.OS === 'ios') {
+      if (!transactionId || !/^\d+$/.test(transactionId)) {
+        throw new Error(
+          'logInAppPurchase requires a numeric transactionId on iOS'
+        );
+      }
+    } else if (!originalJson) {
+      throw new Error('logInAppPurchase requires originalJson on Android');
+    }
     try {
-      return await this.module.logInAppPurchase(transactionId);
+      return await this.module.logInAppPurchase(transactionId, originalJson);
     } catch (error) {
       throw new Error(
         `Failed to log in-app purchase: ${(error as Error).message}`
@@ -403,5 +426,6 @@ export type {
   CustomLinkRedirect,
   CustomRedirects,
   TransactionType,
+  InAppPurchase,
 } from './NativeGrovsWrapper';
 export type { NavigationContainerRefLike } from './ScreenTracking';
