@@ -173,8 +173,10 @@ RCT_EXPORT_MODULE()
 }
 
 - (void)logInAppPurchase:(NSString *)transactionId
+            originalJson:(NSString *)originalJson
                  resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject {
+  // originalJson is Android-only; iOS logs by StoreKit transaction id.
   [GrovsWrapperSwift.shared logInAppPurchase:transactionId completion:^(BOOL success) {
     resolve(@(success));
   }];
@@ -341,6 +343,7 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
 }
 
 RCT_EXPORT_METHOD(logInAppPurchase:(NSString *)transactionId
+                  originalJson:(NSString *)originalJson
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
   [GrovsWrapperSwift.shared logInAppPurchase:transactionId completion:^(BOOL success) {
