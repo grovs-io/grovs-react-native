@@ -13,8 +13,8 @@ class AppDelegate: RCTAppDelegate {
     self.initialProps = [:]
 
     // TODO: Replace with your own API Key
-    let apiKey = "grovsr_69240ef41a592e76da5527abd7b39cc379dd02d0762ed5c25ec29fa3084b6ed5"
-    Grovs.configure(APIKey: apiKey, useTestEnvironment: false, autoTrackScreenViews: false, delegate: nil)
+    let apiKey = "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f"
+    Grovs.configure(APIKey: apiKey, useTestEnvironment: true, autoTrackScreenViews: false, delegate: nil)
     Grovs.setDebug(level: .info)
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

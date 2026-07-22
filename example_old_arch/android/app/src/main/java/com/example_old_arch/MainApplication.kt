@@ -42,7 +42,7 @@ class MainApplication : Application(), ReactApplication {
       load()
     }
 
-    Grovs.configure(this, "grovsr_69240ef41a592e76da5527abd7b39cc379dd02d0762ed5c25ec29fa3084b6ed5", useTestEnvironment = false, baseURL = null, autoTrackScreenViews = false)
+    Grovs.configure(this, "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f", useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false)
     Grovs.setDebug(LogLevel.INFO)
   }
 }
