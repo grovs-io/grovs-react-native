@@ -20,6 +20,7 @@ import io.grovs.model.CustomLinkRedirect
 import io.grovs.service.CustomRedirects
 import io.grovs.service.TrackingParams
 import io.grovs.model.events.PaymentEventType
+import io.grovs.utils.InstantCompat
 import io.grovs.utils.flow
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
@@ -275,12 +276,13 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun logInAppPurchase(transactionId: String?, promise: Promise) {
-    if (transactionId == null) {
+  fun logInAppPurchase(transactionId: String?, originalJson: String?, promise: Promise) {
+    // transactionId is iOS-only; Android logs the Play Billing purchase JSON.
+    if (originalJson == null) {
       promise.resolve(false)
       return
     }
-    Grovs.logInAppPurchase(originalJson = transactionId)
+    Grovs.logInAppPurchase(originalJson = originalJson)
     promise.resolve(true)
   }
 
@@ -299,11 +301,16 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
       else -> PaymentEventType.BUY
     }
 
+    val start = startDate?.let { iso ->
+      runCatching { InstantCompat.parse(iso) }.getOrNull()
+    } ?: InstantCompat.now()
+
     Grovs.logCustomPurchase(
       type = paymentType,
       priceInCents = priceInCents.toInt(),
       currency = currency,
-      productId = productId
+      productId = productId,
+      startDate = start
     )
     promise.resolve(true)
   }
