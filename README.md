@@ -322,9 +322,13 @@ console.log(`Unread: ${count}`);
 ### Platform store purchases
 
 ```typescript
-// iOS: pass the StoreKit 2 transaction ID as a string
-// Android: pass the Google Play purchase.originalJson string
-const success = await Grovs.logInAppPurchase(transactionId);
+// iOS — StoreKit 2 transaction id
+const success = await Grovs.logInAppPurchase({ transactionId: '123456789' });
+
+// Android — Play Billing purchase original JSON
+const success = await Grovs.logInAppPurchase({
+  originalJson: purchase.originalJson,
+});
 ```
 
 > The SDK automatically extracts price, currency, and product info. Duplicates are filtered.
@@ -433,7 +437,7 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | `generateLink(title, subtitle, imageURL, data, tags, customRedirects, showPreviewIos, showPreviewAndroid, tracking)` | Generate a smart link |
 | `displayMessages()` | Show messages modal |
 | `numberOfUnreadMessages()` | Get unread message count |
-| `logInAppPurchase(transactionId)` | Log a store purchase |
+| `logInAppPurchase(purchase)` | Log a store purchase (`{ transactionId }` on iOS, `{ originalJson }` on Android) |
 | `logCustomPurchase(type, priceInCents, currency, productId, startDate)` | Log a custom purchase |
 | `track(name, properties, tags)` | Track a custom analytics event |
 | `trackScreenView(screenName, properties)` | Track a screen view |
