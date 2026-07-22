@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Button,
   Clipboard,
+  Platform,
 } from 'react-native';
 import Grovs from 'react-native-grovs-wrapper';
 import {useEffect, useState} from 'react';
@@ -66,7 +67,16 @@ export default function App() {
 
   async function handleLogInAppPurchase() {
     try {
-      const success = await Grovs.logInAppPurchase('123456789');
+      const success = await Grovs.logInAppPurchase(
+        Platform.OS === 'ios'
+          ? {transactionId: '123456789'}
+          : {
+              originalJson: JSON.stringify({
+                productId: 'premium_monthly',
+                purchaseToken: 'demo-token',
+              }),
+            }
+      );
       setLabel4(`In-app purchase: ${success}`);
       console.log('In-app purchase tracked:', success);
     } catch (error) {
