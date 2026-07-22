@@ -60,6 +60,25 @@ dependencies {
 }
 ```
 
+### Internal builds (pre-release native SDKs)
+
+This branch consumes private native SDKs:
+
+- **Android** — `io.grovs:grovs:2.0.0-internal` from the private GitHub Packages
+  repo `grovs-io/grovs-android-automation-app`. Add to `~/.gradle/gradle.properties`:
+
+  ```
+  GithubPackagesPrivateUsername=<github username>
+  GithubPackagesPrivatePassword=<github token with read:packages>
+  ```
+
+  (`GITHUB_ACTOR` / `GITHUB_TOKEN` environment variables work as a fallback.)
+
+- **iOS** — the example apps pull the `Grovs` pod from the private repo
+  `appssemble/grovs-ios-internal` (branch `feature/analytics`) via SSH; you need
+  SSH access to that repo. The Expo config plugin still references the public
+  releases and does not support internal builds.
+
 ### iOS dependency
 
 The iOS SDK is added automatically via CocoaPods when you run `pod install`.

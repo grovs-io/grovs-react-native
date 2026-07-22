@@ -101,6 +101,14 @@ repositories {
   mavenCentral()
   google()
   mavenLocal()
+  maven {
+    name = "GithubPackagesPrivate"
+    url = uri("https://maven.pkg.github.com/grovs-io/grovs-android-automation-app")
+    credentials {
+      username = project.findProperty("GithubPackagesPrivateUsername") ?: System.getenv("GITHUB_ACTOR")
+      password = project.findProperty("GithubPackagesPrivatePassword") ?: System.getenv("GITHUB_TOKEN")
+    }
+  }
 }
 
 def kotlin_version = getExtOrDefault("kotlinVersion")
@@ -108,7 +116,7 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 dependencies {
   implementation "com.facebook.react:react-android"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-  implementation "io.grovs:Grovs:1.2.0"
+  implementation "io.grovs:grovs:2.0.0-internal"
 }
 
 if (isNewArchitectureEnabled()) {
