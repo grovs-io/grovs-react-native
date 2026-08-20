@@ -1,4 +1,5 @@
 import Grovs
+import UIKit
 
 @objc
 public class GrovsWrapperSwift: NSObject {
@@ -21,10 +22,35 @@ public class GrovsWrapperSwift: NSObject {
   @objc
   public var didReceiveDeeplink: (([String : Any])->())? = nil
   
+  /// One-shot observer used to re-assert the delegate once app launch completes.
+  private var launchObserver: NSObjectProtocol?
+
   public override init() {
     super.init()
-    
+
+    // Attach as the SDK delegate. Startup ordering between this singleton's
+    // creation and the host app's `Grovs.configure` call is not guaranteed:
+    // the SDK drops delegate assignments made before it is configured, and
+    // `configure` builds the manager from its own `delegate:` parameter. The
+    // assignment below covers the created-after-configure ordering; for the
+    // created-before-configure ordering, `configure` is called inside
+    // `application(_:didFinishLaunchingWithOptions:)` and UIKit posts
+    // `didFinishLaunchingNotification` right after it returns, so re-asserting
+    // there deterministically covers the early case.
     Grovs.delegate = self
+
+    launchObserver = NotificationCenter.default.addObserver(
+      forName: UIApplication.didFinishLaunchingNotification,
+      object: nil,
+      queue: .main
+    ) { [weak self] _ in
+      guard let self else { return }
+      Grovs.delegate = self
+      if let launchObserver = self.launchObserver {
+        NotificationCenter.default.removeObserver(launchObserver)
+        self.launchObserver = nil
+      }
+    }
   }
   
   @objc
