@@ -149,7 +149,8 @@
       "tagName": "v${version}"
     },
     "npm": {
-      "publish": true
+      "publish": true,
+      "timeout": 60
     },
     "github": {
       "release": true
