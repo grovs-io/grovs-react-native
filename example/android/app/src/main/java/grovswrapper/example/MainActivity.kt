@@ -32,6 +32,7 @@ class MainActivity : ReactActivity() {
 
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
+    setIntent(intent)
 
     Grovs.onNewIntent(intent, launcherActivity = this)
   }

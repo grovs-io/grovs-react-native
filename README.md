@@ -24,15 +24,17 @@ The Grovs React Native SDK provides deep linking, universal links, app links, li
 
 ## Features
 
-- **Deep linking & universal links** — route users to the right in-app screen, even after install
-- **Smart link generation** — create trackable links with metadata, custom redirects, and UTM parameters
-- **In-app messaging** — display messages and announcements from the Grovs dashboard
-- **Push notifications** — receive push notifications for dashboard-sent messages
-- **Revenue tracking** — log App Store, Google Play, and custom purchases with automatic attribution
-- **Analytics** — automatic lifecycle events, custom events, and screen tracking
-- **User identity** — attach user IDs and attributes for analytics and segmentation
-- **Self-hosting support** — point the SDK at your own backend
-- **Expo support** — config plugin for automated native setup
+- **Deep linking & universal links**: route users to the right in-app screen, even after install
+- **Clipboard deferred deep linking**: match an install to a link the user copied before installing
+- **Consent support**: remember the user’s choice across launches
+- **Smart link generation**: create trackable links with metadata, custom redirects, and UTM parameters
+- **In-app messaging**: display messages and announcements from the Grovs dashboard
+- **Push notifications**: receive push notifications for dashboard-sent messages
+- **Revenue tracking**: log App Store, Google Play, and custom purchases with automatic attribution
+- **Analytics**: automatic lifecycle events, custom events, and screen tracking
+- **User identity**: attach user IDs and attributes for analytics and segmentation
+- **Self-hosting support**: point the SDK at your own backend
+- **Expo support**: config plugin for automated native setup
 
 ## Requirements
 
@@ -56,7 +58,7 @@ Add the Grovs Android SDK to `android/app/build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'io.grovs:Grovs:1.2.0'
+    implementation 'io.grovs:grovs:3.0.0'
 }
 ```
 
@@ -64,7 +66,7 @@ dependencies {
 
 This branch consumes private native SDKs:
 
-- **Android** — `io.grovs:grovs:2.0.0-internal` from the private GitHub Packages
+- **Android**: `io.grovs:grovs:3.0.0` from the private GitHub Packages
   repo `grovs-io/grovs-android-automation-app`. Add to `~/.gradle/gradle.properties`:
 
   ```
@@ -74,10 +76,11 @@ This branch consumes private native SDKs:
 
   (`GITHUB_ACTOR` / `GITHUB_TOKEN` environment variables work as a fallback.)
 
-- **iOS** — the example apps pull the `Grovs` pod from the private repo
-  `appssemble/grovs-ios-internal` (branch `feature/analytics`) via SSH; you need
-  SSH access to that repo. The Expo config plugin still references the public
-  releases and does not support internal builds.
+- **iOS**: the example apps pull the `Grovs` pod from the private repo
+  `appssemble/grovs-ios-internal` (version 3.0.0, branch `feature/analytics`) via SSH; you need
+  SSH access to that repo. The Expo config plugin injects the same Android coordinate,
+  so Expo apps also need the GitHub Packages repository and credentials in their
+  `android/build.gradle` while the SDK is internal.
 
 ### iOS dependency
 
@@ -95,7 +98,8 @@ If you're using Expo with a development build, the config plugin automates all n
       "scheme": "your_app_scheme",
       "useTestEnvironment": false,
       "associatedDomains": ["your_app_host", "your_app_test_host"],
-      "baseURL": "https://your-domain.com"
+      "baseURL": "https://your-domain.com",
+      "clipboardDomains": ["links.your-domain.com"]
     }]
   ]
 }
@@ -108,8 +112,11 @@ If you're using Expo with a development build, the config plugin automates all n
 | `useTestEnvironment` | No | Use test environment (default: `false`) |
 | `associatedDomains` | No | Universal link domains for deep linking |
 | `baseURL` | No | Custom base URL for self-hosted backends |
+| `clipboardDomains` | No | Extra link hosts accepted for clipboard deferred deep linking. Grovs hosts are always accepted |
 
 Then run `npx expo prebuild` and build with `npx expo run:ios` / `npx expo run:android`.
+
+When upgrading an existing Expo integration or changing plugin options, regenerate with `npx expo prebuild --clean` to refresh the configure calls. Save any manual native edits first.
 
 > **Note:** This requires a development build (`expo-dev-client`), not Expo Go.
 
@@ -120,11 +127,18 @@ Then run `npx expo prebuild` and build with `npx expo run:ios` / `npx expo run:a
 **1. Initialize the SDK** in your `MainApplication` class:
 
 ```kotlin
+import com.grovswrapper.GrovsConsent
+
 override fun onCreate() {
     super.onCreate()
-    Grovs.configure(this, "your-api-key", useTestEnvironment = false, baseURL = null, autoTrackScreenViews = false)
-    // Optional: use a custom base URL for self-hosted backends
-    // Grovs.configure(this, "your-api-key", useTestEnvironment = false, baseURL = "https://your-domain.com", autoTrackScreenViews = false)
+    Grovs.configure(
+        this, "your-api-key",
+        useTestEnvironment = false,
+        baseURL = null,                       // or "https://your-domain.com" for self-hosted backends
+        autoTrackScreenViews = false,
+        clipboardDomains = null,              // or listOf("links.your-domain.com")
+        enabled = GrovsConsent.isEnabled(this) // the value JS last passed to setSDK, default true
+    )
 }
 ```
 
@@ -138,6 +152,7 @@ override fun onStart() {
 
 override fun onNewIntent(intent: Intent?) {
     super.onNewIntent(intent)
+    setIntent(intent)
     Grovs.onNewIntent(intent, this)
 }
 ```
@@ -176,17 +191,20 @@ override fun onNewIntent(intent: Intent?) {
 
 ```swift
 import Grovs
+import react_native_grovs_wrapper
 
 func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-    Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, autoTrackScreenViews: false, delegate: self)
-    // Optional: use a custom base URL for self-hosted backends
-    // Grovs.configure(APIKey: "your-api-key", useTestEnvironment: false, baseURL: "https://your-domain.com", autoTrackScreenViews: false, delegate: self)
+    Grovs.configure(
+        APIKey: "your-api-key",
+        useTestEnvironment: false,
+        // baseURL: "https://your-domain.com",      // self-hosted backends
+        autoTrackScreenViews: false,
+        // clipboardDomains: ["links.your-domain.com"],
+        enabled: GrovsWrapperSwift.isSDKEnabled(), // the value JS last passed to setSDK, default true
+        delegate: self
+    )
     Grovs.setDebug(level: .info)
     return true
-}
-
-func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String: Any]?, tracking: [String: Any]?) {
-    // Native delegate callback
 }
 ```
 
@@ -244,39 +262,54 @@ Grovs.setAttributes({
 });
 ```
 
+### Consent
+
+Call `setSDK(false)` when the user declines analytics and `setSDK(true)` when they accept. The wrapper remembers the last value, and the native `configure` call reads it on the next launch, so a user who declined stays opted out from the first frame of the next cold start.
+
+While disabled, the SDK blocks new authentication, event and purchase requests and cancels work in progress. Identifier, attributes, push token and screen aliases you set are kept and sent once the SDK is enabled again. On Android, a link opened while disabled is delivered as soon as you enable the SDK.
+
+```typescript
+Grovs.setSDK(await consentStore.hasAnalyticsConsent());
+```
+
+`generateLink`, `numberOfUnreadMessages` and `displayMessages` reject with code `SDK_DISABLED` while the SDK is disabled.
+
+### Clipboard deferred deep linking
+
+If a user copies a Grovs link before installing, the SDK checks the clipboard once on first launch, only when fingerprint matching found nothing, and delivers the match through `onDeeplinkReceived`. It can arrive several seconds after launch. On iOS the system shows its paste notice the first time. Only links on Grovs hosts and the `clipboardDomains` you configure are accepted.
+
 ## Link Generation
 
 Create smart links with metadata, payload data, and tracking parameters:
 
 ```typescript
 try {
-    const link = await Grovs.generateLink(
-        'Check out this product',           // title
-        'Limited time offer',               // subtitle
-        'https://example.com/image.jpg',    // imageURL
-        {                                   // data
-            productId: '12345',
-            screen: 'product_detail',
-        },
-        ['promotion', 'share'],             // tags
-        {                                   // customRedirects
+    const link = await Grovs.generateLink({
+        title: 'Check out this product',
+        subtitle: 'Limited time offer',
+        imageURL: 'https://example.com/image.jpg',
+        data: { productId: '12345', screen: 'product_detail' },
+        tags: ['promotion', 'share'],
+        customRedirects: {
             android: { link: 'https://example.com/android', open_if_app_installed: true },
             ios: { link: 'https://example.com/ios', open_if_app_installed: true },
             desktop: { link: 'https://example.com/desktop', open_if_app_installed: false },
         },
-        false,                              // showPreviewIos
-        false,                              // showPreviewAndroid
-        {                                   // tracking
-            utm_campaign: 'spring_sale',
-            utm_source: 'in_app',
-            utm_medium: 'share_button',
-        }
-    );
+        showPreviewIos: false,
+        showPreviewAndroid: false,
+        tracking: { utm_campaign: 'spring_sale', utm_source: 'in_app', utm_medium: 'share_button' },
+        copyToClipboardIos: true,      // landing page copies the link so the install can be matched
+        copyToClipboardAndroid: true,  // leave undefined to inherit the project default
+    });
     console.log('Generated:', link);
 } catch (error) {
     console.error('Error:', error);
 }
 ```
+
+The older positional form `generateLink(title, subtitle, imageURL, data, tags, customRedirects, showPreviewIos, showPreviewAndroid, tracking, copyToClipboardIos, copyToClipboardAndroid)` still works.
+
+Leave the copy flags undefined to inherit the project default.
 
 ## Messages
 
@@ -316,16 +349,16 @@ console.log(`Unread: ${count}`);
 
 1. Enable revenue tracking in the [Grovs dashboard](https://app.grovs.io) under **Settings → Revenue Tracking**
 2. Configure platform notifications:
-   - **Android** — Set up Google Play Real-Time Developer Notifications
-   - **iOS** — Configure App Store Server Notifications in App Store Connect
+   - **Android**: Set up Google Play Real-Time Developer Notifications
+   - **iOS**: Configure App Store Server Notifications in App Store Connect
 
 ### Platform store purchases
 
 ```typescript
-// iOS — StoreKit 2 transaction id
+// iOS: StoreKit 2 transaction id
 const success = await Grovs.logInAppPurchase({ transactionId: '123456789' });
 
-// Android — Play Billing purchase original JSON
+// Android: Play Billing purchase original JSON
 const success = await Grovs.logInAppPurchase({
   originalJson: purchase.originalJson,
 });
@@ -350,7 +383,7 @@ Use `'cancel'` and `'refund'` types for cancellations and refunds. For store pur
 
 ### Automatic events
 
-Lifecycle events — `install`, `reinstall`, `app_open`, `reactivation`, and `time_spent` — are captured automatically by the native SDKs. No setup required.
+The native SDKs automatically capture lifecycle events: `install`, `reinstall`, `app_open`, `reactivation`, and `time_spent`. No setup required.
 
 ### Custom events
 
@@ -391,7 +424,7 @@ function App() {
 }
 ```
 
-`startScreenTracking` returns an unsubscribe function, and calling it again replaces the previous subscription — screens are never double-tracked. Consecutive duplicate screen views within 1 second are deduplicated natively.
+`startScreenTracking` returns an unsubscribe function, and calling it again replaces the previous subscription: screens are never double-tracked. Consecutive duplicate screen views within 1 second are deduplicated natively.
 
 For Expo Router or custom navigators, track screens manually:
 
@@ -409,17 +442,17 @@ Grovs.setScreenAliases({ Home: 'Home Page' });
 
 The native SDKs' own automatic screen tracking only sees the single React Native host Activity/ViewController, so it should be disabled in React Native apps:
 
-- **Expo** — the config plugin disables it automatically. If you're upgrading the plugin, re-run `npx expo prebuild --clean`.
-- **Manual / bare React Native** — pass `autoTrackScreenViews: false` in the native configure calls:
+- **Expo**: the config plugin disables it automatically. If you're upgrading the plugin, re-run `npx expo prebuild --clean`.
+- **Manual / bare React Native**: pass `autoTrackScreenViews: false` in the native configure calls:
 
 ```swift
 // iOS
-Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, delegate: self)
+Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: self)
 ```
 
 ```kotlin
 // Android
-Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, autoTrackScreenViews = false)
+Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, autoTrackScreenViews = false, clipboardDomains = null, enabled = GrovsConsent.isEnabled(this))
 ```
 
 ## API Reference
@@ -429,14 +462,14 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | Method | Description |
 |---|---|
 | `onDeeplinkReceived(callback)` | Register deep link listener (returns `{ remove }`) |
-| `setSDK(enabled)` | Enable or disable the SDK |
+| `setSDK(enabled)` | Enable or disable the SDK. Remembered across launches |
 | `setDebug(level)` | Set logging level (`'info'`, `'error'`) |
 | `setPushToken(token)` | Set FCM/APNs push token |
 | `setIdentifier(identifier)` | Set user ID for dashboard and reports |
 | `setAttributes(attributes)` | Set user attributes for analytics |
-| `generateLink(title, subtitle, imageURL, data, tags, customRedirects, showPreviewIos, showPreviewAndroid, tracking)` | Generate a smart link |
-| `displayMessages()` | Show messages modal |
-| `numberOfUnreadMessages()` | Get unread message count |
+| `generateLink(options)` | Generate a smart link (`GenerateLinkOptions`; positional form still supported). Rejects with `SDK_DISABLED` while disabled |
+| `displayMessages()` | Show messages modal. Rejects with `SDK_DISABLED` while disabled |
+| `numberOfUnreadMessages()` | Get unread message count. Rejects with `SDK_DISABLED` while disabled |
 | `logInAppPurchase(purchase)` | Log a store purchase (`{ transactionId }` on iOS, `{ originalJson }` on Android) |
 | `logCustomPurchase(type, priceInCents, currency, productId, startDate)` | Log a custom purchase |
 | `track(name, properties, tags)` | Track a custom analytics event |
@@ -466,4 +499,4 @@ For technical support and inquiries, contact [support@grovs.io](mailto:support@g
 
 ## License
 
-This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
+This project is licensed under the MIT License: see [LICENSE](LICENSE) for details.

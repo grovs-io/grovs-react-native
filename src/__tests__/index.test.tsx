@@ -46,6 +46,9 @@ jest.mock('react-native', () => {
         removeListeners: jest.fn(),
       },
     },
+    TurboModuleRegistry: {
+      get: () => ({ generateLink: mockGenerateLink }),
+    },
     NativeEventEmitter: jest.fn(() => ({
       addListener: addListenerMock,
     })),
@@ -149,6 +152,102 @@ describe('GrovsWrapper', () => {
   });
 
   describe('generateLink', () => {
+    it('accepts an options object and forwards fields in native order', async () => {
+      mockGenerateLink.mockResolvedValue('https://grovs.io/opts');
+
+      const link = await Grovs.generateLink({
+        title: 'Title',
+        subtitle: 'Sub',
+        imageURL: 'https://img.example.com/a.png',
+        data: { k: 'v' },
+        tags: ['t'],
+        customRedirects: {
+          ios: { link: 'https://i', open_if_app_installed: true },
+          android: { link: 'https://a', open_if_app_installed: true },
+          desktop: { link: 'https://d', open_if_app_installed: false },
+        },
+        showPreviewIos: true,
+        showPreviewAndroid: false,
+        tracking: { utm_source: 'x' },
+        copyToClipboardIos: true,
+        copyToClipboardAndroid: false,
+      });
+
+      expect(link).toBe('https://grovs.io/opts');
+      expect(mockGenerateLink).toHaveBeenCalledWith(
+        'Title',
+        'Sub',
+        'https://img.example.com/a.png',
+        { k: 'v' },
+        ['t'],
+        {
+          ios: { link: 'https://i', open_if_app_installed: true },
+          android: { link: 'https://a', open_if_app_installed: true },
+          desktop: { link: 'https://d', open_if_app_installed: false },
+        },
+        true,
+        false,
+        { utm_source: 'x' },
+        true,
+        false
+      );
+    });
+
+    it('forwards copy-to-clipboard flags in positional form', async () => {
+      mockGenerateLink.mockResolvedValue('https://grovs.io/pos');
+
+      await Grovs.generateLink(
+        'Title',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true,
+        true
+      );
+
+      expect(mockGenerateLink).toHaveBeenCalledWith(
+        'Title',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true,
+        true
+      );
+    });
+
+    it('passes undefined copy flags when the positional form omits them', async () => {
+      mockGenerateLink.mockResolvedValue('https://grovs.io/legacy');
+
+      await Grovs.generateLink('Title', 'Sub');
+
+      const args = mockGenerateLink.mock.calls[0];
+      expect(args).toHaveLength(11);
+      expect(args[9]).toBeUndefined();
+      expect(args[10]).toBeUndefined();
+    });
+
+    it('surfaces the SDK_DISABLED message from native', async () => {
+      const err = Object.assign(
+        new Error('Grovs SDK is disabled. Call setSDK(true) first.'),
+        { code: 'SDK_DISABLED' }
+      );
+      mockGenerateLink.mockRejectedValue(err);
+
+      await expect(Grovs.generateLink({ title: 'T' })).rejects.toThrow(
+        'Failed to generate link: Grovs SDK is disabled. Call setSDK(true) first.'
+      );
+    });
+
     it('generates a link with all parameters', async () => {
       mockGenerateLink.mockResolvedValue('https://grovs.io/abc123');
 
@@ -191,7 +290,9 @@ describe('GrovsWrapper', () => {
         customRedirects,
         true,
         false,
-        tracking
+        tracking,
+        undefined,
+        undefined
       );
     });
 
@@ -556,5 +657,65 @@ describe('GrovsWrapper', () => {
       expect(mockTrackScreenView).toHaveBeenCalledTimes(1);
       expect(mockTrackScreenView).toHaveBeenCalledWith('Profile', undefined);
     });
+  });
+});
+
+describe('native consent errors', () => {
+  it.each([
+    ['generateLink', mockGenerateLink, 'Failed to generate link'],
+    ['displayMessages', mockDisplayMessages, 'Failed to display messages'],
+    [
+      'numberOfUnreadMessages',
+      mockNumberOfUnreadMessages,
+      'Failed to get unread messages count',
+    ],
+  ] as const)(
+    'preserves SDK_DISABLED for %s',
+    async (method, nativeMock, prefix) => {
+      const message = 'Grovs SDK is disabled. Call setSDK(true) first.';
+      nativeMock.mockRejectedValue(
+        Object.assign(new Error(message), { code: 'SDK_DISABLED' })
+      );
+      await expect(Grovs[method]()).rejects.toMatchObject({
+        code: 'SDK_DISABLED',
+        message: `${prefix}: ${message}`,
+      });
+    }
+  );
+});
+
+describe('TurboModule generateLink', () => {
+  it('forwards options through the TurboModule adapter in native order', async () => {
+    mockGenerateLink.mockResolvedValue('https://grovs.io/turbo');
+    try {
+      (global as any).RN$Bridgeless = true;
+      let turboGrovs: typeof Grovs;
+      jest.isolateModules(() => {
+        turboGrovs = require('../index').default;
+      });
+      await expect(
+        turboGrovs!.generateLink({
+          title: 'Turbo',
+          showPreviewIos: false,
+          copyToClipboardIos: false,
+          copyToClipboardAndroid: true,
+        })
+      ).resolves.toBe('https://grovs.io/turbo');
+      expect(mockGenerateLink).toHaveBeenCalledWith(
+        'Turbo',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        undefined,
+        undefined,
+        false,
+        true
+      );
+    } finally {
+      (global as any).RN$Bridgeless = false;
+    }
   });
 });

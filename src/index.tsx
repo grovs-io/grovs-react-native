@@ -7,6 +7,7 @@ import type {
   Tracking,
   TransactionType,
   InAppPurchase,
+  GenerateLinkOptions,
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
@@ -44,7 +45,9 @@ interface GrovsWrapperInterface {
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
     showPreviewAndroid?: boolean,
-    tracking?: Tracking
+    tracking?: Tracking,
+    copyToClipboardIos?: boolean,
+    copyToClipboardAndroid?: boolean
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
@@ -63,6 +66,14 @@ interface GrovsWrapperInterface {
     remove: () => void;
   };
   markReadyToHandleDeeplinks(): void;
+}
+
+function nativeErrorWithContext(context: string, error: unknown): Error {
+  const wrapped = new Error(`${context}: ${(error as Error).message}`);
+  if (error && typeof error === 'object' && 'code' in error) {
+    return Object.assign(wrapped, { code: error.code });
+  }
+  return wrapped;
 }
 
 function hasOnDeeplinkReceived(obj: unknown): obj is {
@@ -258,17 +269,22 @@ class GrovsWrapper {
   }
 
   /**
-   * Generate a deep link
-   * @param title - Link title
-   * @param subtitle - Link subtitle
-   * @param imageURL - Image URL
-   * @param data - Additional data
-   * @param tags - Tags array
-   * @param customRedirects - Custom redirects configuration
-   * @param showPreview - Show preview flag
+   * Generate a deep link.
+   *
+   * Preferred form: pass a single `GenerateLinkOptions` object. The positional
+   * form is kept for backward compatibility; its two trailing arguments are the
+   * copy-to-clipboard flags.
+   *
+   * `copyToClipboardIos` / `copyToClipboardAndroid` control whether the link's
+   * landing page copies the link to the clipboard so the SDK can match the
+   * install afterwards. Leave them undefined to inherit the project default.
+   *
+   * Rejects with `SDK_DISABLED` when the SDK has been disabled via `setSDK(false)`.
    * @returns Generated link
    */
-  async generateLink(
+  generateLink(options: GenerateLinkOptions): Promise<string>;
+  // eslint-disable-next-line no-dupe-class-members
+  generateLink(
     title?: string,
     subtitle?: string,
     imageURL?: string,
@@ -277,23 +293,58 @@ class GrovsWrapper {
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
     showPreviewAndroid?: boolean,
-    tracking?: Tracking
+    tracking?: Tracking,
+    copyToClipboardIos?: boolean,
+    copyToClipboardAndroid?: boolean
+  ): Promise<string>;
+  // eslint-disable-next-line no-dupe-class-members
+  async generateLink(
+    titleOrOptions?: string | GenerateLinkOptions,
+    subtitle?: string,
+    imageURL?: string,
+    data?: { [key: string]: Any },
+    tags?: Array<Any>,
+    customRedirects?: CustomRedirects,
+    showPreviewIos?: boolean,
+    showPreviewAndroid?: boolean,
+    tracking?: Tracking,
+    copyToClipboardIos?: boolean,
+    copyToClipboardAndroid?: boolean
   ): Promise<string> {
+    const options: GenerateLinkOptions =
+      typeof titleOrOptions === 'object' && titleOrOptions !== null
+        ? titleOrOptions
+        : {
+            title: titleOrOptions,
+            subtitle,
+            imageURL,
+            data,
+            tags,
+            customRedirects,
+            showPreviewIos,
+            showPreviewAndroid,
+            tracking,
+            copyToClipboardIos,
+            copyToClipboardAndroid,
+          };
+
     try {
       const link = await this.module.generateLink(
-        title,
-        subtitle,
-        imageURL,
-        data,
-        tags,
-        customRedirects,
-        showPreviewIos,
-        showPreviewAndroid,
-        tracking
+        options.title,
+        options.subtitle,
+        options.imageURL,
+        options.data,
+        options.tags,
+        options.customRedirects,
+        options.showPreviewIos,
+        options.showPreviewAndroid,
+        options.tracking,
+        options.copyToClipboardIos,
+        options.copyToClipboardAndroid
       );
       return link;
     } catch (error) {
-      throw new Error(`Failed to generate link: ${(error as Error).message}`);
+      throw nativeErrorWithContext('Failed to generate link', error);
     }
   }
 
@@ -304,9 +355,7 @@ class GrovsWrapper {
     try {
       await this.module.displayMessages();
     } catch (error) {
-      throw new Error(
-        `Failed to display messages: ${(error as Error).message}`
-      );
+      throw nativeErrorWithContext('Failed to display messages', error);
     }
   }
 
@@ -319,8 +368,9 @@ class GrovsWrapper {
       const count = await this.module.numberOfUnreadMessages();
       return count;
     } catch (error) {
-      throw new Error(
-        `Failed to get unread messages count: ${(error as Error).message}`
+      throw nativeErrorWithContext(
+        'Failed to get unread messages count',
+        error
       );
     }
   }
@@ -427,5 +477,6 @@ export type {
   CustomRedirects,
   TransactionType,
   InAppPurchase,
+  GenerateLinkOptions,
 } from './NativeGrovsWrapper';
 export type { NavigationContainerRefLike } from './ScreenTracking';

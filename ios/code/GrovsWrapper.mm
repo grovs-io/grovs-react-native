@@ -8,6 +8,14 @@
 #warning "Swift bridging header not found"
 #endif
 
+static BOOL GrovsRejectIfDisabled(RCTPromiseRejectBlock reject) {
+  if ([GrovsWrapperSwift isSDKEnabled]) {
+    return NO;
+  }
+  reject(@"SDK_DISABLED", @"Grovs SDK is disabled. Call setSDK(true) first.", nil);
+  return YES;
+}
+
 #ifdef RCT_NEW_ARCH_ENABLED
 
 @implementation GrovsWrapper
@@ -94,8 +102,13 @@ RCT_EXPORT_MODULE()
          showPreviewIos:(NSNumber *)showPreviewIos
       showPreviewAndroid:(NSNumber *)showPreviewAndroid
             tracking:(NSDictionary *)tracking
+  copyToClipboardIos:(NSNumber *)copyToClipboardIos
+copyToClipboardAndroid:(NSNumber *)copyToClipboardAndroid
              resolve:(RCTPromiseResolveBlock)resolve
               reject:(RCTPromiseRejectBlock)reject {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
   
   NSMutableDictionary *redirects = nil;
 
@@ -145,6 +158,8 @@ RCT_EXPORT_MODULE()
                                       showPreviewIos:showPreviewIos
                                showPreviewAndroid:showPreviewAndroid
                                          tracking:nativeTracking
+                               copyToClipboardIos:copyToClipboardIos
+                           copyToClipboardAndroid:copyToClipboardAndroid
                                        completion:^(NSURL * _Nullable link) {
     if (link.absoluteString != nil) {
       resolve(link.absoluteString);
@@ -156,6 +171,9 @@ RCT_EXPORT_MODULE()
 
 - (void)displayMessages:(RCTPromiseResolveBlock)resolve
                  reject:(RCTPromiseRejectBlock)reject {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
   [GrovsWrapperSwift.shared displayMessagesViewControllerWithCompletion:^{
     resolve(nil);
   }];
@@ -163,6 +181,9 @@ RCT_EXPORT_MODULE()
 
 - (void)numberOfUnreadMessages:(RCTPromiseResolveBlock)resolve
                         reject:(RCTPromiseRejectBlock)reject {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
   [GrovsWrapperSwift.shared numberOfUnreadMessagesWithCompletion:^(NSInteger value) {
     if (value < 0) {
       reject(@"200", @"Failed to get number of messages", nil);
@@ -290,6 +311,9 @@ RCT_EXPORT_METHOD(setScreenAliases:(NSDictionary *)aliases) {
 
 RCT_EXPORT_METHOD(displayMessages:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
   [GrovsWrapperSwift.shared displayMessagesViewControllerWithCompletion:^{
     resolve(nil);
   }];
@@ -297,6 +321,9 @@ RCT_EXPORT_METHOD(displayMessages:(RCTPromiseResolveBlock)resolve
 
 RCT_EXPORT_METHOD(numberOfUnreadMessages:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
   [GrovsWrapperSwift.shared numberOfUnreadMessagesWithCompletion:^(NSInteger value) {
     if (value < 0) {
       reject(@"200", @"Failed to get number of messages", nil);
@@ -312,18 +339,16 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
                   data:(NSDictionary *)data
                   tags:(NSArray *)tags
                   customRedirects:(NSDictionary *)customRedirects
-                  showPreviewIos:(nonnull NSNumber *)showPreviewIos
-                  showPreviewAndroid:(nonnull NSNumber *)showPreviewAndroid
+                  showPreviewIos:(NSNumber *)showPreviewIos
+                  showPreviewAndroid:(NSNumber *)showPreviewAndroid
                   tracking:(NSDictionary *)tracking
+                  copyToClipboardIos:(NSNumber *)copyToClipboardIos
+                  copyToClipboardAndroid:(NSNumber *)copyToClipboardAndroid
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
-  //  NSDictionary * redirects = @{@"android": @{@"link": customRedirects.android().link(),
-  //                                             @"open_if_app_installed": @(customRedirects.android().open_if_app_installed())},
-  //                               @"ios": @{@"link": customRedirects.ios().link(),
-  //                                         @"open_if_app_installed": @(customRedirects.ios().open_if_app_installed())},
-  //                               @"desktop": @{@"link": customRedirects.desktop().link(),
-  //                                             @"open_if_app_installed": @(customRedirects.desktop().open_if_app_installed())},
-  //  };
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
   [GrovsWrapperSwift.shared generateLinkWithTitle:title
                                          subtitle:subtitle
                                          imageURL:imageURL
@@ -333,6 +358,8 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
                                    showPreviewIos:showPreviewIos
                                showPreviewAndroid:showPreviewAndroid
                                          tracking:tracking
+                               copyToClipboardIos:copyToClipboardIos
+                           copyToClipboardAndroid:copyToClipboardAndroid
                                        completion:^(NSURL * _Nullable link) {
     if (link.absoluteString != nil) {
       resolve(link.absoluteString);

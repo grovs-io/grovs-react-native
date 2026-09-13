@@ -30,6 +30,22 @@ export interface InAppPurchase {
 
 export type TransactionType = 'buy' | 'cancel' | 'refund';
 
+export interface GenerateLinkOptions {
+  title?: string;
+  subtitle?: string;
+  imageURL?: string;
+  data?: { [key: string]: Any };
+  tags?: Array<Any>;
+  customRedirects?: CustomRedirects;
+  showPreviewIos?: boolean;
+  showPreviewAndroid?: boolean;
+  tracking?: Tracking;
+  /** Copy the link to the clipboard on the iOS landing page. `undefined` inherits the project default. */
+  copyToClipboardIos?: boolean;
+  /** Copy the link to the clipboard on the Android landing page. `undefined` inherits the project default. */
+  copyToClipboardAndroid?: boolean;
+}
+
 export interface Spec extends TurboModule {
   setIdentifier(identifier?: string): void;
   setPushToken(pushToken?: string): void;
@@ -45,7 +61,9 @@ export interface Spec extends TurboModule {
     customRedirects?: { [key: string]: Any },
     showPreviewIos?: boolean,
     showPreviewAndroid?: boolean,
-    tracking?: { [key: string]: Any }
+    tracking?: { [key: string]: Any },
+    copyToClipboardIos?: boolean,
+    copyToClipboardAndroid?: boolean
   ): Promise<string>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
@@ -143,7 +161,9 @@ export class TurboModuleGrovs {
     customRedirects?: CustomRedirects,
     showPreviewIos?: boolean,
     showPreviewAndroid?: boolean,
-    tracking?: Tracking
+    tracking?: Tracking,
+    copyToClipboardIos?: boolean,
+    copyToClipboardAndroid?: boolean
   ): Promise<string> {
     if (!NativeModule) {
       throw new Error('Native module GrovsWrapper is not linked');
@@ -158,7 +178,9 @@ export class TurboModuleGrovs {
       customRedirects as { [key: string]: Any } | undefined,
       showPreviewIos,
       showPreviewAndroid,
-      tracking as { [key: string]: Any } | undefined
+      tracking as { [key: string]: Any } | undefined,
+      copyToClipboardIos,
+      copyToClipboardAndroid
     );
   }
 

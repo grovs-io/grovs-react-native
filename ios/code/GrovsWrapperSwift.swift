@@ -68,8 +68,19 @@ public class GrovsWrapperSwift: NSObject {
     Grovs.userAttributes = attributes
   }
 
+  private static let sdkEnabledKey = "io.grovs.wrapper.sdkEnabled"
+
+  /// Restores consent for configure before React Native starts. Defaults to true.
+  @objc
+  public static func isSDKEnabled() -> Bool {
+    let defaults = UserDefaults.standard
+    guard defaults.object(forKey: sdkEnabledKey) != nil else { return true }
+    return defaults.bool(forKey: sdkEnabledKey)
+  }
+
   @objc
   public func setSDK(_ enabled: Bool) {
+    UserDefaults.standard.set(enabled, forKey: Self.sdkEnabledKey)
     Grovs.setSDK(enabled: enabled)
   }
 
@@ -111,9 +122,11 @@ public class GrovsWrapperSwift: NSObject {
                                   data: [String: Any]?,
                                   tags: [String]?,
                                   customRedirects: [String: Any]?,
-                                  showPreviewIos: Bool,
-                                  showPreviewAndroid: Bool,
+                                  showPreviewIos: NSNumber?,
+                                  showPreviewAndroid: NSNumber?,
                                   tracking: [String: String]?,
+                                  copyToClipboardIos: NSNumber?,
+                                  copyToClipboardAndroid: NSNumber?,
                                   completion: @escaping GrovsURLClosure) {
     let iosRedirect = customRedirects?["ios"] as? [String: Any?]
     let androidRedirect = customRedirects?["android"] as? [String: Any?]
@@ -144,8 +157,10 @@ public class GrovsWrapperSwift: NSObject {
                        data: data,
                        tags: tags,
                        customRedirects: redirects,
-                       showPreviewiOS: showPreviewIos,
-                       showPreviewAndroid: showPreviewAndroid,
+                       showPreviewiOS: showPreviewIos?.boolValue,
+                       showPreviewAndroid: showPreviewAndroid?.boolValue,
+                       copyToClipboardiOS: copyToClipboardIos?.boolValue,
+                       copyToClipboardAndroid: copyToClipboardAndroid?.boolValue,
                        trackingCampaign: tracking?["utm_campaign"] as? String,
                        trackingSource: tracking?["utm_source"] as? String,
                        trackingMedium: tracking?["utm_medium"] as? String,

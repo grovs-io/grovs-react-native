@@ -11,6 +11,7 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.soloader.SoLoader
 import io.grovs.Grovs
+import com.grovswrapper.GrovsConsent
 import io.grovs.model.LogLevel
 
 class MainApplication : Application(), ReactApplication {
@@ -42,7 +43,7 @@ class MainApplication : Application(), ReactApplication {
       load()
     }
 
-    Grovs.configure(this, "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f", useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false)
+    Grovs.configure(this, "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f", useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false, clipboardDomains = null, enabled = GrovsConsent.isEnabled(this))
     Grovs.setDebug(LogLevel.INFO)
   }
 }

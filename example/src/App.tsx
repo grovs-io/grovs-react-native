@@ -7,6 +7,7 @@ import {
   Button,
   Clipboard,
   Platform,
+  Switch,
 } from 'react-native';
 import Grovs from 'react-native-grovs-wrapper';
 import { useEffect, useState } from 'react';
@@ -38,29 +39,38 @@ export default function App() {
   const [label2, setLabel2] = useState('Generated link:');
   const [label3, setLabel3] = useState('Unread messages:');
   const [label4, setLabel4] = useState('Revenue:');
+  const [sdkEnabled, setSdkEnabled] = useState(true);
+  const [copyToClipboard, setCopyToClipboard] = useState(false);
+
+  const handleToggleSDK = (value: boolean) => {
+    setSdkEnabled(value);
+    Grovs.setSDK(value);
+  };
 
   const handleGenerateLinkPress = () => {
     generateLink();
   };
 
-  const handleShowNotificationsPress = () => {
-    Grovs.displayMessages();
+  const handleShowNotificationsPress = async () => {
+    try {
+      await Grovs.displayMessages();
+    } catch (error) {
+      setLabel3(`Messages error: ${error}`);
+    }
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyText = (text: string) => {
     Clipboard.setString(text);
     console.log(`Copied: "${text}"`);
   };
 
   async function generateLink() {
     try {
-      const link = await Grovs.generateLink(
-        'Test link',
-        'Test subtitle',
-        undefined,
-        { age: 25, city: 'New York' },
-        undefined,
-        {
+      const link = await Grovs.generateLink({
+        title: 'Test link',
+        subtitle: 'Test subtitle',
+        data: { age: 25, city: 'New York' },
+        customRedirects: {
           android: {
             link: 'https://www.grovs.io/android',
             open_if_app_installed: true,
@@ -74,18 +84,21 @@ export default function App() {
             open_if_app_installed: true,
           },
         },
-        false,
-        false,
-        {
+        showPreviewIos: false,
+        showPreviewAndroid: false,
+        tracking: {
           utm_medium: 'social',
           utm_source: 'social_network',
           utm_campaign: 'react_native_integration',
-        }
-      );
+        },
+        copyToClipboardIos: copyToClipboard,
+        copyToClipboardAndroid: copyToClipboard,
+      });
       console.log(`Generated link: ${link}`);
       setLabel2(`Generated link: ${link}`);
     } catch (error) {
       console.log('Error generating link:', error);
+      setLabel2(`Generated link error: ${error}`);
     }
   }
 
@@ -132,6 +145,10 @@ export default function App() {
       setLabel3(`Unread messages: ${unreadCount}`);
     } catch (error) {
       console.log('Error fetching unread messages:', error);
+      setLabel3(`Unread messages error: ${error}`);
+      if ((error as { code?: string }).code === 'SDK_DISABLED') {
+        setSdkEnabled(false);
+      }
     }
   }
 
@@ -152,7 +169,7 @@ export default function App() {
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label1}</Text>
         <TouchableOpacity
-          onPress={() => copyToClipboard(label1)}
+          onPress={() => copyText(label1)}
           style={styles.copyButton}
         >
           <Text style={styles.copyText}>📋</Text>
@@ -162,7 +179,7 @@ export default function App() {
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label2}</Text>
         <TouchableOpacity
-          onPress={() => copyToClipboard(label2)}
+          onPress={() => copyText(label2)}
           style={styles.copyButton}
         >
           <Text style={styles.copyText}>📋</Text>
@@ -172,11 +189,20 @@ export default function App() {
       <View style={styles.labelContainer}>
         <Text style={styles.label}>{label3}</Text>
         <TouchableOpacity
-          onPress={() => copyToClipboard(label3)}
+          onPress={() => copyText(label3)}
           style={styles.copyButton}
         >
           <Text style={styles.copyText}>📋</Text>
         </TouchableOpacity>
+      </View>
+      <View style={{ height: 20 }} />
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>SDK enabled</Text>
+        <Switch value={sdkEnabled} onValueChange={handleToggleSDK} />
+      </View>
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>Copy link to clipboard</Text>
+        <Switch value={copyToClipboard} onValueChange={setCopyToClipboard} />
       </View>
       <View style={{ height: 20 }} />
       <Button title="Generate link" onPress={handleGenerateLinkPress} />

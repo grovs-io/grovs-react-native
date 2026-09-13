@@ -51,18 +51,42 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
   });
 
   describe('addGrovsConfiguration', () => {
+    it.each([undefined, []])(
+      'omits absent or empty clipboard domains (%j)',
+      (clipboardDomains) => {
+        const result = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
+          apiKey: 'key',
+          useTestEnvironment: false,
+          clipboardDomains,
+        });
+        expect(result).not.toContain('clipboardDomains:');
+        expect(result).toContain('enabled: GrovsWrapperSwift.isSDKEnabled()');
+      }
+    );
+
+    it('passes provided clipboard domains', () => {
+      const result = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
+        apiKey: 'key',
+        useTestEnvironment: false,
+        clipboardDomains: ['a.example', 'b.example'],
+      });
+      expect(result).toContain('clipboardDomains: ["a.example", "b.example"]');
+      expect(result).toContain('enabled: GrovsWrapperSwift.isSDKEnabled()');
+      expect(result).toContain('delegate: GrovsWrapperSwift.shared');
+    });
+
     it('adds Grovs.configure synchronously after super.application returns', () => {
       const result = addGrovsConfiguration(SAMPLE_APP_DELEGATE, {
         apiKey: 'test-key-123',
         useTestEnvironment: true,
       });
       expect(result).toContain(
-        'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)'
+        'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)'
       );
       // Configure must run AFTER super.application(_:didFinishLaunchingWithOptions:)
       // returns (the dev-launcher window setup happens inside super; running
       // configure before super interrupts it and produces a black screen on
-      // Expo SDK 54). It must also be SYNCHRONOUS — deferring with
+      // Expo SDK 54). It must also be synchronous; deferring with
       // DispatchQueue.main.async breaks the Grovs SDK's background NSURLSession
       // and `generateLink` calls hang forever.
       const superCallIndex = result.indexOf(
@@ -91,7 +115,7 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
         baseURL: 'https://custom.example.com',
       });
       expect(result).toContain(
-        'Grovs.configure(APIKey: "key", useTestEnvironment: false, baseURL: "https://custom.example.com", autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)'
+        'Grovs.configure(APIKey: "key", useTestEnvironment: false, baseURL: "https://custom.example.com", autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)'
       );
     });
 

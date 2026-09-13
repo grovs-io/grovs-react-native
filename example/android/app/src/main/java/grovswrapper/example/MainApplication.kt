@@ -13,6 +13,7 @@ import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 
 import io.grovs.Grovs
+import com.grovswrapper.GrovsConsent
 
 class MainApplication : Application(), ReactApplication {
 
@@ -40,7 +41,7 @@ class MainApplication : Application(), ReactApplication {
 
     // TODO: Replace with your own API Key
     val API_KEY = "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f"
-    Grovs.configure(this, API_KEY, useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false)
+    Grovs.configure(this, API_KEY, useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false, clipboardDomains = null, enabled = GrovsConsent.isEnabled(this))
 
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {

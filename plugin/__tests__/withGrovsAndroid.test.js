@@ -1,4 +1,6 @@
 const {
+  readGrovsSdkCoordinate,
+  addGrovsConsentImportToMainApplication,
   addGrovsImportToMainApplication,
   addGrovsConfigure,
   addGrovsImportToMainActivity,
@@ -6,6 +8,74 @@ const {
   addGrovsOnStart,
   addGrovsOnNewIntent,
 } = require('../withGrovsAndroid');
+const withGrovsAndroid = require('../withGrovsAndroid');
+const {
+  withAppBuildGradle,
+  withMainApplication,
+} = require('expo/config-plugins');
+const fs = require('fs');
+
+describe('withGrovsAndroid - SDK dependency', () => {
+  afterEach(() => jest.restoreAllMocks());
+
+  it('reads the SDK coordinate from the wrapper Gradle properties', () => {
+    expect(readGrovsSdkCoordinate()).toBe('io.grovs:grovs:3.0.0');
+  });
+
+  it('ignores comments and trims the configured coordinate', () => {
+    jest
+      .spyOn(fs, 'readFileSync')
+      .mockReturnValue(
+        '# GrovsWrapper_grovsSdkCoordinate=old\r\n GrovsWrapper_grovsSdkCoordinate = io.grovs:grovs:3.1.0 \r\n'
+      );
+    expect(readGrovsSdkCoordinate()).toBe('io.grovs:grovs:3.1.0');
+  });
+
+  it.each(['', 'GrovsWrapper_grovsSdkCoordinate='])(
+    'fails clearly when the SDK coordinate is missing (%j)',
+    (properties) => {
+      jest.spyOn(fs, 'readFileSync').mockReturnValue(properties);
+      expect(() => readGrovsSdkCoordinate()).toThrow(
+        'GrovsWrapper_grovsSdkCoordinate'
+      );
+    }
+  );
+
+  function transformDependency(contents) {
+    withAppBuildGradle.mockClear();
+    withGrovsAndroid({}, { apiKey: 'key', scheme: 'grovs' });
+    const transform = withAppBuildGradle.mock.calls[0][1];
+    return transform({ modResults: { language: 'groovy', contents } })
+      .modResults.contents;
+  }
+
+  it('injects the configured coordinate once into app dependencies', () => {
+    const first = transformDependency(
+      "dependencies {\n    implementation 'com.example:other:1.0.0'\n}\n"
+    );
+    expect(first).toContain(
+      "implementation 'io.grovs:grovs:3.0.0' // react-native-grovs-wrapper:dep"
+    );
+    expect(first).toContain("implementation 'com.example:other:1.0.0'");
+    expect(transformDependency(first)).toBe(first);
+  });
+
+  it('replaces an older marked dependency using the current configured coordinate', () => {
+    jest
+      .spyOn(fs, 'readFileSync')
+      .mockReturnValue(
+        'GrovsWrapper_grovsSdkCoordinate=io.grovs:grovs:3.1.0\n'
+      );
+    const first = transformDependency(
+      "dependencies {\n    implementation 'io.grovs:Grovs:1.2.0' // react-native-grovs-wrapper:dep\n}\n"
+    );
+    expect(first).toContain(
+      "implementation 'io.grovs:grovs:3.1.0' // react-native-grovs-wrapper:dep"
+    );
+    expect(first).not.toContain('1.2.0');
+    expect(transformDependency(first)).toBe(first);
+  });
+});
 
 const SAMPLE_MAIN_APPLICATION = `package com.myapp
 
@@ -42,6 +112,45 @@ class MainActivity : ReactActivity() {
 }`;
 
 describe('withGrovsAndroid - MainApplication transforms', () => {
+  it('adds the consent import only once', () => {
+    const first = addGrovsConsentImportToMainApplication(
+      SAMPLE_MAIN_APPLICATION
+    );
+    expect(first).toContain('import com.grovswrapper.GrovsConsent');
+    expect(addGrovsConsentImportToMainApplication(first)).toBe(first);
+  });
+
+  it('places the consent import after the package when there are no imports', () => {
+    expect(
+      addGrovsConsentImportToMainApplication(
+        'package com.myapp\n\nclass MainApplication {}'
+      )
+    ).toBe(
+      'package com.myapp\n\nimport com.grovswrapper.GrovsConsent\n\nclass MainApplication {}'
+    );
+  });
+
+  it('adds the consent import after an import at the end of the file', () => {
+    expect(
+      addGrovsConsentImportToMainApplication('import android.app.Application')
+    ).toBe(
+      'import android.app.Application\nimport com.grovswrapper.GrovsConsent'
+    );
+  });
+
+  it('wires the consent import and configure call into the Expo mod', () => {
+    withMainApplication.mockClear();
+    withGrovsAndroid({}, { apiKey: 'key', scheme: 'grovs' });
+    const transform = withMainApplication.mock.calls[0][1];
+    const config = {
+      modResults: { language: 'kt', contents: SAMPLE_MAIN_APPLICATION },
+    };
+    const result = transform(config).modResults.contents;
+    expect(result).toContain('import com.grovswrapper.GrovsConsent');
+    expect(result).toContain('enabled = GrovsConsent.isEnabled(this)');
+    expect(transform(config).modResults.contents).toBe(result);
+  });
+
   describe('addGrovsImportToMainApplication', () => {
     it('adds Grovs import after last import', () => {
       const result = addGrovsImportToMainApplication(SAMPLE_MAIN_APPLICATION);
@@ -62,13 +171,38 @@ describe('withGrovsAndroid - MainApplication transforms', () => {
   });
 
   describe('addGrovsConfigure', () => {
+    it.each([undefined, []])(
+      'passes null for absent or empty clipboard domains (%j)',
+      (clipboardDomains) => {
+        const result = addGrovsConfigure(SAMPLE_MAIN_APPLICATION, {
+          apiKey: 'key',
+          useTestEnvironment: false,
+          clipboardDomains,
+        });
+        expect(result).toContain('clipboardDomains = null');
+        expect(result).toContain('enabled = GrovsConsent.isEnabled(this)');
+      }
+    );
+
+    it('passes provided clipboard domains', () => {
+      const result = addGrovsConfigure(SAMPLE_MAIN_APPLICATION, {
+        apiKey: 'key',
+        useTestEnvironment: false,
+        clipboardDomains: ['a.example', 'b.example'],
+      });
+      expect(result).toContain(
+        'clipboardDomains = listOf("a.example", "b.example")'
+      );
+      expect(result).toContain('enabled = GrovsConsent.isEnabled(this)');
+    });
+
     it('adds Grovs.configure after super.onCreate()', () => {
       const result = addGrovsConfigure(SAMPLE_MAIN_APPLICATION, {
         apiKey: 'test-key',
         useTestEnvironment: true,
       });
       expect(result).toContain(
-        'Grovs.configure(this, "test-key", useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false)'
+        'Grovs.configure(this, "test-key", useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false, clipboardDomains = null, enabled = GrovsConsent.isEnabled(this))'
       );
       const configIndex = result.indexOf('Grovs.configure');
       const superIndex = result.indexOf('super.onCreate()');
@@ -90,13 +224,11 @@ describe('withGrovsAndroid - MainApplication transforms', () => {
         baseURL: 'https://custom.example.com',
       });
       expect(result).toContain(
-        'Grovs.configure(this, "key", useTestEnvironment = false, baseURL = "https://custom.example.com", autoTrackScreenViews = false)'
+        'Grovs.configure(this, "key", useTestEnvironment = false, baseURL = "https://custom.example.com", autoTrackScreenViews = false, clipboardDomains = null, enabled = GrovsConsent.isEnabled(this))'
       );
     });
 
     it('passes baseURL = null when not provided', () => {
-      // The 5-arg configure overload (with autoTrackScreenViews) has no
-      // default for baseURL, so the generated call must pass null explicitly.
       const result = addGrovsConfigure(SAMPLE_MAIN_APPLICATION, {
         apiKey: 'key',
         useTestEnvironment: false,
@@ -172,6 +304,11 @@ describe('withGrovsAndroid - MainActivity transforms', () => {
       const result = addGrovsOnNewIntent(SAMPLE_MAIN_ACTIVITY);
       expect(result).toContain('override fun onNewIntent(intent: Intent)');
       expect(result).toContain('super.onNewIntent(intent)');
+      const superIndex = result.indexOf('super.onNewIntent(intent)');
+      const setIntentIndex = result.indexOf('setIntent(intent)');
+      const grovsIndex = result.indexOf('Grovs.onNewIntent(intent,');
+      expect(setIntentIndex).toBeGreaterThan(superIndex);
+      expect(grovsIndex).toBeGreaterThan(setIntentIndex);
       expect(result).toContain(
         'Grovs.onNewIntent(intent, launcherActivity = this)'
       );

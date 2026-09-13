@@ -72,32 +72,21 @@ function addGrovsImport(contents) {
 
 function addGrovsConfiguration(
   contents,
-  { apiKey, useTestEnvironment, baseURL }
+  { apiKey, useTestEnvironment, baseURL, clipboardDomains = [] }
 ) {
   if (contents.includes('Grovs.configure')) {
     return contents;
   }
 
-  // autoTrackScreenViews is disabled: native screen tracking only sees the
-  // single RN host view controller. JS-level screens are tracked via
-  // Grovs.startScreenTracking / trackScreenView instead.
-  const configLine = baseURL
-    ? `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, baseURL: "${baseURL}", autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)`
-    : `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}, autoTrackScreenViews: false, delegate: GrovsWrapperSwift.shared)`;
+  // Native tracking sees only the RN host; JS tracks individual screens.
+  const baseURLArgument = baseURL ? `, baseURL: "${baseURL}"` : '';
+  const clipboardArgument = clipboardDomains.length
+    ? `, clipboardDomains: [${clipboardDomains.map((domain) => JSON.stringify(domain)).join(', ')}]`
+    : '';
+  const configLine = `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}${baseURLArgument}, autoTrackScreenViews: false${clipboardArgument}, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)`;
 
-  // Run Grovs.configure synchronously AFTER super.application(_:didFinishLaunchingWithOptions:)
-  // returns. Two constraints to satisfy at once:
-  //   - The plugin's original behavior (inject `Grovs.configure(...)` BEFORE
-  //     super.application) breaks the Expo dev launcher on Expo SDK 54: the
-  //     launcher's window / rootViewController setup is interrupted, leaving
-  //     the dev build at a black screen.
-  //   - Deferring with `DispatchQueue.main.async` (so it runs on the next
-  //     runloop tick) breaks the Grovs SDK's background NSURLSession: it must
-  //     be initialised inside the original launch window, otherwise
-  //     `generateLink` calls hang indefinitely (the completion handler is
-  //     never invoked).
-  // The resolution is to call configure SYNCHRONOUSLY but AFTER super has
-  // returned — capture super's Bool result, run configure, then return.
+  // Configure after Expo creates its window, within the launch callback so
+  // the SDK can initialize its background URL session synchronously.
   const target =
     'return super.application(application, didFinishLaunchingWithOptions: launchOptions)';
   if (contents.includes(target)) {
@@ -117,7 +106,7 @@ function addGrovsUniversalLinkHandler(contents) {
   }
 
   // If the AppDelegate already declares an `application(_:continue:restorationHandler:)`
-  // method (Expo SDK 54+ template does — it chains RCTLinkingManager), modifying
+  // method (Expo SDK 54+ template chains RCTLinkingManager), modifying
   // that body in place is mandatory. Adding a sibling method causes "Invalid
   // redeclaration" because Swift treats the signatures as identical.
   const existingMethodRegex =
@@ -170,7 +159,7 @@ function insertBeforeClosingBrace(contents, code) {
   // Find the closing brace of the `AppDelegate` class specifically.
   // Newer Expo (SDK 54+) AppDelegate.swift templates declare a sibling
   // `ReactNativeDelegate` class after `AppDelegate`, so `lastIndexOf('}')`
-  // would inject into the wrong class — and `ExpoReactNativeFactoryDelegate`
+  // would inject into the wrong class, and `ExpoReactNativeFactoryDelegate`
   // does not declare these methods, causing `override` to fail to compile.
   const classMatch = contents.match(/class\s+AppDelegate\b[^{]*\{/);
   if (!classMatch) {

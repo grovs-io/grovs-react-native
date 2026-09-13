@@ -16,6 +16,7 @@ const pkg = require('../package.json');
  * @param {boolean} [props.useTestEnvironment=false] - Use test environment
  * @param {string|null} [props.baseURL=null] - Optional custom base URL for the Grovs SDK
  * @param {string[]} [props.associatedDomains] - Universal link domains (e.g., ["grovdc41.sqd.link"])
+ * @param {string[]} [props.clipboardDomains=[]] - Domains eligible for clipboard attribution
  */
 function withGrovs(config, props) {
   if (!props?.apiKey) {
@@ -29,12 +30,23 @@ function withGrovs(config, props) {
     );
   }
 
+  if (
+    props.clipboardDomains !== undefined &&
+    (!Array.isArray(props.clipboardDomains) ||
+      props.clipboardDomains.some((domain) => typeof domain !== 'string'))
+  ) {
+    throw new Error(
+      'react-native-grovs-wrapper plugin "clipboardDomains" must be an array of strings.'
+    );
+  }
+
   const pluginProps = {
     apiKey: props.apiKey,
     scheme: props.scheme,
     useTestEnvironment: props.useTestEnvironment ?? false,
     baseURL: props.baseURL ?? null,
     associatedDomains: props.associatedDomains ?? [],
+    clipboardDomains: props.clipboardDomains ?? [],
   };
 
   config = withGrovsIOS(config, pluginProps);

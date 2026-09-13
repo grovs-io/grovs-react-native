@@ -1,5 +1,7 @@
 package com.grovswrapper
 
+import android.os.Handler
+import android.os.Looper
 import android.app.Activity
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -115,6 +117,12 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
 
     private var incomingDeeplinksJob: Job? = null
 
+  private fun rejectIfDisabled(promise: Promise): Boolean {
+    if (GrovsConsent.isEnabled(reactApplicationContext)) return false
+    promise.reject(GrovsConsent.DISABLED_ERROR_CODE, GrovsConsent.DISABLED_ERROR_MESSAGE)
+    return true
+  }
+
   override fun getName(): String {
     return NAME
   }
@@ -131,8 +139,17 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
     Grovs.attributes = attributes?.toMap()?.toSerializableMap()
   }
 
-  override fun setSDK(enabled: Boolean){
+  override fun setSDK(enabled: Boolean) {
+    GrovsConsent.setEnabled(reactApplicationContext, enabled)
     Grovs.setSDK(enabled = enabled)
+    if (enabled) {
+      // Retry a launch link that arrived while consent was disabled.
+      Handler(Looper.getMainLooper()).post {
+        if (GrovsConsent.isEnabled(reactApplicationContext)) {
+          reactApplicationContext.currentActivity?.let { Grovs.onStart(launcherActivity = it) }
+        }
+      }
+    }
   }
 
   override fun setDebug(level: String) {
@@ -178,7 +195,10 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                             showPreviewIos: Boolean?,
                             showPreviewAndroid: Boolean?,
                             tracking: ReadableMap?,
+                            copyToClipboardIos: Boolean?,
+                            copyToClipboardAndroid: Boolean?,
                             promise: Promise) {
+    if (rejectIfDisabled(promise)) return
 
     val redirects = customRedirects?.toMap()?.toSerializableMap()
     val ios = redirects?.get("ios") as? Map<*, *>
@@ -228,6 +248,8 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
                         customRedirects = nativeCustomRedirect,
                         showPreviewIos = showPreviewIos,
                         showPreviewAndroid = showPreviewAndroid,
+                        copyToClipboardIos = copyToClipboardIos,
+                        copyToClipboardAndroid = copyToClipboardAndroid,
                         tracking = nativeTracking,
                         lifecycleOwner = null,
                         listener = { link, error ->
@@ -244,12 +266,14 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
   }
 
   override fun displayMessages(promise: Promise) {
+    if (rejectIfDisabled(promise)) return
     Grovs.displayMessagesFragment {
       promise.resolve(null)
     }
   }
 
   override fun numberOfUnreadMessages(promise: Promise) {
+    if (rejectIfDisabled(promise)) return
     Grovs.numberOfUnreadMessages(onResult = {
       it?.let {
         promise.resolve(it)

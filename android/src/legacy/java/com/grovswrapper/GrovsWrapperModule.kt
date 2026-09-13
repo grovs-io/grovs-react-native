@@ -1,5 +1,7 @@
 package com.grovswrapper
 
+import android.os.Handler
+import android.os.Looper
 import android.app.Activity
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -116,6 +118,12 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   }
 
+  private fun rejectIfDisabled(promise: Promise): Boolean {
+    if (GrovsConsent.isEnabled(reactApplicationContext)) return false
+    promise.reject(GrovsConsent.DISABLED_ERROR_CODE, GrovsConsent.DISABLED_ERROR_MESSAGE)
+    return true
+  }
+
   override fun getName(): String = "GrovsWrapper"
 
   // Use this because in init activity is null
@@ -151,7 +159,16 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun setSDK(enabled: Boolean) {
+    GrovsConsent.setEnabled(reactApplicationContext, enabled)
     Grovs.setSDK(enabled = enabled)
+    if (enabled) {
+      // Retry a launch link that arrived while consent was disabled.
+      Handler(Looper.getMainLooper()).post {
+        if (GrovsConsent.isEnabled(reactApplicationContext)) {
+          reactApplicationContext.currentActivity?.let { Grovs.onStart(launcherActivity = it) }
+        }
+      }
+    }
   }
 
   @ReactMethod
@@ -203,8 +220,11 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
     showPreviewIos: Boolean?,
     showPreviewAndroid: Boolean?,
     tracking: ReadableMap?,
+    copyToClipboardIos: Boolean?,
+    copyToClipboardAndroid: Boolean?,
     promise: Promise
   ) {
+    if (rejectIfDisabled(promise)) return
     val redirects = customRedirects?.toMap()?.toSerializableMap()
     val ios = redirects?.get("ios") as? Map<*, *>
     val iosUrl = ios?.get("link") as? String
@@ -249,6 +269,8 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
       customRedirects = nativeCustomRedirect,
       showPreviewIos = showPreviewIos,
       showPreviewAndroid = showPreviewAndroid,
+      copyToClipboardIos = copyToClipboardIos,
+      copyToClipboardAndroid = copyToClipboardAndroid,
       tracking = nativeTracking,
       lifecycleOwner = null,
       listener = { link, error ->
@@ -263,6 +285,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun displayMessages(promise: Promise) {
+    if (rejectIfDisabled(promise)) return
     Grovs.displayMessagesFragment {
       promise.resolve(null)
     }
@@ -270,6 +293,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun numberOfUnreadMessages(promise: Promise) {
+    if (rejectIfDisabled(promise)) return
     Grovs.numberOfUnreadMessages {
       it?.let { promise.resolve(it) } ?: promise.reject("Error", "Failed to fetch messages number.")
     }

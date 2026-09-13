@@ -6,30 +6,45 @@ const {
   withAppBuildGradle,
 } = require('expo/config-plugins');
 
-// Pinned to match the Grovs SDK version the wrapper depends on
-// (`react-native-grovs-wrapper` declares `implementation
-// "io.grovs:Grovs:1.2.0"` in its own build.gradle, but uses `implementation`
-// not `api` so the dep isn't transitively visible to the consuming app
-// module — and the plugin injects `import io.grovs.Grovs` into MainActivity /
-// MainApplication, so the app module needs its own dependency to compile.).
-const GROVS_ANDROID_DEP = `implementation 'io.grovs:Grovs:1.2.0'`;
+const fs = require('fs');
+const path = require('path');
+
 const GROVS_ANDROID_DEP_MARKER = '// react-native-grovs-wrapper:dep';
+
+function readGrovsSdkCoordinate() {
+  const properties = fs.readFileSync(
+    path.join(__dirname, '../android/gradle.properties'),
+    'utf8'
+  );
+  const coordinate = properties
+    .match(/^[ \t]*GrovsWrapper_grovsSdkCoordinate[ \t]*=([^\r\n]*)/m)?.[1]
+    .trim();
+  if (!coordinate) {
+    throw new Error(
+      'Missing GrovsWrapper_grovsSdkCoordinate in android/gradle.properties.'
+    );
+  }
+  return coordinate;
+}
 
 function withGrovsAppDependency(config) {
   return withAppBuildGradle(config, (config) => {
-    if (config.modResults.contents.includes(GROVS_ANDROID_DEP_MARKER)) {
+    // The app imports the SDK directly, so it needs its own dependency.
+    const dependency = `implementation '${readGrovsSdkCoordinate()}' ${GROVS_ANDROID_DEP_MARKER}`;
+    const markedDependency =
+      /^([ \t]*)implementation[^\r\n]*\/\/ react-native-grovs-wrapper:dep[^\r\n]*$/gm;
+    if (markedDependency.test(config.modResults.contents)) {
+      config.modResults.contents = config.modResults.contents.replace(
+        markedDependency,
+        (_, indent) => `${indent}${dependency}`
+      );
       return config;
     }
-    // Insert the implementation line just before the closing `}` of the
-    // top-level `dependencies { ... }` block.
     const depsBlockRegex = /(dependencies\s*\{[\s\S]*?)(\n\s*\})/;
-    const match = config.modResults.contents.match(depsBlockRegex);
-    if (match) {
-      config.modResults.contents = config.modResults.contents.replace(
-        depsBlockRegex,
-        `$1\n    ${GROVS_ANDROID_DEP} ${GROVS_ANDROID_DEP_MARKER}$2`
-      );
-    }
+    config.modResults.contents = config.modResults.contents.replace(
+      depsBlockRegex,
+      (_, block, closingBrace) => `${block}\n    ${dependency}${closingBrace}`
+    );
     return config;
   });
 }
@@ -122,18 +137,37 @@ function addGrovsImportToMainApplication(contents) {
   );
 }
 
-function addGrovsConfigure(contents, { apiKey, useTestEnvironment, baseURL }) {
+function addGrovsConsentImportToMainApplication(contents) {
+  const consentImport = 'import com.grovswrapper.GrovsConsent';
+  if (contents.includes(consentImport)) {
+    return contents;
+  }
+  const lastImport = [...contents.matchAll(/^import [^\r\n]+/gm)].pop();
+  if (lastImport) {
+    const insertAt = lastImport.index + lastImport[0].length;
+    return `${contents.slice(0, insertAt)}\n${consentImport}${contents.slice(insertAt)}`;
+  }
+  const packageLine = contents.match(/^package [^\r\n]+/m);
+  if (packageLine) {
+    const insertAt = packageLine.index + packageLine[0].length;
+    return `${contents.slice(0, insertAt)}\n\n${consentImport}${contents.slice(insertAt)}`;
+  }
+  return `${consentImport}\n${contents}`;
+}
+
+function addGrovsConfigure(
+  contents,
+  { apiKey, useTestEnvironment, baseURL, clipboardDomains = [] }
+) {
   if (contents.includes('Grovs.configure')) {
     return contents;
   }
 
-  // autoTrackScreenViews is disabled: native screen tracking only sees
-  // MainActivity. JS-level screens are tracked via Grovs.startScreenTracking
-  // / trackScreenView instead. The 5-arg configure overload has no default
-  // for baseURL, so pass null explicitly.
-  const configCode = baseURL
-    ? `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = "${baseURL}", autoTrackScreenViews = false)\n`
-    : `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = null, autoTrackScreenViews = false)\n`;
+  // Native tracking sees only MainActivity; JS tracks individual screens.
+  const domains = clipboardDomains.length
+    ? `listOf(${clipboardDomains.map((domain) => JSON.stringify(domain).replace(/\$/g, '\\$')).join(', ')})`
+    : 'null';
+  const configCode = `    Grovs.configure(this, "${apiKey}", useTestEnvironment = ${useTestEnvironment}, baseURL = ${baseURL ? `"${baseURL}"` : 'null'}, autoTrackScreenViews = false, clipboardDomains = ${domains}, enabled = GrovsConsent.isEnabled(this))\n`;
 
   // Insert after super.onCreate()
   const superOnCreate = contents.indexOf('super.onCreate()');
@@ -160,6 +194,7 @@ function withGrovsMainApplication(config, props) {
 
     let contents = config.modResults.contents;
     contents = addGrovsImportToMainApplication(contents);
+    contents = addGrovsConsentImportToMainApplication(contents);
     contents = addGrovsConfigure(contents, props);
     config.modResults.contents = contents;
 
@@ -221,6 +256,7 @@ function addGrovsOnNewIntent(contents) {
   const method = `
   override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
+    setIntent(intent)
     Grovs.onNewIntent(intent, launcherActivity = this)
   }`;
 
@@ -273,3 +309,7 @@ module.exports.addGrovsImportToMainActivity = addGrovsImportToMainActivity;
 module.exports.addGrovsIntentImport = addGrovsIntentImport;
 module.exports.addGrovsOnStart = addGrovsOnStart;
 module.exports.addGrovsOnNewIntent = addGrovsOnNewIntent;
+
+module.exports.readGrovsSdkCoordinate = readGrovsSdkCoordinate;
+module.exports.addGrovsConsentImportToMainApplication =
+  addGrovsConsentImportToMainApplication;

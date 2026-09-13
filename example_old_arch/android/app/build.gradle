@@ -117,7 +117,7 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation "io.grovs:grovs:2.0.0-internal"
+    implementation "io.grovs:grovs:3.0.0"
 }
 
 repositories {
