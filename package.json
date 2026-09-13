@@ -97,7 +97,8 @@
     "typescript": "^5.2.2"
   },
   "resolutions": {
-    "@types/react": "^18.2.44"
+    "@types/react": "^18.2.44",
+    "react-native@0.77.0": "patch:react-native@npm%3A0.77.0#./.yarn/patches/react-native-npm-0.77.0-90586745d5.patch"
   },
   "peerDependencies": {
     "react": "*",

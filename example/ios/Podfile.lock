@@ -3,7 +3,7 @@ PODS:
   - DoubleConversion (1.1.6)
   - fast_float (6.1.4)
   - FBLazyVector (0.77.0)
-  - fmt (11.0.2)
+  - fmt (12.1.0)
   - glog (0.3.5)
   - Grovs (3.0)
   - hermes-engine (0.77.0):
@@ -13,20 +13,20 @@ PODS:
     - boost
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - RCT-Folly/Default (= 2024.11.18.00)
   - RCT-Folly/Default (2024.11.18.00):
     - boost
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
   - RCT-Folly/Fabric (2024.11.18.00):
     - boost
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
   - RCTDeprecation (0.77.0)
   - RCTRequired (0.77.0)
@@ -289,7 +289,7 @@ PODS:
   - React-CoreModules (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - RCT-Folly (= 2024.11.18.00)
     - RCTTypeSafety (= 0.77.0)
     - React-Core/CoreModulesHeaders (= 0.77.0)
@@ -305,7 +305,7 @@ PODS:
     - boost
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
@@ -342,7 +342,7 @@ PODS:
   - React-Fabric (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -378,7 +378,7 @@ PODS:
   - React-Fabric/animations (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -399,7 +399,7 @@ PODS:
   - React-Fabric/attributedstring (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -420,7 +420,7 @@ PODS:
   - React-Fabric/componentregistry (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -441,7 +441,7 @@ PODS:
   - React-Fabric/componentregistrynative (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -462,7 +462,7 @@ PODS:
   - React-Fabric/components (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -486,7 +486,7 @@ PODS:
   - React-Fabric/components/legacyviewmanagerinterop (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -507,7 +507,7 @@ PODS:
   - React-Fabric/components/root (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -528,7 +528,7 @@ PODS:
   - React-Fabric/components/view (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -550,7 +550,7 @@ PODS:
   - React-Fabric/core (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -571,7 +571,7 @@ PODS:
   - React-Fabric/dom (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -592,7 +592,7 @@ PODS:
   - React-Fabric/imagemanager (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -613,7 +613,7 @@ PODS:
   - React-Fabric/leakchecker (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -634,7 +634,7 @@ PODS:
   - React-Fabric/mounting (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -655,7 +655,7 @@ PODS:
   - React-Fabric/observers (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -677,7 +677,7 @@ PODS:
   - React-Fabric/observers/events (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -698,7 +698,7 @@ PODS:
   - React-Fabric/scheduler (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -721,7 +721,7 @@ PODS:
   - React-Fabric/telemetry (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -742,7 +742,7 @@ PODS:
   - React-Fabric/templateprocessor (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -763,7 +763,7 @@ PODS:
   - React-Fabric/uimanager (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -786,7 +786,7 @@ PODS:
   - React-Fabric/uimanager/consistency (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -808,7 +808,7 @@ PODS:
   - React-FabricComponents (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -833,7 +833,7 @@ PODS:
   - React-FabricComponents/components (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -865,7 +865,7 @@ PODS:
   - React-FabricComponents/components/inputaccessory (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -888,7 +888,7 @@ PODS:
   - React-FabricComponents/components/iostextinput (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -911,7 +911,7 @@ PODS:
   - React-FabricComponents/components/modal (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -934,7 +934,7 @@ PODS:
   - React-FabricComponents/components/rncore (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -957,7 +957,7 @@ PODS:
   - React-FabricComponents/components/safeareaview (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -980,7 +980,7 @@ PODS:
   - React-FabricComponents/components/scrollview (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -1003,7 +1003,7 @@ PODS:
   - React-FabricComponents/components/text (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -1026,7 +1026,7 @@ PODS:
   - React-FabricComponents/components/textinput (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -1049,7 +1049,7 @@ PODS:
   - React-FabricComponents/components/unimplementedview (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -1072,7 +1072,7 @@ PODS:
   - React-FabricComponents/textlayoutmanager (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -1095,7 +1095,7 @@ PODS:
   - React-FabricImage (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly/Fabric (= 2024.11.18.00)
@@ -1124,7 +1124,7 @@ PODS:
   - React-graphics (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - RCT-Folly/Fabric (= 2024.11.18.00)
     - React-jsi
@@ -1133,7 +1133,7 @@ PODS:
   - React-hermes (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
@@ -1173,14 +1173,14 @@ PODS:
     - boost
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
   - React-jsiexecutor (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
@@ -1291,7 +1291,7 @@ PODS:
   - React-RCTBlob (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
     - React-Core/RCTBlobHeaders
@@ -1381,7 +1381,7 @@ PODS:
   - React-rendererdebug (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - RCT-Folly (= 2024.11.18.00)
     - React-debug
   - React-rncore (0.77.0)
@@ -1484,7 +1484,7 @@ PODS:
   - ReactCommon/turbomodule (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
@@ -1498,7 +1498,7 @@ PODS:
   - ReactCommon/turbomodule/bridging (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
@@ -1510,7 +1510,7 @@ PODS:
   - ReactCommon/turbomodule/core (0.77.0):
     - DoubleConversion
     - fast_float (= 6.1.4)
-    - fmt (= 11.0.2)
+    - fmt (= 12.1.0)
     - glog
     - hermes-engine
     - RCT-Folly (= 2024.11.18.00)
@@ -1751,34 +1751,34 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 2bc03a5cf64e29c611bbc5d7eb9d9f7431f37ee6
-  fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
+  fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
   Grovs: d26826fca67a73374084a92f2fe1a38c71cc09cb
   hermes-engine: 1f783c3d53940aed0d2c84586f0b7a85ab7827ef
-  RCT-Folly: 36fe2295e44b10d831836cc0d1daec5f8abcf809
+  RCT-Folly: d533c1d21249a85e67a4be97f4d793665de0222e
   RCTDeprecation: f5c19ebdb8804b53ed029123eb69914356192fc8
   RCTRequired: 6ae6cebe470486e0e0ce89c1c0eabb998e7c51f4
   RCTTypeSafety: 50d6ec72a3d13cf77e041ff43a0617050fb98e3f
   React: e46fdbd82d2de942970c106677056f3bdd438d82
   React-callinvoker: b027ad895934b5f27ce166d095ed0d272d7df619
   React-Core: 36b7f20f655d47a35046e2b02c9aa5a8f1bcb61e
-  React-CoreModules: 7fac6030d37165c251a7bd4bde3333212544da3c
-  React-cxxreact: 0ead442ecaa248e7f71719e286510676495ae26d
+  React-CoreModules: 7bbb9693ed2a7097b5a67c687a4bf42e043f8d59
+  React-cxxreact: e8b96ff8a0f5cbf439d207a6f3bd365b0cbf2d51
   React-debug: 78d7544d2750737ac3acc88cca2f457d081ec43d
   React-defaultsnativemodule: 833b618f562a7798e7a814ce1ddc001464d7a3d0
   React-domnativemodule: c1ca50f25913f73d5e95d55ff5352e7f1d7ebcc8
-  React-Fabric: 131631b99737169826d16290d5b90c53a150fc15
-  React-FabricComponents: 1f6ce42418da316663f53b534bdebd23ec4be41f
-  React-FabricImage: b6ba029f882f1676cb1b59688fa39e1ef0814381
+  React-Fabric: 7982ac5c1381e6aa3d0a78ab5e1656af900af710
+  React-FabricComponents: aede785d3200dc069dac43bf6298e713a9ea670d
+  React-FabricImage: 67d785d00b57bc6b16969fb2f0fe197c1d34087d
   React-featureflags: 92dd7d0169ab0bf8ad404a5fe757c1ca7ccd74e8
   React-featureflagsnativemodule: 69bc086433eff3077b90f4ea17ab2083ad281868
-  React-graphics: f09d013df7aef5551fdce4c99f2fe704c6c5b35a
-  React-hermes: 13e1c1c9222503bcd7ad450370c5a26dc9b46ebe
+  React-graphics: 1862292d58e56cfdc9e7625baebbf8a13bc629ae
+  React-hermes: 9037c30bfccab2ebd92860d261298776130aeebe
   React-idlecallbacksnativemodule: f349708531f44d3db8ac79129d8e2b4d8cc3d1ff
   React-ImageManager: e20f7c0291e5c9298b643c88b40db62c46a30ae4
   React-jserrorhandler: 79aa6ef93470ab9e8f4c6c6258dc662880b0bfb4
-  React-jsi: 931610846e52e5d157f4bc3f71a14f9a53573abd
-  React-jsiexecutor: 3f5fb21d47c5c72c13a1710b288d78c8209a38f9
+  React-jsi: 81756b57548181c0d881179bb66d856ddbb9029f
+  React-jsiexecutor: b7ffe6526d48fb9754a914e9d14ff569ff314f51
   React-jsinspector: d2653e42aae27f01f71f10ab87866cf092288e30
   React-jsitracing: fe93bab4193ec5528bcbdaf2f1b62475652490ad
   React-logger: 9a0c4e1e41cd640ac49d69aacadab783f7e0096b
@@ -1792,7 +1792,7 @@ SPEC CHECKSUMS:
   React-RCTActionSheet: 25eb72eabade4095bfaf6cd9c5c965c76865daa8
   React-RCTAnimation: 04c987fa858fa16169f543d29edb4140bd35afa9
   React-RCTAppDelegate: b2707904e4f8ad92fd052e62684bf0c3b88381cc
-  React-RCTBlob: 1f214a7211632515805dd1f1b81fac70d12f812d
+  React-RCTBlob: 8df6d6df90e8f43269414dbacc4e1d94c16ca81f
   React-RCTFabric: 10f8b1ceac3c2feb3ddbede8a70c3410c68d79fe
   React-RCTFBReactNativeSpec: 60d72b45a150ca35748b9a77028674b1e56a2e43
   React-RCTImage: e516d72739797fb7c1dac5c691f02a0f5445c290
@@ -1802,7 +1802,7 @@ SPEC CHECKSUMS:
   React-RCTText: 15f14d6f9b75e64ffe749c75e30ff047cf0fa1be
   React-RCTVibration: 8d9078d5432972fe12d9f1526b38f504ad3d45cb
   React-rendererconsistency: 7a81b08f01655b458d1de48ddd5b3f5988fd753f
-  React-rendererdebug: 28f591de2009cb053e21cbf87edb357e6b214147
+  React-rendererdebug: a7815c84176ca4a739fea4e00687718e127f52d8
   React-rncore: dd08c91cea25486f79012e32975c0ea26bd92760
   React-RuntimeApple: fc7a3fe49564bd6a5b8aef081341960212ab58d0
   React-RuntimeCore: 2f967e25ca18a85cff22d103fbe782828442eeb4
@@ -1813,7 +1813,7 @@ SPEC CHECKSUMS:
   React-utils: 015e250e7898047068792d4b532fed21f2eb1661
   ReactAppDependencyProvider: 3d947e9d62f351c06c71497e1be897e6006dc303
   ReactCodegen: 1baa534318b19e95fb0f02db0a1ae1e3c271944d
-  ReactCommon: 6014af4276bb2debc350e2620ef1bd856b4d981c
+  ReactCommon: 9b8997273d41dc7029635e213e2cb6646a77b4c9
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: c0d8564af14a858f962607cd7306539cb2ace926
 

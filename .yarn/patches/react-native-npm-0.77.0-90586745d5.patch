@@ -1,0 +1,200 @@
+diff --git a/Libraries/Blob/React-RCTBlob.podspec b/Libraries/Blob/React-RCTBlob.podspec
+index 9d758c174cf0ad55e81bae9d3b4f8caf6fdf673b..6dfb3ab9dbf2152ee599d9f61993e658935bafa7 100644
+--- a/Libraries/Blob/React-RCTBlob.podspec
++++ b/Libraries/Blob/React-RCTBlob.podspec
+@@ -50,7 +50,7 @@ Pod::Spec.new do |s|
+ 
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "React-jsi"
+   s.dependency "React-Core/RCTBlobHeaders"
+diff --git a/React/CoreModules/React-CoreModules.podspec b/React/CoreModules/React-CoreModules.podspec
+index d41b66c0f5a383a62d0500b5a0c13398ff24809f..ea815c9532c77a12aa23d032c68ac69924c00acf 100644
+--- a/React/CoreModules/React-CoreModules.podspec
++++ b/React/CoreModules/React-CoreModules.podspec
+@@ -61,7 +61,7 @@ Pod::Spec.new do |s|
+   s.framework = "UIKit"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "RCTTypeSafety", version
+   s.dependency "React-Core/CoreModulesHeaders", version
+diff --git a/ReactCommon/React-Fabric.podspec b/ReactCommon/React-Fabric.podspec
+index bd71203db101edf02cf91857892bf260ea759e54..f6cf73fdc160a36f71b6a83b3ee08f5d72303d3b 100644
+--- a/ReactCommon/React-Fabric.podspec
++++ b/ReactCommon/React-Fabric.podspec
+@@ -55,7 +55,7 @@ Pod::Spec.new do |s|
+   s.dependency "glog"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "React-Core"
+   s.dependency "React-debug"
+   s.dependency "React-featureflags"
+diff --git a/ReactCommon/React-FabricComponents.podspec b/ReactCommon/React-FabricComponents.podspec
+index d8ff12b5d411968321931a2bfde5ea8a1353c861..d496c520ea9d10595793a20d1d5684c7162f9c64 100644
+--- a/ReactCommon/React-FabricComponents.podspec
++++ b/ReactCommon/React-FabricComponents.podspec
+@@ -77,7 +77,7 @@ Pod::Spec.new do |s|
+   s.dependency "glog"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "React-Core"
+   s.dependency "React-debug"
+   s.dependency "React-featureflags"
+diff --git a/ReactCommon/React-FabricImage.podspec b/ReactCommon/React-FabricImage.podspec
+index c8e975a3e0aa95e3c9099b781206fdffb9c16cc9..6019ab0f6bc86816beb6045e9ebdfa4f5f4fff27 100644
+--- a/ReactCommon/React-FabricImage.podspec
++++ b/ReactCommon/React-FabricImage.podspec
+@@ -77,7 +77,7 @@ Pod::Spec.new do |s|
+   s.dependency "glog"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "React-featureflags"
+   s.dependency "React-ImageManager"
+   s.dependency "React-utils"
+diff --git a/ReactCommon/ReactCommon.podspec b/ReactCommon/ReactCommon.podspec
+index a6020da9fa8ce7e18af738449c747ebfcfc4baeb..080372dfa9ef1e68877f652eb44548853c9a210c 100644
+--- a/ReactCommon/ReactCommon.podspec
++++ b/ReactCommon/ReactCommon.podspec
+@@ -55,7 +55,7 @@ Pod::Spec.new do |s|
+     ss.dependency "React-logger", version
+     ss.dependency "DoubleConversion"
+     ss.dependency "fast_float", "6.1.4"
+-    ss.dependency "fmt", "11.0.2"
++    ss.dependency "fmt", "12.1.0"
+     ss.dependency "glog"
+     if using_hermes
+       ss.dependency "hermes-engine"
+diff --git a/ReactCommon/cxxreact/React-cxxreact.podspec b/ReactCommon/cxxreact/React-cxxreact.podspec
+index 2f05b75b71463dfbe6e9ebdab5a61fa92c1c37b2..00c51f48f73c28678328a7b523c10862ea9a1399 100644
+--- a/ReactCommon/cxxreact/React-cxxreact.podspec
++++ b/ReactCommon/cxxreact/React-cxxreact.podspec
+@@ -44,7 +44,7 @@ Pod::Spec.new do |s|
+   s.dependency "boost"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "glog"
+   add_dependency(s, "React-jsinspector", :framework_name => 'jsinspector_modern')
+diff --git a/ReactCommon/hermes/React-hermes.podspec b/ReactCommon/hermes/React-hermes.podspec
+index 3a072cf9df0127092a3e2cbe84347df1256ad8a9..bb87ec8d9baa9b8b1fa7b66c990dde70abd7c71f 100644
+--- a/ReactCommon/hermes/React-hermes.podspec
++++ b/ReactCommon/hermes/React-hermes.podspec
+@@ -48,7 +48,7 @@ Pod::Spec.new do |s|
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "glog"
+   s.dependency "hermes-engine"
+   s.dependency "React-jsi"
+diff --git a/ReactCommon/jsi/React-jsi.podspec b/ReactCommon/jsi/React-jsi.podspec
+index fb3cbe9556f4ed0fab3d429a2ce82aaf1d0f0916..dc84e5da7387f0a7413a06c5aa0b69f3e8a700f7 100644
+--- a/ReactCommon/jsi/React-jsi.podspec
++++ b/ReactCommon/jsi/React-jsi.podspec
+@@ -47,7 +47,7 @@ Pod::Spec.new do |s|
+   s.dependency "boost"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "glog"
+ 
+diff --git a/ReactCommon/jsiexecutor/React-jsiexecutor.podspec b/ReactCommon/jsiexecutor/React-jsiexecutor.podspec
+index 17641842b98da86af69dc518a1c647df239a4247..5b1af8066c0fc55b8ba318a087fd7fec31355cd9 100644
+--- a/ReactCommon/jsiexecutor/React-jsiexecutor.podspec
++++ b/ReactCommon/jsiexecutor/React-jsiexecutor.podspec
+@@ -43,7 +43,7 @@ Pod::Spec.new do |s|
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "glog"
+   add_dependency(s, "React-jsinspector", :framework_name => 'jsinspector_modern')
+ 
+diff --git a/ReactCommon/react/nativemodule/samples/ReactCommon-Samples.podspec b/ReactCommon/react/nativemodule/samples/ReactCommon-Samples.podspec
+index 5c35ba1eab3ecfaa698dd565577dcac4a1d5e055..8e32287c2abdce7b5e54def332041fa0448c17f5 100644
+--- a/ReactCommon/react/nativemodule/samples/ReactCommon-Samples.podspec
++++ b/ReactCommon/react/nativemodule/samples/ReactCommon-Samples.podspec
+@@ -65,7 +65,7 @@ Pod::Spec.new do |s|
+   s.dependency "RCT-Folly"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   s.dependency "React-Core"
+   s.dependency "React-cxxreact"
+   s.dependency "React-jsi"
+diff --git a/ReactCommon/react/renderer/debug/React-rendererdebug.podspec b/ReactCommon/react/renderer/debug/React-rendererdebug.podspec
+index 52dc39c87408242921dc901fc5f62e334318f3a4..834a33ab665ad11fa1d43e8c2d739e6dc196a89b 100644
+--- a/ReactCommon/react/renderer/debug/React-rendererdebug.podspec
++++ b/ReactCommon/react/renderer/debug/React-rendererdebug.podspec
+@@ -59,6 +59,6 @@ Pod::Spec.new do |s|
+   s.dependency "RCT-Folly", folly_version
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+   add_dependency(s, "React-debug")
+ end
+diff --git a/ReactCommon/react/renderer/graphics/React-graphics.podspec b/ReactCommon/react/renderer/graphics/React-graphics.podspec
+index 9548d69c19e8078147f96da575b6d0cf7cf1b9a8..3f071f6e255e03fc6b30cb6ae427f147fe3f50e6 100644
+--- a/ReactCommon/react/renderer/graphics/React-graphics.podspec
++++ b/ReactCommon/react/renderer/graphics/React-graphics.podspec
+@@ -69,5 +69,5 @@ Pod::Spec.new do |s|
+   s.dependency "React-utils"
+   s.dependency "DoubleConversion"
+   s.dependency "fast_float", "6.1.4"
+-  s.dependency "fmt", "11.0.2"
++  s.dependency "fmt", "12.1.0"
+ end
+diff --git a/third-party-podspecs/RCT-Folly.podspec b/third-party-podspecs/RCT-Folly.podspec
+index b3c60a50a9e3fdcbc1e9f55bf6c0145aa0d981e4..d0cd7d498cbba84722565271845e197fb02add7c 100644
+--- a/third-party-podspecs/RCT-Folly.podspec
++++ b/third-party-podspecs/RCT-Folly.podspec
+@@ -24,7 +24,7 @@ Pod::Spec.new do |spec|
+   spec.dependency 'DoubleConversion'
+   spec.dependency 'glog'
+   spec.dependency "fast_float", "6.1.4"
+-  spec.dependency "fmt", "11.0.2"
++  spec.dependency "fmt", "12.1.0"
+   spec.compiler_flags = folly_compiler_flags + ' -DFOLLY_HAVE_PTHREAD=1 -Wno-documentation -faligned-new'
+   spec.source_files = 'folly/String.cpp',
+                       'folly/Conv.cpp',
+diff --git a/third-party-podspecs/fmt.podspec b/third-party-podspecs/fmt.podspec
+index 2f38990e226c13f483aaf1b986302d4094243814..a40c5755e049974e98a4038c177661d2bdc5681f 100644
+--- a/third-party-podspecs/fmt.podspec
++++ b/third-party-podspecs/fmt.podspec
+@@ -8,14 +8,14 @@ fmt_git_url = fmt_config[:git]
+ 
+ Pod::Spec.new do |spec|
+   spec.name = "fmt"
+-  spec.version = "11.0.2"
++  spec.version = "12.1.0"
+   spec.license = { :type => "MIT" }
+   spec.homepage = "https://github.com/fmtlib/fmt"
+   spec.summary = "{fmt} is an open-source formatting library for C++. It can be used as a safe and fast alternative to (s)printf and iostreams."
+   spec.authors = "The fmt contributors"
+   spec.source = {
+     :git => fmt_git_url,
+-    :tag => "11.0.2"
++    :tag => "12.1.0"
+   }
+   spec.pod_target_xcconfig = {
+     "CLANG_CXX_LANGUAGE_STANDARD" => rct_cxx_language_standard(),
