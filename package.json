@@ -1,6 +1,6 @@
 {
   "name": "react-native-grovs-wrapper",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Grovs react native SDK",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",
@@ -149,7 +149,8 @@
       "tagName": "v${version}"
     },
     "npm": {
-      "publish": true
+      "publish": true,
+      "timeout": 60
     },
     "github": {
       "release": true
