@@ -9,7 +9,8 @@ We want this community to be friendly and respectful to each other. Please follo
 This project is a monorepo managed using [Yarn workspaces](https://yarnpkg.com/features/workspaces). It contains the following packages:
 
 - The library package in the root directory.
-- An example app in the `example/` directory.
+- An example app using the new architecture in the `example/` directory.
+- An example app using the legacy bridge in the `example_old_arch/` directory.
 
 To get started with the project, run `yarn` in the root directory to install the required dependencies for each package:
 
@@ -23,7 +24,7 @@ The [example app](/example/) demonstrates usage of the library. You need to run 
 
 It is configured to use the local version of the library, so any changes you make to the library's source code will be reflected in the example app. Changes to the library's JavaScript code will be reflected in the example app without a rebuild, but native code changes will require a rebuild of the example app.
 
-If you want to use Android Studio or XCode to edit the native code, you can open the `example/android` or `example/ios` directories respectively in those editors. To edit the Objective-C or Swift files, open `example/ios/GrovsWrapperExample.xcworkspace` in XCode and find the source files at `Pods > Development Pods > react-native-grovs-wrapper`.
+If you want to use Android Studio or Xcode to edit the native code, you can open the `example/android` or `example/ios` directories respectively in those editors. To edit the Objective-C or Swift files, open `example/ios/GrovsWrapperExample.xcworkspace` in Xcode and find the source files at `Pods > Development Pods > react-native-grovs-wrapper`.
 
 To edit the Java or Kotlin files, open `example/android` in Android studio and find the source files at `react-native-grovs-wrapper` under `Android`.
 
@@ -54,6 +55,20 @@ Running "GrovsWrapperExample" with {"fabric":true,"initialProps":{"concurrentRoo
 ```
 
 Note the `"fabric":true` and `"concurrentRoot":true` properties.
+
+The legacy bridge example works the same way through the `example-old-arch` script:
+
+```sh
+yarn example-old-arch start
+yarn example-old-arch android
+yarn example-old-arch ios
+```
+
+### Native builds
+
+- **iOS**: run `pod install` in `example/ios` or `example_old_arch/ios` after installing dependencies or changing native code. The Grovs pod comes from CocoaPods, so run `pod install --repo-update` if CocoaPods cannot find it.
+- **Android**: build with JDK 17 or 21. The JDK bundled with Android Studio works. Newer JDKs such as 24 fail with `Unsupported class file major version`. The Grovs SDK comes from Maven Central and needs no credentials.
+- The examples use React Native 0.77.0 with a Yarn patch for newer Xcode versions. See [.yarn/patches/README.md](.yarn/patches/README.md).
 
 Make sure your code passes TypeScript and ESLint. Run the following to verify:
 
@@ -116,6 +131,7 @@ The `package.json` file contains various scripts for common tasks:
 - `yarn example start`: start the Metro server for the example app.
 - `yarn example android`: run the example app on Android.
 - `yarn example ios`: run the example app on iOS.
+- `yarn example-old-arch <command>`: run the same commands for the legacy bridge example.
 
 ### Sending a pull request
 

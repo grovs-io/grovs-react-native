@@ -42,6 +42,13 @@ The Grovs React Native SDK provides deep linking, universal links, app links, li
 - iOS 13.0+
 - Android API 21+ (Android 5.0)
 
+These are the minimums of the native Grovs SDKs. Your React Native version may require a higher one.
+
+The wrapper uses the Grovs native SDKs 3.0.0:
+
+- **iOS**: `Grovs` 3.0 from CocoaPods
+- **Android**: `io.grovs:Grovs:3.0.0` from Maven Central
+
 ## Installation
 
 ```bash
@@ -54,13 +61,15 @@ yarn add react-native-grovs-wrapper
 
 ### Android dependency
 
-Add the Grovs Android SDK to `android/app/build.gradle`:
+Your app calls `Grovs` directly from `MainApplication` and `MainActivity`, so add the Grovs Android SDK to `android/app/build.gradle`:
 
 ```groovy
 dependencies {
     implementation 'io.grovs:Grovs:3.0.0'
 }
 ```
+
+It is published on Maven Central, so no extra repository is needed. The Expo config plugin adds this line for you.
 
 ### iOS dependency
 
@@ -108,6 +117,7 @@ When upgrading an existing Expo integration or changing plugin options, regenera
 
 ```kotlin
 import com.grovswrapper.GrovsConsent
+import io.grovs.Grovs
 
 override fun onCreate() {
     super.onCreate()
@@ -125,15 +135,18 @@ override fun onCreate() {
 **2. Handle incoming links** in your `MainActivity`:
 
 ```kotlin
+import android.content.Intent
+import io.grovs.Grovs
+
 override fun onStart() {
     super.onStart()
-    Grovs.onStart(this)
+    Grovs.onStart(launcherActivity = this)
 }
 
-override fun onNewIntent(intent: Intent?) {
+override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     setIntent(intent)
-    Grovs.onNewIntent(intent, this)
+    Grovs.onNewIntent(intent, launcherActivity = this)
 }
 ```
 
@@ -451,7 +464,7 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | `displayMessages()` | Show messages modal. Rejects with `SDK_DISABLED` while disabled |
 | `numberOfUnreadMessages()` | Get unread message count. Rejects with `SDK_DISABLED` while disabled |
 | `logInAppPurchase(purchase)` | Log a store purchase (`{ transactionId }` on iOS, `{ originalJson }` on Android) |
-| `logCustomPurchase(type, priceInCents, currency, productId, startDate)` | Log a custom purchase |
+| `logCustomPurchase(type, priceInCents, currency, productId, startDate?)` | Log a custom purchase |
 | `track(name, properties, tags)` | Track a custom analytics event |
 | `trackScreenView(screenName, properties)` | Track a screen view |
 | `setGlobalTags(tags)` | Attach tags to every subsequent event (call with no args to clear) |
@@ -462,7 +475,12 @@ Full API reference: [docs.grovs.io/docs/sdk/react-native/api-reference](https://
 
 ## Example App
 
-A demo project is available at [grovs-io/grovs-react-native-example-app](https://github.com/grovs-io/grovs-react-native-example-app).
+This repository has two example apps that use the local wrapper:
+
+- [`example/`](example/): the new architecture (TurboModules)
+- [`example_old_arch/`](example_old_arch/): the legacy bridge
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for how to run them. A standalone demo project is also available at [grovs-io/grovs-react-native-example-app](https://github.com/grovs-io/grovs-react-native-example-app).
 
 ## Migration Guides
 
