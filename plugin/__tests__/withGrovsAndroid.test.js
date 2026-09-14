@@ -19,16 +19,16 @@ describe('withGrovsAndroid - SDK dependency', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('reads the SDK coordinate from the wrapper Gradle properties', () => {
-    expect(readGrovsSdkCoordinate()).toBe('io.grovs:grovs:3.0.0');
+    expect(readGrovsSdkCoordinate()).toBe('io.grovs:Grovs:3.0.0');
   });
 
   it('ignores comments and trims the configured coordinate', () => {
     jest
       .spyOn(fs, 'readFileSync')
       .mockReturnValue(
-        '# GrovsWrapper_grovsSdkCoordinate=old\r\n GrovsWrapper_grovsSdkCoordinate = io.grovs:grovs:3.1.0 \r\n'
+        '# GrovsWrapper_grovsSdkCoordinate=old\r\n GrovsWrapper_grovsSdkCoordinate = io.grovs:Grovs:3.1.0 \r\n'
       );
-    expect(readGrovsSdkCoordinate()).toBe('io.grovs:grovs:3.1.0');
+    expect(readGrovsSdkCoordinate()).toBe('io.grovs:Grovs:3.1.0');
   });
 
   it.each(['', 'GrovsWrapper_grovsSdkCoordinate='])(
@@ -54,7 +54,7 @@ describe('withGrovsAndroid - SDK dependency', () => {
       "dependencies {\n    implementation 'com.example:other:1.0.0'\n}\n"
     );
     expect(first).toContain(
-      "implementation 'io.grovs:grovs:3.0.0' // react-native-grovs-wrapper:dep"
+      "implementation 'io.grovs:Grovs:3.0.0' // react-native-grovs-wrapper:dep"
     );
     expect(first).toContain("implementation 'com.example:other:1.0.0'");
     expect(transformDependency(first)).toBe(first);
@@ -64,13 +64,13 @@ describe('withGrovsAndroid - SDK dependency', () => {
     jest
       .spyOn(fs, 'readFileSync')
       .mockReturnValue(
-        'GrovsWrapper_grovsSdkCoordinate=io.grovs:grovs:3.1.0\n'
+        'GrovsWrapper_grovsSdkCoordinate=io.grovs:Grovs:3.1.0\n'
       );
     const first = transformDependency(
       "dependencies {\n    implementation 'io.grovs:Grovs:1.2.0' // react-native-grovs-wrapper:dep\n}\n"
     );
     expect(first).toContain(
-      "implementation 'io.grovs:grovs:3.1.0' // react-native-grovs-wrapper:dep"
+      "implementation 'io.grovs:Grovs:3.1.0' // react-native-grovs-wrapper:dep"
     );
     expect(first).not.toContain('1.2.0');
     expect(transformDependency(first)).toBe(first);

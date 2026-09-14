@@ -58,29 +58,9 @@ Add the Grovs Android SDK to `android/app/build.gradle`:
 
 ```groovy
 dependencies {
-    implementation 'io.grovs:grovs:3.0.0'
+    implementation 'io.grovs:Grovs:3.0.0'
 }
 ```
-
-### Internal builds (pre-release native SDKs)
-
-This branch consumes private native SDKs:
-
-- **Android**: `io.grovs:grovs:3.0.0` from the private GitHub Packages
-  repo `grovs-io/grovs-android-automation-app`. Add to `~/.gradle/gradle.properties`:
-
-  ```
-  GithubPackagesPrivateUsername=<github username>
-  GithubPackagesPrivatePassword=<github token with read:packages>
-  ```
-
-  (`GITHUB_ACTOR` / `GITHUB_TOKEN` environment variables work as a fallback.)
-
-- **iOS**: the example apps pull the `Grovs` pod from the private repo
-  `appssemble/grovs-ios-internal` (version 3.0.0, branch `feature/analytics`) via SSH; you need
-  SSH access to that repo. The Expo config plugin injects the same Android coordinate,
-  so Expo apps also need the GitHub Packages repository and credentials in their
-  `android/build.gradle` while the SDK is internal.
 
 ### iOS dependency
 

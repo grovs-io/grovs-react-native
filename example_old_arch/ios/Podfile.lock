@@ -5,7 +5,7 @@ PODS:
   - FBLazyVector (0.77.0)
   - fmt (12.1.0)
   - glog (0.3.5)
-  - Grovs (3.0)
+  - Grovs (3.0.0)
   - hermes-engine (0.77.0):
     - hermes-engine/Pre-built (= 0.77.0)
   - hermes-engine/Pre-built (0.77.0)
@@ -1532,7 +1532,6 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
-  - "Grovs (from `git@personal.github.com:appssemble/grovs-ios-internal.git`, branch `feature/analytics`)"
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -1599,6 +1598,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Grovs
     - SocketRocket
 
 EXTERNAL SOURCES:
@@ -1614,9 +1614,6 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/fmt.podspec"
   glog:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
-  Grovs:
-    :branch: feature/analytics
-    :git: "git@personal.github.com:appssemble/grovs-ios-internal.git"
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2024-11-25-RNv0.77.0-d4f25d534ab744866448b36ca3bf3d97c08e638c
@@ -1741,11 +1738,6 @@ EXTERNAL SOURCES:
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
-CHECKOUT OPTIONS:
-  Grovs:
-    :commit: cbf05d1901ce40fa76b241897d3abf124e9eaab4
-    :git: "git@personal.github.com:appssemble/grovs-ios-internal.git"
-
 SPEC CHECKSUMS:
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
@@ -1753,7 +1745,7 @@ SPEC CHECKSUMS:
   FBLazyVector: 2bc03a5cf64e29c611bbc5d7eb9d9f7431f37ee6
   fmt: 530618a01105dae0fa3a2f27c81ae11fa8f67eac
   glog: eb93e2f488219332457c3c4eafd2738ddc7e80b8
-  Grovs: d26826fca67a73374084a92f2fe1a38c71cc09cb
+  Grovs: 6210bb12d8dc1e5fd186c5b200428c135f6b4283
   hermes-engine: 1f783c3d53940aed0d2c84586f0b7a85ab7827ef
   RCT-Folly: d533c1d21249a85e67a4be97f4d793665de0222e
   RCTDeprecation: f5c19ebdb8804b53ed029123eb69914356192fc8
@@ -1817,6 +1809,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: c0d8564af14a858f962607cd7306539cb2ace926
 
-PODFILE CHECKSUM: a8494f9d7e603f7bfe4344b5e6ea06d9e6745553
+PODFILE CHECKSUM: c3399fbaac5c14814a17ee99825635dec1145fbc
 
 COCOAPODS: 1.16.2

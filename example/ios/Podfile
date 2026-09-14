@@ -20,9 +20,6 @@ end
 target 'GrovsWrapperExample' do
   config = use_native_modules!
 
-  # Internal pre-release Grovs SDK (analytics). Public pod tops out at 2.3.
-  pod 'Grovs', :git => 'git@personal.github.com:appssemble/grovs-ios-internal.git', :branch => 'feature/analytics'
-
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.

@@ -117,19 +117,11 @@ dependencies {
         implementation jscFlavor
     }
 
-    implementation "io.grovs:grovs:3.0.0"
+    implementation "io.grovs:Grovs:3.0.0"
 }
 
 repositories {
   mavenCentral()
   google()
   mavenLocal()
-  maven {
-    name = "GithubPackagesPrivate"
-    url = uri("https://maven.pkg.github.com/grovs-io/grovs-android-automation-app")
-    credentials {
-      username = project.findProperty("GithubPackagesPrivateUsername") ?: System.getenv("GITHUB_ACTOR")
-      password = project.findProperty("GithubPackagesPrivatePassword") ?: System.getenv("GITHUB_TOKEN")
-    }
-  }
 }
