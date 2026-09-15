@@ -1,4 +1,5 @@
 import type { TurboModule } from 'react-native';
+import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 import { TurboModuleRegistry, NativeEventEmitter } from 'react-native';
 import { log } from './Logger';
 
@@ -49,19 +50,19 @@ export interface GenerateLinkOptions {
 export interface Spec extends TurboModule {
   setIdentifier(identifier?: string): void;
   setPushToken(pushToken?: string): void;
-  setAttributes(attributes?: { [key: string]: Any }): void;
+  setAttributes(attributes?: UnsafeObject): void;
   setSDK(enabled: boolean): void;
   setDebug(level: LogLevel): void;
   generateLink(
     title?: string,
     subtitle?: string,
     imageURL?: string,
-    data?: { [key: string]: Any },
+    data?: UnsafeObject,
     tags?: Array<Any>,
-    customRedirects?: { [key: string]: Any },
+    customRedirects?: UnsafeObject,
     showPreviewIos?: boolean,
     showPreviewAndroid?: boolean,
-    tracking?: { [key: string]: Any },
+    tracking?: UnsafeObject,
     copyToClipboardIos?: boolean,
     copyToClipboardAndroid?: boolean
   ): Promise<string>;
@@ -78,15 +79,8 @@ export interface Spec extends TurboModule {
     productId: string,
     startDate?: string
   ): Promise<boolean>;
-  track(
-    name: string,
-    properties?: { [key: string]: Any },
-    tags?: Array<string>
-  ): void;
-  trackScreenView(
-    screenName: string,
-    properties?: { [key: string]: Any }
-  ): void;
+  track(name: string, properties?: UnsafeObject, tags?: Array<string>): void;
+  trackScreenView(screenName: string, properties?: UnsafeObject): void;
   setGlobalTags(tags?: Array<string>): void;
   setScreenAliases(aliases: { [key: string]: string }): void;
 
