@@ -44,10 +44,10 @@ The Grovs React Native SDK provides deep linking, universal links, app links, li
 
 These are the minimums of the native Grovs SDKs. Your React Native version may require a higher one.
 
-The wrapper uses the Grovs native SDKs 3.0.0:
+The wrapper uses these Grovs native SDKs:
 
 - **iOS**: `Grovs` 3.0 from CocoaPods
-- **Android**: `io.grovs:Grovs:3.0.0` from Maven Central
+- **Android**: `io.grovs:Grovs:3.0.1` from Maven Central
 
 ## Installation
 
@@ -65,7 +65,7 @@ Your app calls `Grovs` directly from `MainApplication` and `MainActivity`, so ad
 
 ```groovy
 dependencies {
-    implementation 'io.grovs:Grovs:3.0.0'
+    implementation 'io.grovs:Grovs:3.0.1'
 }
 ```
 

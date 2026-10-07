@@ -19,7 +19,7 @@ describe('withGrovsAndroid - SDK dependency', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('reads the SDK coordinate from the wrapper Gradle properties', () => {
-    expect(readGrovsSdkCoordinate()).toBe('io.grovs:Grovs:3.0.0');
+    expect(readGrovsSdkCoordinate()).toBe('io.grovs:Grovs:3.0.1');
   });
 
   it('ignores comments and trims the configured coordinate', () => {
@@ -54,7 +54,7 @@ describe('withGrovsAndroid - SDK dependency', () => {
       "dependencies {\n    implementation 'com.example:other:1.0.0'\n}\n"
     );
     expect(first).toContain(
-      "implementation 'io.grovs:Grovs:3.0.0' // react-native-grovs-wrapper:dep"
+      "implementation 'io.grovs:Grovs:3.0.1' // react-native-grovs-wrapper:dep"
     );
     expect(first).toContain("implementation 'com.example:other:1.0.0'");
     expect(transformDependency(first)).toBe(first);
