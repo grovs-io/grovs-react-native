@@ -464,6 +464,14 @@ describe('GrovsWrapper', () => {
       expect(mockSetInAppDebugLogging).toHaveBeenCalledWith(true);
     });
 
+    it('setInAppExcludedScreens drops non-string entries', () => {
+      Grovs.setInAppExcludedScreens(['Checkout', 1, null, 'Home'] as any);
+      expect(mockSetInAppExcludedScreens).toHaveBeenCalledWith([
+        'Checkout',
+        'Home',
+      ]);
+    });
+
     it('onInAppMessage calls markReadyForInAppEvents on every subscribe', () => {
       Grovs.onInAppMessage(jest.fn());
       Grovs.onInAppMessage(jest.fn());

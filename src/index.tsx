@@ -509,7 +509,10 @@ class GrovsWrapper {
    * through `trackScreenView` / `startScreenTracking`.
    */
   setInAppExcludedScreens(screens: string[]): void {
-    this.module.setInAppExcludedScreens(screens);
+    const names = Array.isArray(screens) ? screens : [];
+    this.module.setInAppExcludedScreens(
+      names.filter((name) => typeof name === 'string')
+    );
   }
 
   /** Enable verbose logging for in-app messages. */

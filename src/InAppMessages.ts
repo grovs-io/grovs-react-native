@@ -13,7 +13,11 @@ export type InAppMessageEvent =
       buttonId?: string;
       payload?: Record<string, unknown>;
     }
-  | { type: 'dismissed'; campaignId: string; reason: InAppDismissReason }
+  | {
+      type: 'dismissed';
+      campaignId: string;
+      reason: InAppDismissReason | (string & {});
+    }
   | {
       type: 'answered';
       campaignId: string;
@@ -21,14 +25,6 @@ export type InAppMessageEvent =
       comment?: string;
     }
   | { type: 'failed'; campaignId?: string; message: string };
-
-const DISMISS_REASONS: readonly string[] = [
-  'close_button',
-  'backdrop',
-  'swipe',
-  'app',
-  'orientation',
-];
 
 function optionalString(value: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
@@ -72,14 +68,10 @@ export function toInAppMessageEvent(raw: unknown): InAppMessageEvent | null {
     }
     case 'dismissed': {
       const reason = optionalString(body.reason);
-      if (reason === undefined || !DISMISS_REASONS.includes(reason)) {
+      if (reason === undefined) {
         return null;
       }
-      return {
-        type: 'dismissed',
-        campaignId,
-        reason: reason as InAppDismissReason,
-      };
+      return { type: 'dismissed', campaignId, reason };
     }
     case 'answered': {
       const value = body.value;

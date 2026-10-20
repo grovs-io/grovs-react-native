@@ -60,6 +60,22 @@ describe('toInAppMessageEvent', () => {
     ).toEqual({ type: 'dismissed', campaignId: 'c1', reason: 'swipe' });
   });
 
+  it('passes unknown dismissed reasons through', () => {
+    expect(
+      toInAppMessageEvent({
+        type: 'dismissed',
+        campaignId: 'c1',
+        reason: 'timeout',
+      })
+    ).toEqual({ type: 'dismissed', campaignId: 'c1', reason: 'timeout' });
+  });
+
+  it('returns null for dismissed without a reason', () => {
+    expect(
+      toInAppMessageEvent({ type: 'dismissed', campaignId: 'c1' })
+    ).toBeNull();
+  });
+
   it('maps failed without campaign', () => {
     expect(
       toInAppMessageEvent({ type: 'failed', message: 'no window' })
