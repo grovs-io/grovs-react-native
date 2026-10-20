@@ -17,8 +17,6 @@ public class GrovsWrapperSwift: NSObject {
   
   private var deferredDeeplinkData: [String : Any]?
 
-  // Kept out of the generated Objective-C header, which cannot resolve the SDK's protocols.
-  private lazy var deeplinkDelegate = DeeplinkDelegate(owner: self)
   private lazy var inAppDelegate = InAppDelegate(owner: self)
 
   private static let maxBufferedInAppEvents = 20
@@ -48,7 +46,7 @@ public class GrovsWrapperSwift: NSObject {
     // `application(_:didFinishLaunchingWithOptions:)` and UIKit posts
     // `didFinishLaunchingNotification` right after it returns, so re-asserting
     // there deterministically covers the early case.
-    Grovs.delegate = deeplinkDelegate
+    Grovs.delegate = self
     Grovs.inAppDelegate = inAppDelegate
 
     launchObserver = NotificationCenter.default.addObserver(
@@ -57,7 +55,7 @@ public class GrovsWrapperSwift: NSObject {
       queue: .main
     ) { [weak self] _ in
       guard let self else { return }
-      Grovs.delegate = self.deeplinkDelegate
+      Grovs.delegate = self
       Grovs.inAppDelegate = self.inAppDelegate
       if let launchObserver = self.launchObserver {
         NotificationCenter.default.removeObserver(launchObserver)
@@ -292,20 +290,14 @@ public class GrovsWrapperSwift: NSObject {
 
 }
 
-private final class DeeplinkDelegate: NSObject, GrovsDelegate {
-  private weak var owner: GrovsWrapperSwift?
-
-  init(owner: GrovsWrapperSwift) {
-    self.owner = owner
+extension GrovsWrapperSwift: GrovsDelegate {
+  public func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
+    receivedDeeplink(link: link, payload: payload, tracking: tracking)
   }
 
-  func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
-    owner?.receivedDeeplink(link: link, payload: payload, tracking: tracking)
-  }
-
-  func grovsDidEncounterError(_ error: GrovsError, message: String) {
+  public func grovsDidEncounterError(_ error: GrovsError, message: String) {
     guard error == .inAppDisplayFailed else { return }
-    owner?.emitInAppEvent(["type": "failed", "message": message])
+    emitInAppEvent(["type": "failed", "message": message])
   }
 }
 

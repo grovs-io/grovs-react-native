@@ -1,4 +1,10 @@
 #import "GrovsWrapper.h"
+// The wrapper's Swift header uses Grovs protocols, and Objective-C++ skips its @import Grovs.
+#if __has_include(<Grovs/Grovs-Swift.h>)
+#import <Grovs/Grovs-Swift.h>
+#elif __has_include("Grovs-Swift.h")
+#import "Grovs-Swift.h"
+#endif
 #if __has_include(<react_native_grovs_wrapper/react_native_grovs_wrapper-Swift.h>)
 #import <react_native_grovs_wrapper/react_native_grovs_wrapper-Swift.h>
 #elif __has_include("react_native_grovs_wrapper-Swift.h")

@@ -15,7 +15,7 @@ class AppDelegate: RCTAppDelegate {
 
     // TODO: Replace with your own API Key
     let apiKey = "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f"
-    Grovs.configure(APIKey: apiKey, useTestEnvironment: true, autoTrackScreenViews: false, clipboardDomains: nil, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: nil)
+    Grovs.configure(APIKey: apiKey, useTestEnvironment: true, autoTrackScreenViews: false, clipboardDomains: nil, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)
     Grovs.setDebug(level: .info)
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

@@ -72,7 +72,7 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
       });
       expect(result).toContain('clipboardDomains: ["a.example", "b.example"]');
       expect(result).toContain('enabled: GrovsWrapperSwift.isSDKEnabled()');
-      expect(result).toContain('delegate: nil');
+      expect(result).toContain('delegate: GrovsWrapperSwift.shared');
     });
 
     it('adds Grovs.configure synchronously after super.application returns', () => {
@@ -81,7 +81,7 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
         useTestEnvironment: true,
       });
       expect(result).toContain(
-        'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: nil)'
+        'Grovs.configure(APIKey: "test-key-123", useTestEnvironment: true, autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)'
       );
       // Configure must run AFTER super.application(_:didFinishLaunchingWithOptions:)
       // returns (the dev-launcher window setup happens inside super; running
@@ -115,7 +115,7 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
         baseURL: 'https://custom.example.com',
       });
       expect(result).toContain(
-        'Grovs.configure(APIKey: "key", useTestEnvironment: false, baseURL: "https://custom.example.com", autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: nil)'
+        'Grovs.configure(APIKey: "key", useTestEnvironment: false, baseURL: "https://custom.example.com", autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)'
       );
     });
 
