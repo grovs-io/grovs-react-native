@@ -1,6 +1,7 @@
 const { createRunOncePlugin } = require('expo/config-plugins');
 const withGrovsIOS = require('./withGrovsIOS');
 const withGrovsAndroid = require('./withGrovsAndroid');
+const withGrovsNotificationService = require('./withGrovsNotificationService');
 
 const pkg = require('../package.json');
 
@@ -19,6 +20,8 @@ const pkg = require('../package.json');
  * @param {string[]} [props.clipboardDomains=[]] - Domains eligible for clipboard attribution
  * @param {boolean} [props.push=false] - Set up Grovs push notifications
  * @param {string} [props.androidNotificationIcon] - Drawable name for the Android small notification icon
+ * @param {boolean} [props.iosRichPush=false] - Add the iOS notification service extension (requires push)
+ * @param {string} [props.appleTeamId] - Development team for the extension target
  */
 function withGrovs(config, props) {
   if (!props?.apiKey) {
@@ -58,6 +61,30 @@ function withGrovs(config, props) {
     );
   }
 
+  if (
+    props.iosRichPush !== undefined &&
+    typeof props.iosRichPush !== 'boolean'
+  ) {
+    throw new Error(
+      'react-native-grovs-wrapper plugin "iosRichPush" must be a boolean.'
+    );
+  }
+
+  if (props.iosRichPush && !props.push) {
+    throw new Error(
+      'react-native-grovs-wrapper plugin "iosRichPush" requires "push" to be true.'
+    );
+  }
+
+  if (
+    props.appleTeamId !== undefined &&
+    (typeof props.appleTeamId !== 'string' || props.appleTeamId.length === 0)
+  ) {
+    throw new Error(
+      'react-native-grovs-wrapper plugin "appleTeamId" must be a non-empty string.'
+    );
+  }
+
   const pluginProps = {
     apiKey: props.apiKey,
     scheme: props.scheme,
@@ -67,10 +94,15 @@ function withGrovs(config, props) {
     clipboardDomains: props.clipboardDomains ?? [],
     push: props.push ?? false,
     androidNotificationIcon: props.androidNotificationIcon ?? null,
+    iosRichPush: props.iosRichPush ?? false,
+    appleTeamId: props.appleTeamId ?? null,
   };
 
   config = withGrovsIOS(config, pluginProps);
   config = withGrovsAndroid(config, pluginProps);
+  if (pluginProps.iosRichPush) {
+    config = withGrovsNotificationService(config, pluginProps);
+  }
 
   return config;
 }

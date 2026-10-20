@@ -13,5 +13,7 @@ module.exports = {
   withMainApplication: jest.fn(passthrough),
   withMainActivity: passthrough,
   withAppBuildGradle: jest.fn(passthrough),
+  withXcodeProject: jest.fn(passthrough),
+  withDangerousMod: jest.fn(passthrough),
   createRunOncePlugin: (fn) => fn,
 };
