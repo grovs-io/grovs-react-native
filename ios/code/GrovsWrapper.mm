@@ -16,6 +16,45 @@ static BOOL GrovsRejectIfDisabled(RCTPromiseRejectBlock reject) {
   return YES;
 }
 
+static NSDictionary *GrovsNormalizedRedirects(NSDictionary *customRedirects) {
+  if (![customRedirects isKindOfClass:[NSDictionary class]]) {
+    return nil;
+  }
+  NSMutableDictionary *(^extract)(NSDictionary *) = ^NSMutableDictionary *(NSDictionary *src) {
+    NSMutableDictionary *out = [NSMutableDictionary dictionary];
+    if ([src isKindOfClass:[NSDictionary class]]) {
+      id link = src[@"link"];
+      if ([link isKindOfClass:[NSString class]]) {
+        out[@"link"] = link;
+      }
+      id flag = src[@"open_if_app_installed"];
+      if ([flag respondsToSelector:@selector(boolValue)]) {
+        out[@"open_if_app_installed"] = @([flag boolValue]);
+      }
+    }
+    return out;
+  };
+  return @{
+    @"android": extract(customRedirects[@"android"]),
+    @"ios":     extract(customRedirects[@"ios"]),
+    @"desktop": extract(customRedirects[@"desktop"]),
+  };
+}
+
+static NSDictionary *GrovsNormalizedTracking(NSDictionary *tracking) {
+  if (![tracking isKindOfClass:[NSDictionary class]]) {
+    return nil;
+  }
+  NSMutableDictionary *out = [NSMutableDictionary dictionary];
+  for (NSString *key in @[@"utm_campaign", @"utm_source", @"utm_medium"]) {
+    id value = tracking[key];
+    if ([value isKindOfClass:[NSString class]]) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
 #ifdef RCT_NEW_ARCH_ENABLED
 
 @implementation GrovsWrapper
@@ -34,12 +73,15 @@ RCT_EXPORT_MODULE()
       //[self emitOnDeeplinkReceived:payload];
       [self sendEventWithName:@"onGrovsDeeplinkReceived" body:payload];
     };
+    GrovsWrapperSwift.shared.didReceiveInAppEvent = ^(NSDictionary<NSString *,id> * _Nonnull event) {
+      [self sendEventWithName:@"onGrovsInAppMessage" body:event];
+    };
   }
   return self;
 }
 
 - (NSArray<NSString *> *)supportedEvents {
-  return @[@"onGrovsDeeplinkReceived"];
+  return @[@"onGrovsDeeplinkReceived", @"onGrovsInAppMessage"];
 }
 
 - (void)addListener:(NSString *)eventName {
@@ -110,45 +152,9 @@ copyToClipboardAndroid:(NSNumber *)copyToClipboardAndroid
     return;
   }
   
-  NSMutableDictionary *redirects = nil;
+  NSDictionary *redirects = GrovsNormalizedRedirects(customRedirects);
+  NSDictionary *nativeTracking = GrovsNormalizedTracking(tracking);
 
-  if ([customRedirects isKindOfClass:[NSDictionary class]]) {
-    NSMutableDictionary *(^extract)(NSDictionary *, BOOL) =
-      ^NSMutableDictionary *(NSDictionary *src, BOOL includeOpenFlag) {
-        NSMutableDictionary *out = [NSMutableDictionary dictionary];
-        if ([src isKindOfClass:[NSDictionary class]]) {
-          id link = src[@"link"];
-          if ([link isKindOfClass:[NSString class]]) {
-            out[@"link"] = link;
-          }
-          if (includeOpenFlag) {
-            id flag = src[@"open_if_app_installed"];
-            if ([flag respondsToSelector:@selector(boolValue)]) {
-              out[@"open_if_app_installed"] = @([flag boolValue]);
-            }
-          }
-        }
-        return out;
-      };
-
-    redirects = [@{
-      @"android": extract(customRedirects[@"android"], YES),
-      @"ios":     extract(customRedirects[@"ios"],     YES),
-      @"desktop": extract(customRedirects[@"desktop"], YES),
-    } mutableCopy];
-  }
-
-  NSMutableDictionary *nativeTracking = nil;
-  if ([tracking isKindOfClass:[NSDictionary class]]) {
-    nativeTracking = [NSMutableDictionary dictionary];
-    for (NSString *key in @[@"utm_campaign", @"utm_source", @"utm_medium"]) {
-      id value = tracking[key];
-      if ([value isKindOfClass:[NSString class]]) {
-        nativeTracking[key] = value;
-      }
-    }
-  }
-  
   [GrovsWrapperSwift.shared generateLinkWithTitle:title
                                          subtitle:subtitle
                                          imageURL:imageURL
@@ -220,6 +226,44 @@ copyToClipboardAndroid:(NSNumber *)copyToClipboardAndroid
   }];
 }
 
+- (void)markReadyForInAppEvents {
+  [GrovsWrapperSwift.shared markReadyForInAppEvents];
+}
+
+- (void)pauseInAppMessages {
+  [GrovsWrapperSwift.shared pauseInAppMessages];
+}
+
+- (void)resumeInAppMessages {
+  [GrovsWrapperSwift.shared resumeInAppMessages];
+}
+
+- (void)discardInAppMessages:(BOOL)dismissCurrent {
+  [GrovsWrapperSwift.shared discardInAppMessagesWithDismissCurrent:dismissCurrent];
+}
+
+- (void)setInAppExcludedScreens:(NSArray *)screens {
+  [GrovsWrapperSwift.shared setInAppExcludedScreens:screens];
+}
+
+- (void)setInAppDebugLogging:(BOOL)enabled {
+  [GrovsWrapperSwift.shared setInAppDebugLogging:enabled];
+}
+
+- (void)handleNotificationOpen:(NSDictionary *)data
+                       resolve:(RCTPromiseResolveBlock)resolve
+                        reject:(RCTPromiseRejectBlock)reject {
+  [GrovsWrapperSwift.shared handleNotificationOpen:data completion:^(BOOL handled) {
+    resolve(@(handled));
+  }];
+}
+
+- (void)isGrovsNotification:(NSDictionary *)data
+                    resolve:(RCTPromiseResolveBlock)resolve
+                     reject:(RCTPromiseRejectBlock)reject {
+  resolve(@([GrovsWrapperSwift.shared isGrovsNotification:data]));
+}
+
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
     (const facebook::react::ObjCTurboModule::InitParams &)params
 {
@@ -253,13 +297,16 @@ RCT_EXPORT_MODULE()
     GrovsWrapperSwift.shared.didReceiveDeeplink = ^(NSDictionary<NSString *,id> * _Nonnull payload) {
       [self sendEventWithName:@"onGrovsDeeplinkReceived" body:payload];
     };
+    GrovsWrapperSwift.shared.didReceiveInAppEvent = ^(NSDictionary<NSString *,id> * _Nonnull event) {
+      [self sendEventWithName:@"onGrovsInAppMessage" body:event];
+    };
   }
   return self;
 }
 
 // Support for event emission
 - (NSArray<NSString *> *)supportedEvents {
-  return @[@"onGrovsDeeplinkReceived"];
+  return @[@"onGrovsDeeplinkReceived", @"onGrovsInAppMessage"];
 }
 
 - (void)startObserving {
@@ -354,10 +401,10 @@ RCT_EXPORT_METHOD(generateLink:(NSString *)title
                                          imageURL:imageURL
                                              data:data
                                              tags:tags
-                                  customRedirects:customRedirects
+                                  customRedirects:GrovsNormalizedRedirects(customRedirects)
                                    showPreviewIos:showPreviewIos
                                showPreviewAndroid:showPreviewAndroid
-                                         tracking:tracking
+                                         tracking:GrovsNormalizedTracking(tracking)
                                copyToClipboardIos:copyToClipboardIos
                            copyToClipboardAndroid:copyToClipboardAndroid
                                        completion:^(NSURL * _Nullable link) {
@@ -393,6 +440,44 @@ RCT_EXPORT_METHOD(logCustomPurchase:(NSString *)type
                                            completion:^(BOOL success) {
     resolve(@(success));
   }];
+}
+
+RCT_EXPORT_METHOD(markReadyForInAppEvents) {
+  [GrovsWrapperSwift.shared markReadyForInAppEvents];
+}
+
+RCT_EXPORT_METHOD(pauseInAppMessages) {
+  [GrovsWrapperSwift.shared pauseInAppMessages];
+}
+
+RCT_EXPORT_METHOD(resumeInAppMessages) {
+  [GrovsWrapperSwift.shared resumeInAppMessages];
+}
+
+RCT_EXPORT_METHOD(discardInAppMessages:(BOOL)dismissCurrent) {
+  [GrovsWrapperSwift.shared discardInAppMessagesWithDismissCurrent:dismissCurrent];
+}
+
+RCT_EXPORT_METHOD(setInAppExcludedScreens:(NSArray *)screens) {
+  [GrovsWrapperSwift.shared setInAppExcludedScreens:screens];
+}
+
+RCT_EXPORT_METHOD(setInAppDebugLogging:(BOOL)enabled) {
+  [GrovsWrapperSwift.shared setInAppDebugLogging:enabled];
+}
+
+RCT_EXPORT_METHOD(handleNotificationOpen:(NSDictionary *)data
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  [GrovsWrapperSwift.shared handleNotificationOpen:data completion:^(BOOL handled) {
+    resolve(@(handled));
+  }];
+}
+
+RCT_EXPORT_METHOD(isGrovsNotification:(NSDictionary *)data
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  resolve(@([GrovsWrapperSwift.shared isGrovsNotification:data]));
 }
 
 RCT_EXPORT_METHOD(markReadyToHandleDeeplinks) {

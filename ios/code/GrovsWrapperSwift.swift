@@ -19,11 +19,19 @@ public class GrovsWrapperSwift: NSObject {
 
   // Kept out of the generated Objective-C header, which cannot resolve the SDK's protocols.
   private lazy var deeplinkDelegate = DeeplinkDelegate(owner: self)
+  private lazy var inAppDelegate = InAppDelegate(owner: self)
+
+  private static let maxBufferedInAppEvents = 20
+  private var inAppEventsReady = false
+  private var bufferedInAppEvents = [[String : Any]]()
   
   // JS API
   
   @objc
   public var didReceiveDeeplink: (([String : Any])->())? = nil
+
+  @objc
+  public var didReceiveInAppEvent: (([String : Any])->())? = nil
   
   /// One-shot observer used to re-assert the delegate once app launch completes.
   private var launchObserver: NSObjectProtocol?
@@ -41,6 +49,7 @@ public class GrovsWrapperSwift: NSObject {
     // `didFinishLaunchingNotification` right after it returns, so re-asserting
     // there deterministically covers the early case.
     Grovs.delegate = deeplinkDelegate
+    Grovs.inAppDelegate = inAppDelegate
 
     launchObserver = NotificationCenter.default.addObserver(
       forName: UIApplication.didFinishLaunchingNotification,
@@ -49,6 +58,7 @@ public class GrovsWrapperSwift: NSObject {
     ) { [weak self] _ in
       guard let self else { return }
       Grovs.delegate = self.deeplinkDelegate
+      Grovs.inAppDelegate = self.inAppDelegate
       if let launchObserver = self.launchObserver {
         NotificationCenter.default.removeObserver(launchObserver)
         self.launchObserver = nil
@@ -189,6 +199,54 @@ public class GrovsWrapperSwift: NSObject {
   }
 
   @objc
+  public func markReadyForInAppEvents() {
+    DispatchQueue.main.async {
+      guard !self.inAppEventsReady else { return }
+      self.inAppEventsReady = true
+      let pending = self.bufferedInAppEvents
+      self.bufferedInAppEvents = []
+      pending.forEach { self.didReceiveInAppEvent?($0) }
+    }
+  }
+
+  @objc
+  public func pauseInAppMessages() {
+    DispatchQueue.main.async { Grovs.pauseInAppMessages() }
+  }
+
+  @objc
+  public func resumeInAppMessages() {
+    DispatchQueue.main.async { Grovs.resumeInAppMessages() }
+  }
+
+  @objc
+  public func discardInAppMessages(dismissCurrent: Bool) {
+    DispatchQueue.main.async { Grovs.discardInAppMessages(dismissCurrent: dismissCurrent) }
+  }
+
+  @objc
+  public func setInAppExcludedScreens(_ screens: [String]) {
+    DispatchQueue.main.async { Grovs.setInAppExcludedScreens(screens) }
+  }
+
+  @objc
+  public func setInAppDebugLogging(_ enabled: Bool) {
+    DispatchQueue.main.async { Grovs.setInAppDebugLogging(enabled) }
+  }
+
+  @objc
+  public func handleNotificationOpen(_ data: [AnyHashable: Any], completion: @escaping (_ handled: Bool) -> Void) {
+    DispatchQueue.main.async {
+      completion(Grovs.handleNotificationOpen(userInfo: data))
+    }
+  }
+
+  @objc
+  public func isGrovsNotification(_ data: [AnyHashable: Any]) -> Bool {
+    Grovs.isGrovsNotification(userInfo: data)
+  }
+
+  @objc
   public func logInAppPurchase(_ transactionId: String, completion: @escaping (_ success: Bool) -> Void) {
     guard let id = UInt64(transactionId) else {
       completion(false)
@@ -244,6 +302,40 @@ private final class DeeplinkDelegate: NSObject, GrovsDelegate {
   func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
     owner?.receivedDeeplink(link: link, payload: payload, tracking: tracking)
   }
+
+  func grovsDidEncounterError(_ error: GrovsError, message: String) {
+    guard error == .inAppDisplayFailed else { return }
+    owner?.emitInAppEvent(["type": "failed", "message": message])
+  }
+}
+
+private final class InAppDelegate: NSObject, GrovsInAppDelegate {
+  private weak var owner: GrovsWrapperSwift?
+
+  init(owner: GrovsWrapperSwift) {
+    self.owner = owner
+  }
+
+  func grovsDidShowInAppMessage(campaignID: String) {
+    owner?.emitInAppEvent(["type": "shown", "campaignId": campaignID])
+  }
+
+  func grovsDidTapInAppMessage(campaignID: String, buttonID: String?, payload: [String : Any]?) {
+    var event: [String : Any] = ["type": "clicked", "campaignId": campaignID]
+    if let buttonID { event["buttonId"] = buttonID }
+    if let payload { event["payload"] = payload }
+    owner?.emitInAppEvent(event)
+  }
+
+  func grovsDidDismissInAppMessage(campaignID: String, reason: String) {
+    owner?.emitInAppEvent(["type": "dismissed", "campaignId": campaignID, "reason": reason])
+  }
+
+  func grovsDidAnswerInAppMessage(campaignID: String, value: Any, comment: String?) {
+    var event: [String : Any] = ["type": "answered", "campaignId": campaignID, "value": value]
+    if let comment { event["comment"] = comment }
+    owner?.emitInAppEvent(event)
+  }
 }
 
 extension GrovsWrapperSwift {
@@ -265,4 +357,14 @@ extension GrovsWrapperSwift {
     }
   }
 
+  fileprivate func emitInAppEvent(_ event: [String : Any]) {
+    if inAppEventsReady {
+      didReceiveInAppEvent?(event)
+      return
+    }
+    bufferedInAppEvents.append(event)
+    if bufferedInAppEvents.count > Self.maxBufferedInAppEvents {
+      bufferedInAppEvents.removeFirst()
+    }
+  }
 }
