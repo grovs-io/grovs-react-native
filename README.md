@@ -75,6 +75,13 @@ It is published on Maven Central, so no extra repository is needed. The Expo con
 
 The iOS SDK is added automatically via CocoaPods when you run `pod install`. After upgrading the wrapper, run `pod install` again.
 
+## Upgrading from 3.0.x
+
+- Run `pod install` again so iOS picks up the Grovs 3.1 pods.
+- `DeeplinkResponse.link` is optional now. A push without a link arrives without it.
+- The wrapper owns the native in-app delegate (iOS) and listener (Android). Remove any you set yourself and use `onInAppMessage`.
+- `displayMessages()` and `numberOfUnreadMessages()` do nothing now. They resolve, and the count is always `0`.
+
 ## Expo Integration
 
 If you're using Expo with a development build, the config plugin automates all native setup. Add to your `app.json`:
@@ -347,7 +354,7 @@ Leave the copy flags undefined to inherit the project default.
 
 Push is opt-in. Upload your APNs key (`.p8`) and Firebase credentials in the [Grovs dashboard](https://app.grovs.io). The Expo config plugin can do the native setup for you, see the `push` options in [Expo Integration](#expo-integration).
 
-A push with a Grovs link is delivered through `onDeeplinkReceived`, like any other link. A push without a link still arrives there, with `link` empty.
+A push with a Grovs link is delivered through `onDeeplinkReceived`, like any other link. A push without a link still arrives there, without `link`.
 
 #### iOS
 
@@ -396,12 +403,17 @@ if (token) {
   }
 
   // expo-notifications
+  const pushData = (response: Notifications.NotificationResponse) => {
+      const { request } = response.notification;
+      // On iOS, content.data only holds the "body" key of an APNs push; the full payload is in the trigger.
+      return (request.trigger as any)?.payload ?? request.content.data;
+  };
   Notifications.addNotificationResponseReceivedListener((response) => {
-      Grovs.handleNotificationOpen(response.notification.request.content.data);
+      Grovs.handleNotificationOpen(pushData(response));
   });
   const last = await Notifications.getLastNotificationResponseAsync();
   if (last) {
-      Grovs.handleNotificationOpen(last.notification.request.content.data);
+      Grovs.handleNotificationOpen(pushData(last));
   }
   ```
 
@@ -435,13 +447,14 @@ Run `pod install` again after this.
 
 Your app asks the user for this permission at runtime.
 
-**2. Token.** When `firebase-messaging` is in your app, the wrapper fetches the first FCM token for you. Later tokens are handled by the SDK. If you use `@react-native-firebase/messaging` you can still pass it yourself:
+**2. Token.** When `firebase-messaging` is in your app, the wrapper fetches the FCM token for you at each cold start. While the Grovs `MessagingService` is in place, it also picks up new tokens. If you removed that service (see "Using another push library" below), pass new tokens yourself, for example with `@react-native-firebase/messaging`:
 
 ```typescript
 const token = await messaging().getToken();
 if (token) {
     Grovs.setPushToken(token);
 }
+messaging().onTokenRefresh((newToken) => Grovs.setPushToken(newToken));
 ```
 
 **3. Taps.** Taps are handled from the launcher intent, through the `Grovs.onStart` and `Grovs.onNewIntent` calls you already have in `MainActivity`. You do not need to call anything else. If you call `handleNotificationOpen` on Android, it only reports whether the push is a Grovs push and does not handle it a second time.
@@ -507,11 +520,13 @@ Excluded screens match the names you send through `trackScreenView` or `startScr
 |---|---|---|
 | `shown` | `campaignId` | A message appeared |
 | `clicked` | `campaignId`, `buttonId?`, `payload?` | The user tapped a button |
-| `dismissed` | `campaignId`, `reason` | The message was closed. `reason` is `close_button`, `backdrop`, `swipe`, `app` or `orientation` |
+| `dismissed` | `campaignId`, `reason` | The message was closed. `reason` is `close_button`, `backdrop`, `swipe`, `app` or `orientation`. Other values may be added later |
 | `answered` | `campaignId`, `value`, `comment?` | The user answered a question. `value` is the stars (number) or the option id (string) |
 | `failed` | `message`, `campaignId?` | The message could not be shown |
 
 Events that happen before your first `onInAppMessage` call (for example a message shown on app open) are kept, up to 20, and delivered when you subscribe.
+
+The wrapper owns `Grovs.inAppDelegate` (iOS) and `Grovs.setInAppListener` (Android). Do not set them in native code, or `onInAppMessage` stops receiving events.
 
 There is no way to veto a message from JS. Use pause, resume, discard and excluded screens instead.
 
@@ -668,8 +683,8 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | `setIdentifier(identifier)` | Set user ID for dashboard and reports |
 | `setAttributes(attributes)` | Set user attributes for analytics |
 | `generateLink(options)` | Generate a smart link (`GenerateLinkOptions`; positional form still supported). Rejects with `SDK_DISABLED` while disabled |
-| `displayMessages()` | Deprecated. Show messages modal. Rejects with `SDK_DISABLED` while disabled |
-| `numberOfUnreadMessages()` | Deprecated. Get unread message count. Rejects with `SDK_DISABLED` while disabled |
+| `displayMessages()` | Deprecated. Resolves without showing anything. Rejects with `SDK_DISABLED` while disabled |
+| `numberOfUnreadMessages()` | Deprecated. Resolves `0`. Rejects with `SDK_DISABLED` while disabled |
 | `logInAppPurchase(purchase)` | Log a store purchase (`{ transactionId }` on iOS, `{ originalJson }` on Android) |
 | `logCustomPurchase(type, priceInCents, currency, productId, startDate?)` | Log a custom purchase |
 | `track(name, properties, tags)` | Track a custom analytics event |
