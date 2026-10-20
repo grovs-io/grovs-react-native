@@ -223,8 +223,9 @@ public class GrovsWrapperSwift: NSObject {
   }
 
   @objc
-  public func setInAppExcludedScreens(_ screens: [String]) {
-    DispatchQueue.main.async { Grovs.setInAppExcludedScreens(screens) }
+  public func setInAppExcludedScreens(_ screens: [Any]) {
+    let names = screens.compactMap { $0 as? String }
+    DispatchQueue.main.async { Grovs.setInAppExcludedScreens(names) }
   }
 
   @objc
