@@ -56,8 +56,7 @@ function addGrovsImport(contents) {
   if (contents.includes('import Grovs')) {
     return contents;
   }
-  // Both the SDK module and the wrapper module (for GrovsWrapperSwift.shared,
-  // passed as the configure delegate below).
+  // Both the SDK module and the wrapper module (for GrovsWrapperSwift.isSDKEnabled()).
   const imports = 'import Grovs\nimport react_native_grovs_wrapper';
   // Add after the last import statement
   const lastImportIndex = contents.lastIndexOf('\nimport ');
@@ -83,7 +82,7 @@ function addGrovsConfiguration(
   const clipboardArgument = clipboardDomains.length
     ? `, clipboardDomains: [${clipboardDomains.map((domain) => JSON.stringify(domain)).join(', ')}]`
     : '';
-  const configLine = `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}${baseURLArgument}, autoTrackScreenViews: false${clipboardArgument}, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)`;
+  const configLine = `Grovs.configure(APIKey: "${apiKey}", useTestEnvironment: ${useTestEnvironment}${baseURLArgument}, autoTrackScreenViews: false${clipboardArgument}, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: nil)`;
 
   // Configure after Expo creates its window, within the launch callback so
   // the SDK can initialize its background URL session synchronously.

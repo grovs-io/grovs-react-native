@@ -194,7 +194,7 @@ func application(_ application: UIApplication, didFinishLaunchingWithOptions lau
         autoTrackScreenViews: false,
         // clipboardDomains: ["links.your-domain.com"],
         enabled: GrovsWrapperSwift.isSDKEnabled(), // the value JS last passed to setSDK, default true
-        delegate: self
+        delegate: nil
     )
     Grovs.setDebug(level: .info)
     return true
@@ -440,7 +440,7 @@ The native SDKs' own automatic screen tracking only sees the single React Native
 
 ```swift
 // iOS
-Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: self)
+Grovs.configure(APIKey: "...", useTestEnvironment: false, autoTrackScreenViews: false, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: nil)
 ```
 
 ```kotlin
