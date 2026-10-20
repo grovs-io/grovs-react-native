@@ -8,6 +8,10 @@ import com.facebook.react.module.model.ReactModuleInfoProvider
 import java.util.HashMap
 
 class GrovsWrapperPackage : BaseReactPackage() {
+  init {
+    GrovsInAppEvents.install()
+  }
+
   override fun getModule(name: String, reactContext: ReactApplicationContext): NativeModule? {
     return if (name == GrovsWrapperModule.NAME) {
       GrovsWrapperModule(reactContext)

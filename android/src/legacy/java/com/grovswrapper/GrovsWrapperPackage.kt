@@ -8,6 +8,10 @@ import com.facebook.react.uimanager.ReactShadowNode
 import com.facebook.react.uimanager.ViewManager
 
 class GrovsWrapperPackage : ReactPackage {
+  init {
+    GrovsInAppEvents.install()
+  }
+
 
   override fun createViewManagers(reactContext: ReactApplicationContext): MutableList<ViewManager<View, ReactShadowNode<*>>> {
     return mutableListOf()
