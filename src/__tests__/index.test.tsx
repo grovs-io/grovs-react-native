@@ -19,6 +19,8 @@ const mockDiscardInAppMessages = jest.fn();
 const mockSetInAppExcludedScreens = jest.fn();
 const mockSetInAppDebugLogging = jest.fn();
 const mockMarkReadyForInAppEvents = jest.fn();
+const mockHandleNotificationOpen = jest.fn();
+const mockIsGrovsNotification = jest.fn();
 const mockAddListener = jest.fn(() => ({ remove: jest.fn() }));
 
 jest.mock('react-native', () => {
@@ -56,6 +58,8 @@ jest.mock('react-native', () => {
         setInAppExcludedScreens: mockSetInAppExcludedScreens,
         setInAppDebugLogging: mockSetInAppDebugLogging,
         markReadyForInAppEvents: mockMarkReadyForInAppEvents,
+        handleNotificationOpen: mockHandleNotificationOpen,
+        isGrovsNotification: mockIsGrovsNotification,
         addListener: mockAddListener,
         removeListeners: jest.fn(),
       },
@@ -625,6 +629,87 @@ describe('GrovsWrapper', () => {
       await expect(
         Grovs.logCustomPurchase('buy', 999, 'USD', 'product')
       ).rejects.toThrow('Failed to log custom purchase: Track failed');
+    });
+  });
+
+  describe('push notifications', () => {
+    it('handleNotificationOpen forwards data and returns the native result', async () => {
+      mockHandleNotificationOpen.mockResolvedValue(true);
+      const data = { grovs_campaign_id: 'c1' };
+      expect(await Grovs.handleNotificationOpen(data)).toBe(true);
+      expect(mockHandleNotificationOpen).toHaveBeenCalledWith(data);
+    });
+
+    it('handleNotificationOpen resolves false without calling native for empty input', async () => {
+      expect(await Grovs.handleNotificationOpen(undefined as any)).toBe(false);
+      expect(await Grovs.handleNotificationOpen(null as any)).toBe(false);
+      expect(await Grovs.handleNotificationOpen({})).toBe(false);
+      expect(mockHandleNotificationOpen).not.toHaveBeenCalled();
+    });
+
+    it('isGrovsNotification forwards and returns the native result', async () => {
+      mockIsGrovsNotification.mockResolvedValue(false);
+      const data = { other: 'x' };
+      expect(await Grovs.isGrovsNotification(data)).toBe(false);
+      expect(mockIsGrovsNotification).toHaveBeenCalledWith(data);
+    });
+
+    it('isGrovsNotification resolves false without calling native for empty input', async () => {
+      expect(await Grovs.isGrovsNotification(undefined as any)).toBe(false);
+      expect(await Grovs.isGrovsNotification({})).toBe(false);
+      expect(mockIsGrovsNotification).not.toHaveBeenCalled();
+    });
+
+    it('handleNotificationOpen keeps the native error code', async () => {
+      mockHandleNotificationOpen.mockRejectedValue(
+        Object.assign(new Error('x'), { code: 'E1' })
+      );
+      await expect(
+        Grovs.handleNotificationOpen({ a: 1 })
+      ).rejects.toMatchObject({ code: 'E1' });
+    });
+
+    it('isGrovsNotification keeps the native error code', async () => {
+      mockIsGrovsNotification.mockRejectedValue(
+        Object.assign(new Error('x'), { code: 'E1' })
+      );
+      await expect(Grovs.isGrovsNotification({ a: 1 })).rejects.toMatchObject({
+        code: 'E1',
+      });
+    });
+
+    it('logInAppPurchase keeps the native error code', async () => {
+      const { Platform } = require('react-native');
+      Platform.OS = 'ios';
+      mockLogInAppPurchase.mockRejectedValue(
+        Object.assign(new Error('x'), { code: 'E2' })
+      );
+      await expect(
+        Grovs.logInAppPurchase({ transactionId: '12345' })
+      ).rejects.toMatchObject({ code: 'E2' });
+    });
+
+    it('logCustomPurchase keeps the native error code', async () => {
+      mockLogCustomPurchase.mockRejectedValue(
+        Object.assign(new Error('x'), { code: 'E2' })
+      );
+      await expect(
+        Grovs.logCustomPurchase('buy', 999, 'USD', 'product')
+      ).rejects.toMatchObject({ code: 'E2' });
+    });
+
+    it('onDeeplinkReceived passes a push payload without link', () => {
+      const callback = jest.fn();
+      Grovs.onDeeplinkReceived(callback);
+      const { NativeEventEmitter } = require('react-native');
+      new NativeEventEmitter(
+        {}
+      ).addListener.__callbacks.onGrovsDeeplinkReceived({
+        data: { grovs_campaign_id: 'c1' },
+      });
+      const received = callback.mock.calls[0][0];
+      expect(received.link).toBeUndefined();
+      expect(received.data.grovs_campaign_id).toBe('c1');
     });
   });
 

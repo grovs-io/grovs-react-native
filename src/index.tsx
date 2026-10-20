@@ -74,6 +74,8 @@ interface GrovsWrapperInterface {
   setInAppExcludedScreens(screens: Array<string>): void;
   setInAppDebugLogging(enabled: boolean): void;
   markReadyForInAppEvents(): void;
+  handleNotificationOpen(data: { [key: string]: unknown }): Promise<boolean>;
+  isGrovsNotification(data: { [key: string]: unknown }): Promise<boolean>;
   onInAppMessage?: (callback: (event: InAppMessageEvent) => void) => {
     remove: () => void;
   };
@@ -85,6 +87,12 @@ function nativeErrorWithContext(context: string, error: unknown): Error {
     return Object.assign(wrapped, { code: error.code });
   }
   return wrapped;
+}
+
+function isEmptyPayload(data: unknown): boolean {
+  return (
+    typeof data !== 'object' || data === null || Object.keys(data).length === 0
+  );
 }
 
 function hasOnDeeplinkReceived(obj: unknown): obj is {
@@ -365,6 +373,7 @@ class GrovsWrapper {
 
   /**
    * Display messages
+   * @deprecated The inbox was removed in Grovs 3.1. This resolves without showing anything.
    */
   async displayMessages(): Promise<void> {
     try {
@@ -376,6 +385,7 @@ class GrovsWrapper {
 
   /**
    * Get number of unread messages
+   * @deprecated The inbox was removed in Grovs 3.1. This resolves 0.
    * @returns Number of unread messages
    */
   async numberOfUnreadMessages(): Promise<number> {
@@ -413,9 +423,7 @@ class GrovsWrapper {
     try {
       return await this.module.logInAppPurchase(transactionId, originalJson);
     } catch (error) {
-      throw new Error(
-        `Failed to log in-app purchase: ${(error as Error).message}`
-      );
+      throw nativeErrorWithContext('Failed to log in-app purchase', error);
     }
   }
 
@@ -435,9 +443,42 @@ class GrovsWrapper {
         startDate
       );
     } catch (error) {
-      throw new Error(
-        `Failed to log custom purchase: ${(error as Error).message}`
-      );
+      throw nativeErrorWithContext('Failed to log custom purchase', error);
+    }
+  }
+
+  /**
+   * Handle a tapped push notification payload. Resolves true when it was a
+   * Grovs notification and was handled, false otherwise.
+   * @param data - The notification's data payload
+   */
+  async handleNotificationOpen(data: {
+    [key: string]: unknown;
+  }): Promise<boolean> {
+    if (isEmptyPayload(data)) {
+      return false;
+    }
+    try {
+      return await this.module.handleNotificationOpen(data);
+    } catch (error) {
+      throw nativeErrorWithContext('Failed to handle notification open', error);
+    }
+  }
+
+  /**
+   * Whether a push notification payload was sent by Grovs.
+   * @param data - The notification's data payload
+   */
+  async isGrovsNotification(data: {
+    [key: string]: unknown;
+  }): Promise<boolean> {
+    if (isEmptyPayload(data)) {
+      return false;
+    }
+    try {
+      return await this.module.isGrovsNotification(data);
+    } catch (error) {
+      throw nativeErrorWithContext('Failed to check notification', error);
     }
   }
 

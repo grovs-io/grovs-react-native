@@ -9,7 +9,7 @@ export type LogLevel = 'info' | 'error';
 export type AnyPrimitive = string | number | boolean;
 export type Any = string | number | boolean | Array<AnyPrimitive>;
 export interface DeeplinkResponse {
-  link: string;
+  link?: string;
   data?: { [key: string]: Any };
 }
 export interface CustomLinkRedirect {
@@ -98,6 +98,9 @@ export interface Spec extends TurboModule {
   setInAppExcludedScreens(screens: Array<string>): void;
   setInAppDebugLogging(enabled: boolean): void;
   markReadyForInAppEvents(): void;
+
+  handleNotificationOpen(data: UnsafeObject): Promise<boolean>;
+  isGrovsNotification(data: UnsafeObject): Promise<boolean>;
 }
 
 // Get the native module from RN's registry
@@ -250,6 +253,24 @@ export class TurboModuleGrovs {
 
   markReadyForInAppEvents() {
     NativeModule?.markReadyForInAppEvents();
+  }
+
+  async handleNotificationOpen(data: {
+    [key: string]: unknown;
+  }): Promise<boolean> {
+    if (!NativeModule) {
+      throw new Error('Native module GrovsWrapper is not linked');
+    }
+    return NativeModule.handleNotificationOpen(data);
+  }
+
+  async isGrovsNotification(data: {
+    [key: string]: unknown;
+  }): Promise<boolean> {
+    if (!NativeModule) {
+      throw new Error('Native module GrovsWrapper is not linked');
+    }
+    return NativeModule.isGrovsNotification(data);
   }
 
   onInAppMessage(callback: (event: InAppMessageEvent) => void): {
