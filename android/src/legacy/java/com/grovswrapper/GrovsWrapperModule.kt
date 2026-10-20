@@ -28,94 +28,14 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import java.io.Serializable
 
-fun ReadableMap.toMap(): Map<String, Any?> {
-  val result = mutableMapOf<String, Any?>()
-  val iterator = this.entryIterator
-
-  while (iterator.hasNext()) {
-    val entry = iterator.next()
-    result[entry.key] = when (val value = entry.value) {
-      is ReadableMap -> value.toMap() // Recursively convert nested objects
-      is ReadableArray -> value.toList() // Convert arrays
-      else -> value // Directly use other values
-    }
-  }
-
-  return result
-}
-
-// Helper function for ReadableArray
-fun ReadableArray.toList(): List<Any?> {
-  val result = mutableListOf<Any?>()
-  for (i in 0 until this.size()) {
-    result.add(
-      when (this.getType(i)) {
-        ReadableType.Map -> this.getMap(i)?.toMap()
-        ReadableType.Array -> this.getArray(i)?.toList()
-        ReadableType.String -> this.getString(i)
-        ReadableType.Number -> this.getDouble(i)
-        ReadableType.Boolean -> this.getBoolean(i)
-        else -> null
-      }
-    )
-  }
-  return result
-}
-
-fun Map<String, Any?>.toSerializableMap(): Map<String, Serializable> {
-  return this.mapNotNull { (key, value) ->
-    if (value is Serializable) key to value else null // Only keep serializable values
-  }.toMap()
-}
-
-fun List<Any?>.toStringList(): List<String> {
-  return this.mapNotNull { it?.toString() } // Converts all non-null elements to String
-}
-
-fun Map<String, Any?>.toWritableMap(): WritableMap {
-  val writableMap = Arguments.createMap()
-
-  for ((key, value) in this) {
-    when (value) {
-      is String -> writableMap.putString(key, value)
-      is Int -> writableMap.putInt(key, value)
-      is Double -> writableMap.putDouble(key, value)
-      is Boolean -> writableMap.putBoolean(key, value)
-      is Map<*, *> -> (value as? Map<String, Any?>)?.let { writableMap.putMap(key, it.toWritableMap()) }
-      is List<*> -> writableMap.putArray(key, value.toWritableArray())
-      else -> writableMap.putNull(key) // Unsupported types will be set to null
-    }
-  }
-
-  return writableMap
-}
-
-// Helper function: Convert List to WritableArray
-fun List<*>.toWritableArray(): WritableArray {
-  val writableArray = Arguments.createArray()
-
-  for (value in this) {
-    when (value) {
-      is String -> writableArray.pushString(value)
-      is Int -> writableArray.pushInt(value)
-      is Double -> writableArray.pushDouble(value)
-      is Boolean -> writableArray.pushBoolean(value)
-      is Map<*, *> -> (value as? Map<String, Any?>)?.let { writableArray.pushMap(it.toWritableMap()) }
-      is List<*> -> writableArray.pushArray(value.toWritableArray())
-      else -> writableArray.pushNull()
-    }
-  }
-
-  return writableArray
-}
-
 class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   ReactContextBaseJavaModule(reactContext) {
 
   private var incomingDeeplinksJob: Job? = null
 
   init {
-
+    GrovsInAppEvents.install()
+    GrovsPush.fetchFirebaseToken()
   }
 
   private fun rejectIfDisabled(promise: Promise): Boolean {
@@ -125,22 +45,6 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   }
 
   override fun getName(): String = "GrovsWrapper"
-
-  // Use this because in init activity is null
-  @ReactMethod
-  fun addDeeplinkListener() {
-    val activity: Activity? = reactContext.currentActivity
-    activity?.let {
-      Grovs.setOnDeeplinkReceivedListener(it) { details ->
-        val writableMap = Arguments.createMap()
-        writableMap.putString("grovs_link", details.link)
-        details.data?.let { writableMap.putMap("data", it.toWritableMap()) }
-        details.tracking?.let { writableMap.putMap("tracking", it.toWritableMap()) }
-
-        emitOnDeeplinkReceived(writableMap)
-      }
-    }
-  }
 
   @ReactMethod
   fun setIdentifier(identifier: String?) {
@@ -236,6 +140,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
     val desktop = redirects?.get("desktop") as? Map<*, *>
     val desktopUrl = desktop?.get("link") as? String
+    val desktopOpenIfInstalled = desktop?.get("open_if_app_installed") as? Boolean
 
     val nativeCustomRedirect = CustomRedirects(
       ios = iosUrl?.let {
@@ -245,7 +150,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
         CustomLinkRedirect(it, androidOpenIfInstalled ?: true)
       },
       desktop = desktopUrl?.let {
-        CustomLinkRedirect(it) // Using iOS flag for desktop
+        CustomLinkRedirect(it, desktopOpenIfInstalled ?: true)
       }
     )
 
@@ -340,7 +245,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
-  fun markReadyToHandleDeeplinks(promise: Promise) {
+  fun markReadyToHandleDeeplinks() {
     val activity: AppCompatActivity? = reactApplicationContext.currentActivity as? AppCompatActivity
     activity?.let { activity ->
       incomingDeeplinksJob?.cancel()
@@ -364,24 +269,57 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
         }
       }
     }
-
-    promise.resolve(null)
   }
 
   @ReactMethod
-  fun addListener(eventName: String?, promise: Promise) {
-    promise.resolve(null)
+  fun pauseInAppMessages() {
+    Grovs.pauseInAppMessages()
   }
 
   @ReactMethod
-  fun removeListeners(count: Double, promise: Promise) {
-    promise.resolve(null)
+  fun resumeInAppMessages() {
+    Grovs.resumeInAppMessages()
   }
 
-  // Emit event to JS
-  private fun emitOnDeeplinkReceived(data: WritableMap) {
+  @ReactMethod
+  fun discardInAppMessages(dismissCurrent: Boolean) {
+    Grovs.discardInAppMessages(dismissCurrent)
+  }
+
+  @ReactMethod
+  fun setInAppExcludedScreens(screens: ReadableArray) {
+    Grovs.setInAppExcludedScreens(screens.toList().toStringList())
+  }
+
+  @ReactMethod
+  fun setInAppDebugLogging(enabled: Boolean) {
+    Grovs.setInAppDebugLogging(enabled)
+  }
+
+  @ReactMethod
+  fun markReadyForInAppEvents() {
+    GrovsInAppEvents.markReady { emitInAppMessage(it) }
+  }
+
+  @ReactMethod
+  fun handleNotificationOpen(data: ReadableMap, promise: Promise) {
+    promise.resolve(GrovsPush.handleNotificationOpen(data.toMap()))
+  }
+
+  @ReactMethod
+  fun isGrovsNotification(data: ReadableMap, promise: Promise) {
+    promise.resolve(GrovsPush.isGrovsNotification(data.toMap()))
+  }
+
+  @ReactMethod
+  fun addListener(eventName: String?) {}
+
+  @ReactMethod
+  fun removeListeners(count: Double) {}
+
+  private fun emitInAppMessage(data: WritableMap) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit("onGrovsDeeplinkReceived", data)
+      .emit("onGrovsInAppMessage", data)
   }
 }

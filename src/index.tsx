@@ -109,17 +109,6 @@ function hasOnDeeplinkReceived(obj: unknown): obj is {
   );
 }
 
-function hasAddDeeplinkListener(
-  obj: unknown
-): obj is { addDeeplinkListener: () => void } {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    'addDeeplinkListener' in obj &&
-    typeof (obj as any).addDeeplinkListener === 'function'
-  );
-}
-
 let GrovsWrapperModule: GrovsWrapperInterface;
 
 if (isTurboModuleEnabled) {
@@ -153,14 +142,6 @@ class GrovsWrapper {
 
   constructor() {
     this.module = GrovsWrapperModule;
-
-    if (hasAddDeeplinkListener(this.module)) {
-      log(
-        'info',
-        'Has native addDeeplinkListener - registering addDeeplinkListener'
-      );
-      this.module.addDeeplinkListener();
-    }
 
     if (NativeModules.GrovsWrapper) {
       log(
