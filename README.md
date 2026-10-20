@@ -28,8 +28,8 @@ The Grovs React Native SDK provides deep linking, universal links, app links, li
 - **Clipboard deferred deep linking**: match an install to a link the user copied before installing
 - **Consent support**: remember the user’s choice across launches
 - **Smart link generation**: create trackable links with metadata, custom redirects, and UTM parameters
-- **In-app messaging**: display messages and announcements from the Grovs dashboard
-- **Push notifications**: receive push notifications for dashboard-sent messages
+- **In-app messaging**: messages from the Grovs dashboard, with pause, resume, excluded screens and events
+- **Push notifications**: receive push campaigns, with tap tracking and iOS rich push
 - **Revenue tracking**: log App Store, Google Play, and custom purchases with automatic attribution
 - **Analytics**: automatic lifecycle events, custom events, and screen tracking
 - **User identity**: attach user IDs and attributes for analytics and segmentation
@@ -73,7 +73,7 @@ It is published on Maven Central, so no extra repository is needed. The Expo con
 
 ### iOS dependency
 
-The iOS SDK is added automatically via CocoaPods when you run `pod install`.
+The iOS SDK is added automatically via CocoaPods when you run `pod install`. After upgrading the wrapper, run `pod install` again.
 
 ## Expo Integration
 
@@ -102,6 +102,41 @@ If you're using Expo with a development build, the config plugin automates all n
 | `associatedDomains` | No | Universal link domains for deep linking |
 | `baseURL` | No | Custom base URL for self-hosted backends |
 | `clipboardDomains` | No | Extra link hosts accepted for clipboard deferred deep linking. Grovs hosts are always accepted |
+| `push` | No | Set up push (see below). Default `false` |
+| `iosRichPush` | No | Create the iOS Notification Service Extension for images in pushes. Needs `push`. Needs `ios.bundleIdentifier` |
+| `appleTeamId` | No | Apple team id used to sign the extension. The plugin does not read `ios.appleTeamId`, so set it here |
+| `androidNotificationIcon` | No | Name of a drawable used as the small notification icon |
+
+#### Push with Expo
+
+Set `"push": true` to add the native push setup:
+
+- **iOS:** adds the `aps-environment` entitlement (`development` if missing), `didRegisterForRemoteNotificationsWithDeviceToken` calling `Grovs.setPushToken(deviceToken:)`, and a `userNotificationCenter(_:didReceive:...)` method calling `Grovs.handleNotificationResponse`. That method only runs if your app makes `AppDelegate` the notification center delegate. The plugin never sets the delegate. If a push library owns it, use `handleNotificationOpen` instead (see [Push notifications](#push-notifications)) and wire only one path.
+- **Android:** adds `firebase-messaging` (skipped if `@react-native-firebase/messaging` is installed) and `POST_NOTIFICATIONS`. If `@react-native-firebase/messaging` or `expo-notifications` is installed, it removes the Grovs `MessagingService`. Firebase config comes from Expo's `android.googleServicesFile`.
+
+`"iosRichPush": true` creates the `GrovsNotificationService` extension target with bundle id `<app bundle id>.GrovsNotificationService` and adds the EAS `appExtensions` entry.
+
+```json
+{
+  "expo": {
+    "android": { "googleServicesFile": "./google-services.json" },
+    "plugins": [
+      ["react-native-grovs-wrapper", {
+        "apiKey": "your-api-key",
+        "scheme": "your_app_scheme",
+        "push": true,
+        "iosRichPush": true,
+        "appleTeamId": "ABCDE12345",
+        "androidNotificationIcon": "ic_notification"
+      }]
+    ]
+  }
+}
+```
+
+The extension's Podfile block follows the stock Expo `use_frameworks!` setup, including `expo-build-properties` `useFrameworks`. If another plugin forces a different linkage, align it. With EAS remote versioning, check that the extension's build number matches the app's.
+
+Tested with Expo SDK 58.
 
 Then run `npx expo prebuild` and build with `npx expo run:ios` / `npx expo run:android`.
 
@@ -310,28 +345,193 @@ Leave the copy flags undefined to inherit the project default.
 
 ### Push notifications
 
-Pass the FCM token to receive push notifications for dashboard-sent messages:
+Push is opt-in. Upload your APNs key (`.p8`) and Firebase credentials in the [Grovs dashboard](https://app.grovs.io). The Expo config plugin can do the native setup for you, see the `push` options in [Expo Integration](#expo-integration).
+
+A push with a Grovs link is delivered through `onDeeplinkReceived`, like any other link. A push without a link still arrives there, with `link` empty.
+
+#### iOS
+
+**1. Add the capabilities.** In Xcode, add **Push Notifications** and **Background Modes** (Remote notifications) to your app target. Your app asks for permission and calls `registerForRemoteNotifications()` itself.
+
+**2. Send the token.** Either forward it from `AppDelegate.swift`:
+
+```swift
+func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    Grovs.setPushToken(deviceToken: deviceToken)
+}
+```
+
+or, if you use `@react-native-firebase/messaging`, pass the APNs token from JS:
 
 ```typescript
 import messaging from '@react-native-firebase/messaging';
 
+const token = await messaging().getAPNSToken();
+if (token) {
+    Grovs.setPushToken(token);
+}
+```
+
+**3. Handle taps.** Wire exactly one of these paths. Wiring both counts every tap twice on iOS.
+
+- **Native path.** If `AppDelegate` is your notification center delegate, forward the response:
+
+  ```swift
+  func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+      Grovs.handleNotificationResponse(response)
+      completionHandler()
+  }
+  ```
+
+- **JS path.** If a push library owns the delegate, call `handleNotificationOpen` from its tap listeners. It resolves `true` when the push is a Grovs push. Call it on taps only, never when a push is delivered.
+
+  ```typescript
+  // @react-native-firebase/messaging
+  messaging().onNotificationOpenedApp((message) => {
+      Grovs.handleNotificationOpen(message.data ?? {});
+  });
+  const initial = await messaging().getInitialNotification();
+  if (initial) {
+      Grovs.handleNotificationOpen(initial.data ?? {});
+  }
+
+  // expo-notifications
+  Notifications.addNotificationResponseReceivedListener((response) => {
+      Grovs.handleNotificationOpen(response.notification.request.content.data);
+  });
+  const last = await Notifications.getLastNotificationResponseAsync();
+  if (last) {
+      Grovs.handleNotificationOpen(last.notification.request.content.data);
+  }
+  ```
+
+`isGrovsNotification(data)` resolves `true` if the payload came from Grovs, without handling it.
+
+**4. Rich push (optional).** To show images in pushes, add a Notification Service Extension target in Xcode (**File > New > Target > Notification Service Extension**). Then add it to your `Podfile`:
+
+```ruby
+target 'GrovsNotificationService' do
+  pod 'GrovsNotificationService', '~> 3.1'
+end
+```
+
+and make the extension class a subclass:
+
+```swift
+import GrovsNotificationService
+
+class NotificationService: GrovsNotificationServiceExtension {}
+```
+
+Run `pod install` again after this.
+
+#### Android
+
+**1. Add Firebase.** Add your `google-services.json`, the Google Services Gradle plugin and the Firebase Messaging dependency to your app. For Android 13+, declare the permission in `AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+```
+
+Your app asks the user for this permission at runtime.
+
+**2. Token.** When `firebase-messaging` is in your app, the wrapper fetches the first FCM token for you. Later tokens are handled by the SDK. If you use `@react-native-firebase/messaging` you can still pass it yourself:
+
+```typescript
 const token = await messaging().getToken();
 if (token) {
     Grovs.setPushToken(token);
 }
 ```
 
-Upload your Firebase or APNs credentials in the [Grovs dashboard](https://app.grovs.io).
+**3. Taps.** Taps are handled from the launcher intent, through the `Grovs.onStart` and `Grovs.onNewIntent` calls you already have in `MainActivity`. You do not need to call anything else. If you call `handleNotificationOpen` on Android, it only reports whether the push is a Grovs push and does not handle it a second time.
 
-### Display messages
+**4. Notification icon (optional).** Set a small icon in `AndroidManifest.xml`, inside `<application>`:
+
+```xml
+<meta-data android:name="io.grovs.NotificationIconSmall" android:resource="@drawable/ic_notification" />
+```
+
+**Using another push library.** Only one service can receive Firebase messages. If your app uses `@react-native-firebase/messaging` or `expo-notifications`, remove the Grovs service so that library keeps working. Add `xmlns:tools="http://schemas.android.com/tools"` to `<manifest>`, then inside `<application>`:
+
+```xml
+<service android:name="io.grovs.handlers.MessagingService" tools:node="remove" />
+```
+
+Taps and background pushes still work. What you lose is Grovs drawing pushes while the app is open; your push library handles that.
+
+**Your own messaging service.** If your app has its own `FirebaseMessagingService`, remove the Grovs service as above and forward to Grovs:
+
+```kotlin
+import io.grovs.GrovsMessaging
+
+override fun onMessageReceived(message: RemoteMessage) {
+    GrovsMessaging.handleMessage(this, message)
+}
+
+override fun onNewToken(token: String) {
+    GrovsMessaging.onNewToken(token)
+}
+```
+
+### In-app messages
+
+In-app messages created in the dashboard are shown by the native SDK. From JS you can control them and listen to what happens:
 
 ```typescript
-// Show the messages list as a modal
-await Grovs.displayMessages();
+// Hold messages back, for example during onboarding
+Grovs.pauseInAppMessages();
+Grovs.resumeInAppMessages();
 
-// Get unread count for badges
+// Drop queued messages. Pass dismissCurrent to close the one on screen too
+Grovs.discardInAppMessages({ dismissCurrent: true });
+
+// Never show messages on these screens (names as sent to trackScreenView)
+Grovs.setInAppExcludedScreens(['Checkout', 'Onboarding']);
+
+Grovs.setInAppDebugLogging(true);
+
+const subscription = Grovs.onInAppMessage((event) => {
+    if (event.type === 'clicked') {
+        console.log(event.campaignId, event.buttonId, event.payload);
+    }
+});
+subscription.remove();
+```
+
+Excluded screens match the names you send through `trackScreenView` or `startScreenTracking`, after aliases are applied.
+
+`onInAppMessage` events:
+
+| `type` | Fields | When |
+|---|---|---|
+| `shown` | `campaignId` | A message appeared |
+| `clicked` | `campaignId`, `buttonId?`, `payload?` | The user tapped a button |
+| `dismissed` | `campaignId`, `reason` | The message was closed. `reason` is `close_button`, `backdrop`, `swipe`, `app` or `orientation` |
+| `answered` | `campaignId`, `value`, `comment?` | The user answered a question. `value` is the stars (number) or the option id (string) |
+| `failed` | `message`, `campaignId?` | The message could not be shown |
+
+Events that happen before your first `onInAppMessage` call (for example a message shown on app open) are kept, up to 20, and delivered when you subscribe.
+
+There is no way to veto a message from JS. Use pause, resume, discard and excluded screens instead.
+
+Test messages from the dashboard need `setIdentifier` to be set.
+
+On Android you can optionally add the Google Play review dependency so review prompts can be shown:
+
+```groovy
+implementation 'com.google.android.play:review-ktx:2.0.2'
+```
+
+The push permission button in an in-app message on Android needs `POST_NOTIFICATIONS` declared in your manifest.
+
+### Display messages (deprecated)
+
+The message inbox is deprecated and does nothing in native 3.1. The methods still resolve, and `numberOfUnreadMessages()` resolves `0`.
+
+```typescript
+await Grovs.displayMessages();
 const count = await Grovs.numberOfUnreadMessages();
-console.log(`Unread: ${count}`);
 ```
 
 ## Revenue Tracking
@@ -458,11 +658,18 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | `setSDK(enabled)` | Enable or disable the SDK. Remembered across launches |
 | `setDebug(level)` | Set logging level (`'info'`, `'error'`) |
 | `setPushToken(token)` | Set FCM/APNs push token |
+| `handleNotificationOpen(data)` | Handle a push tap from your push library. Resolves `true` for a Grovs push. On Android it only reports |
+| `isGrovsNotification(data)` | Resolves `true` if the payload is from Grovs |
+| `pauseInAppMessages()` / `resumeInAppMessages()` | Hold back or release in-app messages |
+| `discardInAppMessages(opts?)` | Drop queued in-app messages. `{ dismissCurrent: true }` also closes the one on screen |
+| `setInAppExcludedScreens(screens)` | Do not show in-app messages on these screens |
+| `setInAppDebugLogging(enabled)` | Log in-app message activity |
+| `onInAppMessage(callback)` | Listen to in-app events (returns `{ remove }`) |
 | `setIdentifier(identifier)` | Set user ID for dashboard and reports |
 | `setAttributes(attributes)` | Set user attributes for analytics |
 | `generateLink(options)` | Generate a smart link (`GenerateLinkOptions`; positional form still supported). Rejects with `SDK_DISABLED` while disabled |
-| `displayMessages()` | Show messages modal. Rejects with `SDK_DISABLED` while disabled |
-| `numberOfUnreadMessages()` | Get unread message count. Rejects with `SDK_DISABLED` while disabled |
+| `displayMessages()` | Deprecated. Show messages modal. Rejects with `SDK_DISABLED` while disabled |
+| `numberOfUnreadMessages()` | Deprecated. Get unread message count. Rejects with `SDK_DISABLED` while disabled |
 | `logInAppPurchase(purchase)` | Log a store purchase (`{ transactionId }` on iOS, `{ originalJson }` on Android) |
 | `logCustomPurchase(type, priceInCents, currency, productId, startDate?)` | Log a custom purchase |
 | `track(name, properties, tags)` | Track a custom analytics event |
