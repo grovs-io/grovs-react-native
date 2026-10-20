@@ -32,6 +32,13 @@ object GrovsInAppEvents : GrovsInAppListener {
     pending.forEach(emit)
   }
 
+  /** Buffers events again until the next markReady. Ignored if another emitter took over. */
+  fun detach(emit: (WritableMap) -> Unit) {
+    synchronized(lock) {
+      if (emitter === emit) emitter = null
+    }
+  }
+
   private fun dispatch(event: WritableMap) {
     val target = synchronized(lock) {
       emitter ?: run {

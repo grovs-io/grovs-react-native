@@ -253,7 +253,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
         Grovs.Companion::openedLinkDetails.flow.collect { deeplinkDetails ->
           deeplinkDetails?.let {
             val writableMap = Arguments.createMap()
-            writableMap.putString("link", it.link)
+            it.link?.let { link -> writableMap.putString("link", link) }
             it.data?.let { writableMap.putMap("data", it.toWritableMap()) }
             it.tracking?.let { writableMap.putMap("tracking", it.toWritableMap()) }
 
@@ -298,7 +298,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun markReadyForInAppEvents() {
-    GrovsInAppEvents.markReady { emitInAppMessage(it) }
+    GrovsInAppEvents.markReady(emitInAppMessage)
   }
 
   @ReactMethod
@@ -317,9 +317,19 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   @ReactMethod
   fun removeListeners(count: Double) {}
 
-  private fun emitInAppMessage(data: WritableMap) {
-    reactContext
-      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-      .emit("onGrovsInAppMessage", data)
+  private val emitInAppMessage: (WritableMap) -> Unit = { data ->
+    if (reactContext.hasActiveReactInstance()) {
+      try {
+        reactContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+          .emit("onGrovsInAppMessage", data)
+      } catch (_: RuntimeException) {
+      }
+    }
+  }
+
+  override fun invalidate() {
+    GrovsInAppEvents.detach(emitInAppMessage)
+    super.invalidate()
   }
 }

@@ -266,12 +266,24 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
     Grovs.setInAppDebugLogging(enabled)
   }
 
-  override fun markReadyForInAppEvents() {
-    GrovsInAppEvents.markReady {
-      reactApplicationContext
-        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-        .emit("onGrovsInAppMessage", it)
+  private val emitInAppMessage: (WritableMap) -> Unit = { data ->
+    if (reactApplicationContext.hasActiveReactInstance()) {
+      try {
+        reactApplicationContext
+          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+          .emit("onGrovsInAppMessage", data)
+      } catch (_: RuntimeException) {
+      }
     }
+  }
+
+  override fun markReadyForInAppEvents() {
+    GrovsInAppEvents.markReady(emitInAppMessage)
+  }
+
+  override fun invalidate() {
+    GrovsInAppEvents.detach(emitInAppMessage)
+    super.invalidate()
   }
 
   override fun handleNotificationOpen(data: ReadableMap, promise: Promise) {
@@ -300,7 +312,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
         Grovs.Companion::openedLinkDetails.flow.collect { deeplinkDetails ->
           deeplinkDetails?.let {
             val writableMap = Arguments.createMap()
-            writableMap.putString("link", it.link)
+            it.link?.let { link -> writableMap.putString("link", link) }
             it.data?.let { writableMap.putMap("data", it.toWritableMap()) }
             it.tracking?.let { writableMap.putMap("tracking", it.toWritableMap()) }
 
