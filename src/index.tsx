@@ -11,6 +11,8 @@ import type {
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
+import { toInAppMessageEvent } from './InAppMessages';
+import type { InAppMessageEvent } from './InAppMessages';
 import { startScreenTracking } from './ScreenTracking';
 import type { NavigationContainerRefLike } from './ScreenTracking';
 
@@ -66,6 +68,15 @@ interface GrovsWrapperInterface {
     remove: () => void;
   };
   markReadyToHandleDeeplinks(): void;
+  pauseInAppMessages(): void;
+  resumeInAppMessages(): void;
+  discardInAppMessages(dismissCurrent: boolean): void;
+  setInAppExcludedScreens(screens: Array<string>): void;
+  setInAppDebugLogging(enabled: boolean): void;
+  markReadyForInAppEvents(): void;
+  onInAppMessage?: (callback: (event: InAppMessageEvent) => void) => {
+    remove: () => void;
+  };
 }
 
 function nativeErrorWithContext(context: string, error: unknown): Error {
@@ -129,6 +140,7 @@ if (!GrovsWrapperModule) {
 class GrovsWrapper {
   private module: GrovsWrapperInterface;
   private listeners: Set<(data: DeeplinkResponse) => void> = new Set();
+  private inAppListeners: Set<(event: InAppMessageEvent) => void> = new Set();
   private stopScreenTracking?: () => void;
 
   constructor() {
@@ -150,6 +162,9 @@ class GrovsWrapper {
       const emitter = new NativeEventEmitter(NativeModules.GrovsWrapper);
       emitter.addListener('onGrovsDeeplinkReceived', (data) => {
         this.triggerDeeplink(data);
+      });
+      emitter.addListener('onGrovsInAppMessage', (raw) => {
+        this.triggerInAppMessage(raw);
       });
     }
   }
@@ -449,8 +464,71 @@ class GrovsWrapper {
     };
   }
 
+  /** Pause showing in-app messages until `resumeInAppMessages` is called. */
+  pauseInAppMessages(): void {
+    this.module.pauseInAppMessages();
+  }
+
+  /** Resume showing in-app messages after a pause. */
+  resumeInAppMessages(): void {
+    this.module.resumeInAppMessages();
+  }
+
+  /**
+   * Drop queued in-app messages.
+   * @param opts.dismissCurrent - Also dismiss the message on screen. Defaults to false.
+   */
+  discardInAppMessages(opts?: { dismissCurrent?: boolean }): void {
+    this.module.discardInAppMessages(opts?.dismissCurrent ?? false);
+  }
+
+  /**
+   * Screens where in-app messages must not appear. Names match the ones sent
+   * through `trackScreenView` / `startScreenTracking`.
+   */
+  setInAppExcludedScreens(screens: string[]): void {
+    this.module.setInAppExcludedScreens(screens);
+  }
+
+  /** Enable verbose logging for in-app messages. */
+  setInAppDebugLogging(enabled: boolean): void {
+    this.module.setInAppDebugLogging(enabled);
+  }
+
+  /**
+   * Subscribe to in-app message lifecycle events. Events that happened before
+   * the first subscription are delivered to the first subscriber.
+   */
+  onInAppMessage(callback: (event: InAppMessageEvent) => void): {
+    remove: () => void;
+  } {
+    if (typeof this.module.onInAppMessage === 'function') {
+      const sub = this.module.onInAppMessage(callback);
+      return { remove: () => sub.remove() };
+    }
+
+    this.inAppListeners.add(callback);
+    this.module.markReadyForInAppEvents();
+
+    return {
+      remove: () => {
+        this.inAppListeners.delete(callback);
+      },
+    };
+  }
+
   markReadyToHandleDeeplinks(): void {
     this.module.markReadyToHandleDeeplinks();
+  }
+
+  private triggerInAppMessage(raw: unknown) {
+    const event = toInAppMessageEvent(raw);
+    if (!event) {
+      return;
+    }
+    for (const cb of this.inAppListeners) {
+      cb(event);
+    }
   }
 
   // Trigger all listeners when a deeplink is received
@@ -479,4 +557,5 @@ export type {
   InAppPurchase,
   GenerateLinkOptions,
 } from './NativeGrovsWrapper';
+export type { InAppMessageEvent, InAppDismissReason } from './InAppMessages';
 export type { NavigationContainerRefLike } from './ScreenTracking';

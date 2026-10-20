@@ -2,6 +2,8 @@ import type { TurboModule } from 'react-native';
 import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 import { TurboModuleRegistry, NativeEventEmitter } from 'react-native';
 import { log } from './Logger';
+import { toInAppMessageEvent } from './InAppMessages';
+import type { InAppMessageEvent } from './InAppMessages';
 
 export type LogLevel = 'info' | 'error';
 export type AnyPrimitive = string | number | boolean;
@@ -89,6 +91,13 @@ export interface Spec extends TurboModule {
   removeListeners(count: number): void;
 
   markReadyToHandleDeeplinks(): void;
+
+  pauseInAppMessages(): void;
+  resumeInAppMessages(): void;
+  discardInAppMessages(dismissCurrent: boolean): void;
+  setInAppExcludedScreens(screens: Array<string>): void;
+  setInAppDebugLogging(enabled: boolean): void;
+  markReadyForInAppEvents(): void;
 }
 
 // Get the native module from RN's registry
@@ -217,6 +226,51 @@ export class TurboModuleGrovs {
       productId,
       startDate
     );
+  }
+
+  pauseInAppMessages() {
+    NativeModule?.pauseInAppMessages();
+  }
+
+  resumeInAppMessages() {
+    NativeModule?.resumeInAppMessages();
+  }
+
+  discardInAppMessages(dismissCurrent: boolean) {
+    NativeModule?.discardInAppMessages(dismissCurrent);
+  }
+
+  setInAppExcludedScreens(screens: Array<string>) {
+    NativeModule?.setInAppExcludedScreens(screens);
+  }
+
+  setInAppDebugLogging(enabled: boolean) {
+    NativeModule?.setInAppDebugLogging(enabled);
+  }
+
+  markReadyForInAppEvents() {
+    NativeModule?.markReadyForInAppEvents();
+  }
+
+  onInAppMessage(callback: (event: InAppMessageEvent) => void): {
+    remove: () => void;
+  } {
+    const eventEmitter =
+      NativeModule == null ? null : new NativeEventEmitter(NativeModule);
+    const subscription = eventEmitter?.addListener(
+      'onGrovsInAppMessage',
+      (raw: unknown) => {
+        const event = toInAppMessageEvent(raw);
+        if (event) {
+          callback(event);
+        }
+      }
+    );
+
+    NativeModule?.markReadyForInAppEvents();
+    return {
+      remove: () => subscription?.remove(),
+    };
   }
 
   // Event subscription wrapper

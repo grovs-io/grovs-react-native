@@ -13,6 +13,12 @@ const mockTrack = jest.fn();
 const mockTrackScreenView = jest.fn();
 const mockSetGlobalTags = jest.fn();
 const mockSetScreenAliases = jest.fn();
+const mockPauseInAppMessages = jest.fn();
+const mockResumeInAppMessages = jest.fn();
+const mockDiscardInAppMessages = jest.fn();
+const mockSetInAppExcludedScreens = jest.fn();
+const mockSetInAppDebugLogging = jest.fn();
+const mockMarkReadyForInAppEvents = jest.fn();
 const mockAddListener = jest.fn(() => ({ remove: jest.fn() }));
 
 jest.mock('react-native', () => {
@@ -20,6 +26,8 @@ jest.mock('react-native', () => {
     (_event: string, callback: (data: unknown) => void) => {
       // Store callback so we can trigger it in tests
       (addListenerMock as any).__lastCallback = callback;
+      const callbacks = ((addListenerMock as any).__callbacks ??= {});
+      callbacks[_event] = callback;
       return { remove: jest.fn() };
     }
   );
@@ -42,6 +50,12 @@ jest.mock('react-native', () => {
         trackScreenView: mockTrackScreenView,
         setGlobalTags: mockSetGlobalTags,
         setScreenAliases: mockSetScreenAliases,
+        pauseInAppMessages: mockPauseInAppMessages,
+        resumeInAppMessages: mockResumeInAppMessages,
+        discardInAppMessages: mockDiscardInAppMessages,
+        setInAppExcludedScreens: mockSetInAppExcludedScreens,
+        setInAppDebugLogging: mockSetInAppDebugLogging,
+        markReadyForInAppEvents: mockMarkReadyForInAppEvents,
         addListener: mockAddListener,
         removeListeners: jest.fn(),
       },
@@ -420,6 +434,64 @@ describe('GrovsWrapper', () => {
 
       expect(cb1).not.toHaveBeenCalled();
       expect(cb2).toHaveBeenCalledWith(deeplinkData);
+    });
+  });
+
+  describe('in-app messages', () => {
+    const { NativeEventEmitter } = require('react-native');
+    const fire = (body: unknown) => {
+      new NativeEventEmitter({}).addListener.__callbacks.onGrovsInAppMessage(
+        body
+      );
+    };
+
+    it('forwards controls to the native module', () => {
+      Grovs.pauseInAppMessages();
+      expect(mockPauseInAppMessages).toHaveBeenCalledTimes(1);
+      Grovs.resumeInAppMessages();
+      expect(mockResumeInAppMessages).toHaveBeenCalledTimes(1);
+      Grovs.discardInAppMessages();
+      expect(mockDiscardInAppMessages).toHaveBeenLastCalledWith(false);
+      Grovs.discardInAppMessages({ dismissCurrent: true });
+      expect(mockDiscardInAppMessages).toHaveBeenLastCalledWith(true);
+      Grovs.setInAppExcludedScreens(['Checkout']);
+      expect(mockSetInAppExcludedScreens).toHaveBeenCalledWith(['Checkout']);
+      Grovs.setInAppDebugLogging(true);
+      expect(mockSetInAppDebugLogging).toHaveBeenCalledWith(true);
+    });
+
+    it('onInAppMessage calls markReadyForInAppEvents on every subscribe', () => {
+      Grovs.onInAppMessage(jest.fn());
+      Grovs.onInAppMessage(jest.fn());
+      expect(mockMarkReadyForInAppEvents).toHaveBeenCalledTimes(2);
+    });
+
+    it('delivers normalized events to every subscriber', () => {
+      const cb1 = jest.fn();
+      const cb2 = jest.fn();
+      Grovs.onInAppMessage(cb1);
+      Grovs.onInAppMessage(cb2);
+      fire({ type: 'shown', campaignId: 'c1', buttonId: null });
+      expect(cb1).toHaveBeenCalledWith({ type: 'shown', campaignId: 'c1' });
+      expect(cb2).toHaveBeenCalledWith({ type: 'shown', campaignId: 'c1' });
+    });
+
+    it('remove stops delivery to that subscriber only', () => {
+      const cb1 = jest.fn();
+      const cb2 = jest.fn();
+      const sub1 = Grovs.onInAppMessage(cb1);
+      Grovs.onInAppMessage(cb2);
+      sub1.remove();
+      fire({ type: 'shown', campaignId: 'c2' });
+      expect(cb1).not.toHaveBeenCalled();
+      expect(cb2).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores malformed events', () => {
+      const cb = jest.fn();
+      Grovs.onInAppMessage(cb);
+      fire({ type: 'nope' });
+      expect(cb).not.toHaveBeenCalled();
     });
   });
 
