@@ -11,6 +11,18 @@ const path = require('path');
 
 const GROVS_ANDROID_DEP_MARKER = '// react-native-grovs-wrapper:dep';
 
+const GROVS_FIREBASE_MARKER = '// react-native-grovs-wrapper:firebase';
+const FIREBASE_MESSAGING_DEP =
+  "implementation 'com.google.firebase:firebase-messaging:24.0.3'";
+const GROVS_MESSAGING_SERVICE = 'io.grovs.handlers.MessagingService';
+const NOTIFICATION_ICON_META = 'io.grovs.NotificationIconSmall';
+const POST_NOTIFICATIONS = 'android.permission.POST_NOTIFICATIONS';
+const RN_FIREBASE_MESSAGING = '@react-native-firebase/messaging';
+const THIRD_PARTY_PUSH_LIBRARIES = [
+  RN_FIREBASE_MESSAGING,
+  'expo-notifications',
+];
+
 function readGrovsSdkCoordinate() {
   const properties = fs.readFileSync(
     path.join(__dirname, '../android/gradle.properties'),
@@ -45,6 +57,123 @@ function withGrovsAppDependency(config) {
       depsBlockRegex,
       (_, block, closingBrace) => `${block}\n    ${dependency}${closingBrace}`
     );
+    return config;
+  });
+}
+
+function listAppDependencies(projectRoot) {
+  try {
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(projectRoot, 'package.json'), 'utf8')
+    );
+    return Object.keys({ ...pkg.dependencies, ...pkg.devDependencies });
+  } catch {
+    return [];
+  }
+}
+
+function hasThirdPartyPushLibrary(projectRoot) {
+  const dependencies = listAppDependencies(projectRoot);
+  return THIRD_PARTY_PUSH_LIBRARIES.some((name) => dependencies.includes(name));
+}
+
+function addGrovsFirebaseDependency(contents) {
+  if (contents.includes(GROVS_FIREBASE_MARKER)) {
+    return contents;
+  }
+  const depsBlockRegex = /(dependencies\s*\{[\s\S]*?)(\n\s*\})/;
+  return contents.replace(
+    depsBlockRegex,
+    (_, block, closingBrace) =>
+      `${block}\n    ${FIREBASE_MESSAGING_DEP} ${GROVS_FIREBASE_MARKER}${closingBrace}`
+  );
+}
+
+function withGrovsFirebaseDependency(config) {
+  return withAppBuildGradle(config, (config) => {
+    // react-native-firebase already brings Firebase in.
+    if (
+      listAppDependencies(config.modRequest?.projectRoot).includes(
+        RN_FIREBASE_MESSAGING
+      )
+    ) {
+      return config;
+    }
+    config.modResults.contents = addGrovsFirebaseDependency(
+      config.modResults.contents
+    );
+    return config;
+  });
+}
+
+function addGrovsNotificationIcon(manifest, notificationIcon) {
+  const application = manifest.manifest.application?.[0];
+  if (!application) return manifest;
+  const metaData = (application['meta-data'] ?? []).filter(
+    (entry) => entry.$?.['android:name'] !== NOTIFICATION_ICON_META
+  );
+  metaData.push({
+    $: {
+      'android:name': NOTIFICATION_ICON_META,
+      'android:resource': `@drawable/${notificationIcon}`,
+    },
+  });
+  application['meta-data'] = metaData;
+  return manifest;
+}
+
+function addGrovsPushManifestEntries(
+  manifest,
+  { removeGrovsService, notificationIcon }
+) {
+  const root = manifest.manifest;
+
+  root['uses-permission'] = root['uses-permission'] ?? [];
+  if (
+    !root['uses-permission'].some(
+      (entry) => entry.$?.['android:name'] === POST_NOTIFICATIONS
+    )
+  ) {
+    root['uses-permission'].push({ $: { 'android:name': POST_NOTIFICATIONS } });
+  }
+
+  const application = root.application?.[0];
+  if (application && removeGrovsService) {
+    root.$ = root.$ ?? {};
+    root.$['xmlns:tools'] = 'http://schemas.android.com/tools';
+    application.service = application.service ?? [];
+    if (
+      !application.service.some(
+        (entry) => entry.$?.['android:name'] === GROVS_MESSAGING_SERVICE
+      )
+    ) {
+      application.service.push({
+        $: {
+          'android:name': GROVS_MESSAGING_SERVICE,
+          'tools:node': 'remove',
+        },
+      });
+    }
+  }
+
+  if (notificationIcon) {
+    addGrovsNotificationIcon(manifest, notificationIcon);
+  }
+  return manifest;
+}
+
+function withGrovsPushManifest(config, { push, androidNotificationIcon }) {
+  return withAndroidManifest(config, (config) => {
+    if (push) {
+      addGrovsPushManifestEntries(config.modResults, {
+        removeGrovsService: hasThirdPartyPushLibrary(
+          config.modRequest?.projectRoot
+        ),
+        notificationIcon: androidNotificationIcon,
+      });
+    } else if (androidNotificationIcon) {
+      addGrovsNotificationIcon(config.modResults, androidNotificationIcon);
+    }
     return config;
   });
 }
@@ -296,6 +425,12 @@ function withGrovsAndroid(config, props) {
   config = withGrovsMainApplication(config, props);
   config = withGrovsMainActivity(config);
   config = withGrovsAppDependency(config);
+  if (props.push) {
+    config = withGrovsFirebaseDependency(config);
+  }
+  if (props.push || props.androidNotificationIcon) {
+    config = withGrovsPushManifest(config, props);
+  }
   return config;
 }
 
@@ -313,3 +448,6 @@ module.exports.addGrovsOnNewIntent = addGrovsOnNewIntent;
 module.exports.readGrovsSdkCoordinate = readGrovsSdkCoordinate;
 module.exports.addGrovsConsentImportToMainApplication =
   addGrovsConsentImportToMainApplication;
+module.exports.addGrovsFirebaseDependency = addGrovsFirebaseDependency;
+module.exports.addGrovsPushManifestEntries = addGrovsPushManifestEntries;
+module.exports.hasThirdPartyPushLibrary = hasThirdPartyPushLibrary;

@@ -52,6 +52,15 @@ function withGrovsAssociatedDomains(config, { associatedDomains }) {
   });
 }
 
+function withGrovsPushEntitlement(config) {
+  return withEntitlementsPlist(config, (config) => {
+    if (!config.modResults['aps-environment']) {
+      config.modResults['aps-environment'] = 'development';
+    }
+    return config;
+  });
+}
+
 function addGrovsImport(contents) {
   if (contents.includes('import Grovs')) {
     return contents;
@@ -155,6 +164,76 @@ function addGrovsURLHandler(contents) {
   return insertBeforeClosingBrace(contents, method);
 }
 
+function addGrovsPushTokenHandler(contents) {
+  if (contents.includes('Grovs.setPushToken')) {
+    return contents;
+  }
+
+  const existingMethodRegex =
+    /(public\s+override\s+func\s+application\([^)]*didRegisterForRemoteNotificationsWithDeviceToken[^{]*\{)/;
+  const m = contents.match(existingMethodRegex);
+  if (m) {
+    const insertPoint = m.index + m[0].length;
+    return (
+      contents.slice(0, insertPoint) +
+      '\n    Grovs.setPushToken(deviceToken: deviceToken)' +
+      contents.slice(insertPoint)
+    );
+  }
+
+  const method = `
+  public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+    Grovs.setPushToken(deviceToken: deviceToken)
+  }`;
+
+  return insertBeforeClosingBrace(contents, method);
+}
+
+function addUserNotificationsImport(contents) {
+  if (/^import UserNotifications\b/m.test(contents)) {
+    return contents;
+  }
+  const lastImportIndex = contents.lastIndexOf('\nimport ');
+  if (lastImportIndex === -1) {
+    return `import UserNotifications\n${contents}`;
+  }
+  const endOfLine = contents.indexOf('\n', lastImportIndex + 1);
+  return (
+    contents.slice(0, endOfLine) +
+    '\nimport UserNotifications' +
+    contents.slice(endOfLine)
+  );
+}
+
+function addGrovsNotificationResponseHandler(contents) {
+  if (contents.includes('Grovs.handleNotificationResponse')) {
+    return contents;
+  }
+
+  contents = addUserNotificationsImport(contents);
+
+  const existingMethodRegex =
+    /(func\s+userNotificationCenter\([^)]*didReceive\s+response[^{]*\{)/;
+  const m = contents.match(existingMethodRegex);
+  if (m) {
+    const insertPoint = m.index + m[0].length;
+    return (
+      contents.slice(0, insertPoint) +
+      '\n    Grovs.handleNotificationResponse(response)' +
+      contents.slice(insertPoint)
+    );
+  }
+
+  const method = `
+  public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    Grovs.handleNotificationResponse(response)
+    completionHandler()
+  }`;
+
+  return insertBeforeClosingBrace(contents, method);
+}
+
 function insertBeforeClosingBrace(contents, code) {
   // Find the closing brace of the `AppDelegate` class specifically.
   // Newer Expo (SDK 54+) AppDelegate.swift templates declare a sibling
@@ -200,6 +279,10 @@ function withGrovsAppDelegate(config, props) {
     contents = addGrovsConfiguration(contents, props);
     contents = addGrovsUniversalLinkHandler(contents);
     contents = addGrovsURLHandler(contents);
+    if (props.push) {
+      contents = addGrovsPushTokenHandler(contents);
+      contents = addGrovsNotificationResponseHandler(contents);
+    }
     config.modResults.contents = contents;
 
     return config;
@@ -209,6 +292,9 @@ function withGrovsAppDelegate(config, props) {
 function withGrovsIOS(config, props) {
   config = withGrovsURLScheme(config, props);
   config = withGrovsAssociatedDomains(config, props);
+  if (props.push) {
+    config = withGrovsPushEntitlement(config);
+  }
   config = withGrovsAppDelegate(config, props);
   return config;
 }
@@ -220,3 +306,7 @@ module.exports.addGrovsImport = addGrovsImport;
 module.exports.addGrovsConfiguration = addGrovsConfiguration;
 module.exports.addGrovsUniversalLinkHandler = addGrovsUniversalLinkHandler;
 module.exports.addGrovsURLHandler = addGrovsURLHandler;
+module.exports.addGrovsPushTokenHandler = addGrovsPushTokenHandler;
+module.exports.addGrovsNotificationResponseHandler =
+  addGrovsNotificationResponseHandler;
+module.exports.withGrovsPushEntitlement = withGrovsPushEntitlement;

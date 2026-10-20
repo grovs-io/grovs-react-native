@@ -39,3 +39,55 @@ describe('plugin clipboardDomains', () => {
     }
   );
 });
+
+describe('plugin push options', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  it('defaults push off and no notification icon', () => {
+    withGrovs({}, { apiKey: 'key', scheme: 'grovs' });
+    const props = expect.objectContaining({
+      push: false,
+      androidNotificationIcon: null,
+    });
+    expect(withGrovsIOS).toHaveBeenCalledWith({}, props);
+    expect(withGrovsAndroid).toHaveBeenCalledWith({}, props);
+  });
+
+  it('forwards push and the notification icon to both platforms', () => {
+    withGrovs(
+      {},
+      {
+        apiKey: 'key',
+        scheme: 'grovs',
+        push: true,
+        androidNotificationIcon: 'ic',
+      }
+    );
+    const props = expect.objectContaining({
+      push: true,
+      androidNotificationIcon: 'ic',
+    });
+    expect(withGrovsIOS).toHaveBeenCalledWith({}, props);
+    expect(withGrovsAndroid).toHaveBeenCalledWith({}, props);
+  });
+
+  it.each([null, 'yes', 1, {}])('rejects a non-boolean push (%j)', (push) => {
+    expect(() =>
+      withGrovs({}, { apiKey: 'key', scheme: 'grovs', push })
+    ).toThrow('push');
+    expect(withGrovsIOS).not.toHaveBeenCalled();
+  });
+
+  it.each([null, '', 1, {}])(
+    'rejects an invalid androidNotificationIcon (%j)',
+    (androidNotificationIcon) => {
+      expect(() =>
+        withGrovs(
+          {},
+          { apiKey: 'key', scheme: 'grovs', androidNotificationIcon }
+        )
+      ).toThrow('androidNotificationIcon');
+      expect(withGrovsAndroid).not.toHaveBeenCalled();
+    }
+  );
+});

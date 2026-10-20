@@ -7,13 +7,19 @@ const {
   addGrovsIntentImport,
   addGrovsOnStart,
   addGrovsOnNewIntent,
+  addGrovsFirebaseDependency,
+  addGrovsPushManifestEntries,
+  hasThirdPartyPushLibrary,
 } = require('../withGrovsAndroid');
 const withGrovsAndroid = require('../withGrovsAndroid');
 const {
   withAppBuildGradle,
   withMainApplication,
+  withAndroidManifest,
 } = require('expo/config-plugins');
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
 describe('withGrovsAndroid - SDK dependency', () => {
   afterEach(() => jest.restoreAllMocks());
@@ -349,6 +355,215 @@ describe('withGrovsAndroid - MainActivity transforms', () => {
       const first = applyAll(SAMPLE_MAIN_ACTIVITY);
       const second = applyAll(first);
       expect(first).toBe(second);
+    });
+  });
+});
+
+describe('withGrovsAndroid - push', () => {
+  const GRADLE =
+    "dependencies {\n    implementation 'com.example:other:1.0.0'\n}\n";
+  const FIREBASE_LINE =
+    "implementation 'com.google.firebase:firebase-messaging:24.0.3' // react-native-grovs-wrapper:firebase";
+
+  function manifestFixture() {
+    return {
+      manifest: {
+        '$': { 'xmlns:android': 'http://schemas.android.com/apk/res/android' },
+        'uses-permission': [
+          { $: { 'android:name': 'android.permission.INTERNET' } },
+        ],
+        'application': [{ $: { 'android:name': '.MainApplication' } }],
+      },
+    };
+  }
+
+  describe('addGrovsFirebaseDependency', () => {
+    it('adds the marked line once', () => {
+      const first = addGrovsFirebaseDependency(GRADLE);
+      expect(first).toContain(FIREBASE_LINE);
+      expect(first).toContain("implementation 'com.example:other:1.0.0'");
+      expect(addGrovsFirebaseDependency(first)).toBe(first);
+    });
+  });
+
+  describe('addGrovsPushManifestEntries', () => {
+    const options = { removeGrovsService: false, notificationIcon: undefined };
+
+    it('adds POST_NOTIFICATIONS once, even if the app declares it', () => {
+      const manifest = addGrovsPushManifestEntries(manifestFixture(), options);
+      addGrovsPushManifestEntries(manifest, options);
+      const names = manifest.manifest['uses-permission'].map(
+        (p) => p.$['android:name']
+      );
+      expect(
+        names.filter((n) => n === 'android.permission.POST_NOTIFICATIONS')
+      ).toHaveLength(1);
+
+      const declared = manifestFixture();
+      declared.manifest['uses-permission'].push({
+        $: { 'android:name': 'android.permission.POST_NOTIFICATIONS' },
+      });
+      addGrovsPushManifestEntries(declared, options);
+      expect(declared.manifest['uses-permission']).toHaveLength(2);
+    });
+
+    it('removes the Grovs messaging service once and declares tools', () => {
+      const manifest = manifestFixture();
+      const opts = { ...options, removeGrovsService: true };
+      addGrovsPushManifestEntries(manifest, opts);
+      addGrovsPushManifestEntries(manifest, opts);
+      expect(manifest.manifest.$['xmlns:tools']).toBe(
+        'http://schemas.android.com/tools'
+      );
+      expect(manifest.manifest.application[0].service).toEqual([
+        {
+          $: {
+            'android:name': 'io.grovs.handlers.MessagingService',
+            'tools:node': 'remove',
+          },
+        },
+      ]);
+    });
+
+    it('leaves the service alone when not asked to remove it', () => {
+      const manifest = addGrovsPushManifestEntries(manifestFixture(), options);
+      expect(manifest.manifest.application[0].service).toBeUndefined();
+      expect(manifest.manifest.$['xmlns:tools']).toBeUndefined();
+    });
+
+    it('adds the notification icon meta-data once', () => {
+      const manifest = manifestFixture();
+      const opts = { ...options, notificationIcon: 'ic_stat' };
+      addGrovsPushManifestEntries(manifest, opts);
+      addGrovsPushManifestEntries(manifest, opts);
+      expect(manifest.manifest.application[0]['meta-data']).toEqual([
+        {
+          $: {
+            'android:name': 'io.grovs.NotificationIconSmall',
+            'android:resource': '@drawable/ic_stat',
+          },
+        },
+      ]);
+    });
+
+    it('produces an identical manifest when run twice', () => {
+      const opts = { removeGrovsService: true, notificationIcon: 'ic_stat' };
+      const once = addGrovsPushManifestEntries(manifestFixture(), opts);
+      const snapshot = JSON.stringify(once);
+      expect(JSON.stringify(addGrovsPushManifestEntries(once, opts))).toBe(
+        snapshot
+      );
+    });
+  });
+
+  describe('hasThirdPartyPushLibrary', () => {
+    let dir;
+    beforeEach(() => {
+      dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grovs-plugin-'));
+    });
+    afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+    function writePackage(contents) {
+      fs.writeFileSync(
+        path.join(dir, 'package.json'),
+        JSON.stringify(contents)
+      );
+    }
+
+    it.each([
+      [{ dependencies: { '@react-native-firebase/messaging': '1' } }],
+      [{ devDependencies: { 'expo-notifications': '1' } }],
+    ])('is true when a push library is listed (%j)', (pkg) => {
+      writePackage(pkg);
+      expect(hasThirdPartyPushLibrary(dir)).toBe(true);
+    });
+
+    it('is false when none is listed', () => {
+      writePackage({ dependencies: { react: '1' } });
+      expect(hasThirdPartyPushLibrary(dir)).toBe(false);
+    });
+
+    it('is false when package.json is missing or unreadable', () => {
+      expect(hasThirdPartyPushLibrary(dir)).toBe(false);
+      fs.writeFileSync(path.join(dir, 'package.json'), '{not json');
+      expect(hasThirdPartyPushLibrary(dir)).toBe(false);
+    });
+  });
+
+  describe('wiring', () => {
+    const props = { apiKey: 'key', scheme: 'grovs', associatedDomains: [] };
+    let dir;
+    beforeEach(() => {
+      dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grovs-plugin-'));
+      withAppBuildGradle.mockClear();
+      withAndroidManifest.mockClear();
+    });
+    afterEach(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+    function runGradle(extra) {
+      withAppBuildGradle.mockClear();
+      withGrovsAndroid({}, { ...props, ...extra });
+      return withAppBuildGradle.mock.calls.map(
+        ([, fn]) =>
+          fn({
+            modRequest: { projectRoot: dir },
+            modResults: { contents: GRADLE },
+          }).modResults.contents
+      );
+    }
+
+    function runManifest(extra) {
+      withAndroidManifest.mockClear();
+      withGrovsAndroid({}, { ...props, ...extra });
+      const manifest = manifestFixture();
+      const mods = withAndroidManifest.mock.calls.map(([, fn]) => fn);
+      // The first mod is the existing intent-filter one.
+      mods
+        .slice(1)
+        .forEach((fn) =>
+          fn({ modRequest: { projectRoot: dir }, modResults: manifest })
+        );
+      return { manifest, extraMods: mods.length - 1 };
+    }
+
+    it('adds no push changes when push and the icon are off', () => {
+      expect(runGradle({ push: false })).toHaveLength(1);
+      expect(runGradle({ push: false })[0]).not.toContain('firebase');
+      expect(runManifest({ push: false }).extraMods).toBe(0);
+    });
+
+    it('adds the Firebase dependency when push is on', () => {
+      const [, withFirebase] = runGradle({ push: true });
+      expect(withFirebase).toContain(FIREBASE_LINE);
+    });
+
+    it('skips the Firebase dependency with react-native-firebase', () => {
+      fs.writeFileSync(
+        path.join(dir, 'package.json'),
+        JSON.stringify({
+          dependencies: { '@react-native-firebase/messaging': '1' },
+        })
+      );
+      const [, withFirebase] = runGradle({ push: true });
+      expect(withFirebase).not.toContain('firebase-messaging');
+    });
+
+    it('removes the Grovs service when another push library exists', () => {
+      fs.writeFileSync(
+        path.join(dir, 'package.json'),
+        JSON.stringify({ dependencies: { 'expo-notifications': '1' } })
+      );
+      const { manifest } = runManifest({ push: true });
+      expect(manifest.manifest.application[0].service).toHaveLength(1);
+    });
+
+    it('adds the icon without push and without the push permission', () => {
+      const { manifest } = runManifest({
+        push: false,
+        androidNotificationIcon: 'ic_stat',
+      });
+      expect(manifest.manifest.application[0]['meta-data']).toHaveLength(1);
+      expect(manifest.manifest['uses-permission']).toHaveLength(1);
     });
   });
 });

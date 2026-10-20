@@ -7,9 +7,9 @@ function passthrough(config) {
 
 module.exports = {
   withInfoPlist: passthrough,
-  withEntitlementsPlist: passthrough,
-  withAppDelegate: passthrough,
-  withAndroidManifest: passthrough,
+  withEntitlementsPlist: jest.fn(passthrough),
+  withAppDelegate: jest.fn(passthrough),
+  withAndroidManifest: jest.fn(passthrough),
   withMainApplication: jest.fn(passthrough),
   withMainActivity: passthrough,
   withAppBuildGradle: jest.fn(passthrough),

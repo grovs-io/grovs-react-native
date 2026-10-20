@@ -17,6 +17,8 @@ const pkg = require('../package.json');
  * @param {string|null} [props.baseURL=null] - Optional custom base URL for the Grovs SDK
  * @param {string[]} [props.associatedDomains] - Universal link domains (e.g., ["grovdc41.sqd.link"])
  * @param {string[]} [props.clipboardDomains=[]] - Domains eligible for clipboard attribution
+ * @param {boolean} [props.push=false] - Set up Grovs push notifications
+ * @param {string} [props.androidNotificationIcon] - Drawable name for the Android small notification icon
  */
 function withGrovs(config, props) {
   if (!props?.apiKey) {
@@ -40,6 +42,22 @@ function withGrovs(config, props) {
     );
   }
 
+  if (props.push !== undefined && typeof props.push !== 'boolean') {
+    throw new Error(
+      'react-native-grovs-wrapper plugin "push" must be a boolean.'
+    );
+  }
+
+  if (
+    props.androidNotificationIcon !== undefined &&
+    (typeof props.androidNotificationIcon !== 'string' ||
+      props.androidNotificationIcon.length === 0)
+  ) {
+    throw new Error(
+      'react-native-grovs-wrapper plugin "androidNotificationIcon" must be a non-empty string.'
+    );
+  }
+
   const pluginProps = {
     apiKey: props.apiKey,
     scheme: props.scheme,
@@ -47,6 +65,8 @@ function withGrovs(config, props) {
     baseURL: props.baseURL ?? null,
     associatedDomains: props.associatedDomains ?? [],
     clipboardDomains: props.clipboardDomains ?? [],
+    push: props.push ?? false,
+    androidNotificationIcon: props.androidNotificationIcon ?? null,
   };
 
   config = withGrovsIOS(config, pluginProps);

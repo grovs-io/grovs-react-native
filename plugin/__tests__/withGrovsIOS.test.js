@@ -3,7 +3,14 @@ const {
   addGrovsConfiguration,
   addGrovsUniversalLinkHandler,
   addGrovsURLHandler,
+  addGrovsPushTokenHandler,
+  addGrovsNotificationResponseHandler,
 } = require('../withGrovsIOS');
+const withGrovsIOS = require('../withGrovsIOS');
+const {
+  withEntitlementsPlist,
+  withAppDelegate,
+} = require('expo/config-plugins');
 
 const SAMPLE_APP_DELEGATE = `import UIKit
 import React
@@ -219,6 +226,145 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
       const first = applyAll(SAMPLE_APP_DELEGATE);
       const second = applyAll(first);
       expect(first).toBe(second);
+    });
+  });
+});
+
+describe('withGrovsIOS - push', () => {
+  describe('addGrovsPushTokenHandler', () => {
+    it('adds a token method that calls super then the SDK', () => {
+      const result = addGrovsPushTokenHandler(SAMPLE_APP_DELEGATE);
+      const method = result.slice(
+        result.indexOf('didRegisterForRemoteNotificationsWithDeviceToken')
+      );
+      expect(result).toContain(
+        'public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {'
+      );
+      expect(method.indexOf('super.application(')).toBeLessThan(
+        method.indexOf('Grovs.setPushToken(deviceToken: deviceToken)')
+      );
+      expect(result.lastIndexOf('}')).toBe(result.length - 1);
+      expect(result.indexOf('setPushToken')).toBeLessThan(
+        result.lastIndexOf('}')
+      );
+    });
+
+    it('inserts only the call into an existing method', () => {
+      const existing = SAMPLE_APP_DELEGATE.replace(
+        /\}$/,
+        `
+  public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+}`
+      );
+      const result = addGrovsPushTokenHandler(existing);
+      expect(result).toContain(
+        'deviceToken: Data) {\n    Grovs.setPushToken(deviceToken: deviceToken)\n    super.application('
+      );
+      expect(
+        result.match(
+          /didRegisterForRemoteNotificationsWithDeviceToken deviceToken/g
+        )
+      ).toHaveLength(1);
+    });
+
+    it('is idempotent', () => {
+      const first = addGrovsPushTokenHandler(SAMPLE_APP_DELEGATE);
+      expect(addGrovsPushTokenHandler(first)).toBe(first);
+    });
+  });
+
+  describe('addGrovsNotificationResponseHandler', () => {
+    it('adds the import once and the response method', () => {
+      const result = addGrovsNotificationResponseHandler(SAMPLE_APP_DELEGATE);
+      expect(result.match(/import UserNotifications/g)).toHaveLength(1);
+      expect(result).toContain(
+        'public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {'
+      );
+      expect(result).toContain('Grovs.handleNotificationResponse(response)');
+      expect(result).toContain('completionHandler()');
+      expect(result).not.toContain('override func userNotificationCenter');
+      expect(result).not.toContain(
+        'UNUserNotificationCenter.current().delegate'
+      );
+    });
+
+    it('does not duplicate an existing UserNotifications import', () => {
+      const result = addGrovsNotificationResponseHandler(
+        `import UserNotifications\n${SAMPLE_APP_DELEGATE}`
+      );
+      expect(result.match(/import UserNotifications/g)).toHaveLength(1);
+    });
+
+    it('inserts only the call into an existing method', () => {
+      const existing = SAMPLE_APP_DELEGATE.replace(
+        /\}$/,
+        `
+  public func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
+    completionHandler()
+  }
+}`
+      );
+      const result = addGrovsNotificationResponseHandler(existing);
+      expect(result).toContain(
+        '@escaping () -> Void) {\n    Grovs.handleNotificationResponse(response)\n    completionHandler()'
+      );
+      expect(result.match(/func userNotificationCenter/g)).toHaveLength(1);
+    });
+
+    it('is idempotent', () => {
+      const first = addGrovsNotificationResponseHandler(SAMPLE_APP_DELEGATE);
+      expect(addGrovsNotificationResponseHandler(first)).toBe(first);
+    });
+  });
+
+  describe('wiring', () => {
+    const props = { apiKey: 'key', scheme: 'grovs', associatedDomains: [] };
+
+    function runAppDelegate(extra) {
+      withAppDelegate.mockClear();
+      withGrovsIOS({}, { ...props, ...extra });
+      const transform = withAppDelegate.mock.calls[0][1];
+      return transform({
+        modResults: { language: 'swift', contents: SAMPLE_APP_DELEGATE },
+      }).modResults.contents;
+    }
+
+    function runEntitlements(modResults, extra) {
+      withEntitlementsPlist.mockClear();
+      withGrovsIOS({}, { ...props, ...extra });
+      return withEntitlementsPlist.mock.calls.map(
+        ([, fn]) => fn({ modResults }).modResults
+      );
+    }
+
+    it('leaves the AppDelegate untouched by push when push is off', () => {
+      const off = runAppDelegate({ push: false });
+      expect(off).not.toContain('setPushToken');
+      expect(off).not.toContain('handleNotificationResponse');
+      expect(off).not.toContain('UserNotifications');
+      expect(runAppDelegate({})).toBe(off);
+    });
+
+    it('adds the push handlers when push is on', () => {
+      const on = runAppDelegate({ push: true });
+      expect(on).toContain('Grovs.setPushToken');
+      expect(on).toContain('Grovs.handleNotificationResponse');
+    });
+
+    it('sets aps-environment to development only when missing', () => {
+      const [missing] = runEntitlements({}, { push: true });
+      expect(missing['aps-environment']).toBe('development');
+      const [existing] = runEntitlements(
+        { 'aps-environment': 'production' },
+        { push: true }
+      );
+      expect(existing['aps-environment']).toBe('production');
+    });
+
+    it('does not touch entitlements when push is off', () => {
+      expect(runEntitlements({}, { push: false })).toEqual([]);
     });
   });
 });
