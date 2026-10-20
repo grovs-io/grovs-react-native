@@ -16,6 +16,9 @@ public class GrovsWrapperSwift: NSObject {
   }
   
   private var deferredDeeplinkData: [String : Any]?
+
+  // Kept out of the generated Objective-C header, which cannot resolve the SDK's protocols.
+  private lazy var deeplinkDelegate = DeeplinkDelegate(owner: self)
   
   // JS API
   
@@ -37,7 +40,7 @@ public class GrovsWrapperSwift: NSObject {
     // `application(_:didFinishLaunchingWithOptions:)` and UIKit posts
     // `didFinishLaunchingNotification` right after it returns, so re-asserting
     // there deterministically covers the early case.
-    Grovs.delegate = self
+    Grovs.delegate = deeplinkDelegate
 
     launchObserver = NotificationCenter.default.addObserver(
       forName: UIApplication.didFinishLaunchingNotification,
@@ -45,7 +48,7 @@ public class GrovsWrapperSwift: NSObject {
       queue: .main
     ) { [weak self] _ in
       guard let self else { return }
-      Grovs.delegate = self
+      Grovs.delegate = self.deeplinkDelegate
       if let launchObserver = self.launchObserver {
         NotificationCenter.default.removeObserver(launchObserver)
         self.launchObserver = nil
@@ -231,8 +234,20 @@ public class GrovsWrapperSwift: NSObject {
 
 }
 
-extension GrovsWrapperSwift: GrovsDelegate {
-  public func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
+private final class DeeplinkDelegate: NSObject, GrovsDelegate {
+  private weak var owner: GrovsWrapperSwift?
+
+  init(owner: GrovsWrapperSwift) {
+    self.owner = owner
+  }
+
+  func grovsReceivedPayloadFromDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
+    owner?.receivedDeeplink(link: link, payload: payload, tracking: tracking)
+  }
+}
+
+extension GrovsWrapperSwift {
+  fileprivate func receivedDeeplink(link: String?, payload: [String : Any]?, tracking: [String : Any]?) {
     var deeplinkData = [String : Any]()
     if let link {
       deeplinkData["link"] = link

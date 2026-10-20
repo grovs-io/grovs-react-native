@@ -46,8 +46,8 @@ These are the minimums of the native Grovs SDKs. Your React Native version may r
 
 The wrapper uses these Grovs native SDKs:
 
-- **iOS**: `Grovs` 3.0 from CocoaPods
-- **Android**: `io.grovs:Grovs:3.0.1` from Maven Central
+- **iOS**: `Grovs` 3.1 from CocoaPods
+- **Android**: `io.grovs:Grovs:3.1.0` from Maven Central
 
 ## Installation
 
@@ -65,7 +65,7 @@ Your app calls `Grovs` directly from `MainApplication` and `MainActivity`, so ad
 
 ```groovy
 dependencies {
-    implementation 'io.grovs:Grovs:3.0.1'
+    implementation 'io.grovs:Grovs:3.1.0'
 }
 ```
 
