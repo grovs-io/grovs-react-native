@@ -20,8 +20,13 @@ export default function App() {
       setLabel1(`Opened link data: ${JSON.stringify(data)}`);
     });
 
+    const inAppListener = Grovs.onInAppMessage(event => {
+      setInAppLog(log => [JSON.stringify(event), ...log].slice(0, 5));
+    });
+
     return () => {
       listener.remove(); // Stop receiving events
+      inAppListener.remove();
     };
   }, []);
 
@@ -29,6 +34,7 @@ export default function App() {
   const [label2, setLabel2] = useState('Generated link:');
   const [label3, setLabel3] = useState('Unread messages:');
   const [label4, setLabel4] = useState('Revenue:');
+  const [inAppLog, setInAppLog] = useState<string[]>([]);
   const [sdkEnabled, setSdkEnabled] = useState(true);
   const [copyToClipboard, setCopyToClipboard] = useState(false);
 
@@ -139,6 +145,10 @@ export default function App() {
     Grovs.setGlobalTags(['example-global']);
   };
 
+  const handleExcludeScreens = () => {
+    Grovs.setInAppExcludedScreens(['Excluded']);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.labelContainer}>
@@ -196,6 +206,34 @@ export default function App() {
       <Button title="Track screen view" onPress={handleTrackScreenView} />
       <View style={{height: 10}} />
       <Button title="Set global tags" onPress={handleSetGlobalTags} />
+      <View style={{height: 20}} />
+      <Button title="Pause in-app" onPress={() => Grovs.pauseInAppMessages()} />
+      <View style={{height: 10}} />
+      <Button
+        title="Resume in-app"
+        onPress={() => Grovs.resumeInAppMessages()}
+      />
+      <View style={{height: 10}} />
+      <Button
+        title="Discard in-app (dismiss current)"
+        onPress={() => Grovs.discardInAppMessages({dismissCurrent: true})}
+      />
+      <View style={{height: 10}} />
+      <Button
+        title="Exclude 'Excluded' screen"
+        onPress={handleExcludeScreens}
+      />
+      <View style={{height: 10}} />
+      <Button
+        title="In-app debug logging on"
+        onPress={() => Grovs.setInAppDebugLogging(true)}
+      />
+      <View style={{height: 10}} />
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>
+          {inAppLog.length ? inAppLog.join('\n') : 'In-app events:'}
+        </Text>
+      </View>
     </View>
   );
 }
