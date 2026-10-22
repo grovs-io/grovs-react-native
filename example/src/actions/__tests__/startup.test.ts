@@ -194,7 +194,9 @@ describe('startLogging', () => {
     await flush();
     expect(mockGrovs.setIdentifier).toHaveBeenCalledWith('React native id');
     expect(mockGrovs.setGlobalTags).toHaveBeenCalledWith(undefined);
-    expect(mockGrovs.setScreenAliases).toHaveBeenCalledWith({});
+    expect(mockGrovs.setScreenAliases).toHaveBeenCalledWith({
+      Home: 'Home screen',
+    });
     expect(mockGrovs.setInAppExcludedScreens).toHaveBeenCalledWith([
       'Excluded',
     ]);
