@@ -79,11 +79,17 @@ RCT_EXPORT_MODULE()
       //[self emitOnDeeplinkReceived:payload];
       [self sendEventWithName:@"onGrovsDeeplinkReceived" body:payload];
     };
-    GrovsWrapperSwift.shared.didReceiveInAppEvent = ^(NSDictionary<NSString *,id> * _Nonnull event) {
-      [self sendEventWithName:@"onGrovsInAppMessage" body:event];
-    };
+    __weak GrovsWrapper *weakSelf = self;
+    [GrovsWrapperSwift.shared attachInAppEventsWithOwner:self handler:^(NSDictionary<NSString *,id> * _Nonnull event) {
+      [weakSelf sendEventWithName:@"onGrovsInAppMessage" body:event];
+    }];
   }
   return self;
+}
+
+- (void)invalidate {
+  [GrovsWrapperSwift.shared detachInAppEventsWithOwner:self];
+  [super invalidate];
 }
 
 - (NSArray<NSString *> *)supportedEvents {
@@ -303,11 +309,17 @@ RCT_EXPORT_MODULE()
     GrovsWrapperSwift.shared.didReceiveDeeplink = ^(NSDictionary<NSString *,id> * _Nonnull payload) {
       [self sendEventWithName:@"onGrovsDeeplinkReceived" body:payload];
     };
-    GrovsWrapperSwift.shared.didReceiveInAppEvent = ^(NSDictionary<NSString *,id> * _Nonnull event) {
-      [self sendEventWithName:@"onGrovsInAppMessage" body:event];
-    };
+    __weak GrovsWrapper *weakSelf = self;
+    [GrovsWrapperSwift.shared attachInAppEventsWithOwner:self handler:^(NSDictionary<NSString *,id> * _Nonnull event) {
+      [weakSelf sendEventWithName:@"onGrovsInAppMessage" body:event];
+    }];
   }
   return self;
+}
+
+- (void)invalidate {
+  [GrovsWrapperSwift.shared detachInAppEventsWithOwner:self];
+  [super invalidate];
 }
 
 // Support for event emission

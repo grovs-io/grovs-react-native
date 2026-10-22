@@ -28,8 +28,8 @@ public class GrovsWrapperSwift: NSObject {
   @objc
   public var didReceiveDeeplink: (([String : Any])->())? = nil
 
-  @objc
-  public var didReceiveInAppEvent: (([String : Any])->())? = nil
+  private var didReceiveInAppEvent: (([String : Any])->())? = nil
+  private weak var inAppEventsOwner: AnyObject?
   
   /// One-shot observer used to re-assert the delegate once app launch completes.
   private var launchObserver: NSObjectProtocol?
@@ -193,6 +193,27 @@ public class GrovsWrapperSwift: NSObject {
   public func displayMessagesViewController(completion: GrovsEmptyClosure?) {
     DispatchQueue.main.async {
       Grovs.displayMessagesViewController(completion: completion)
+    }
+  }
+
+  /// Sends in-app events to `owner`, buffering them until the next `markReadyForInAppEvents`.
+  @objc
+  public func attachInAppEvents(owner: AnyObject, handler: @escaping ([String : Any]) -> Void) {
+    DispatchQueue.main.async {
+      self.inAppEventsOwner = owner
+      self.didReceiveInAppEvent = handler
+      self.inAppEventsReady = false
+    }
+  }
+
+  /// Buffers in-app events again. Ignored if another owner took over.
+  @objc
+  public func detachInAppEvents(owner: AnyObject) {
+    DispatchQueue.main.async {
+      guard self.inAppEventsOwner === owner else { return }
+      self.inAppEventsOwner = nil
+      self.didReceiveInAppEvent = nil
+      self.inAppEventsReady = false
     }
   }
 
