@@ -13,6 +13,7 @@ import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 
 import io.grovs.Grovs
+import io.grovs.model.LogLevel
 import com.grovswrapper.GrovsConsent
 
 class MainApplication : Application(), ReactApplication {
@@ -21,8 +22,7 @@ class MainApplication : Application(), ReactApplication {
       object : DefaultReactNativeHost(this) {
         override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
-              // Packages that cannot be autolinked yet can be added manually here, for example:
-              // add(MyReactNativePackage())
+              add(ExampleStorePackage())
             }
 
         override fun getJSMainModuleName(): String = "index"
@@ -39,14 +39,33 @@ class MainApplication : Application(), ReactApplication {
   override fun onCreate() {
     super.onCreate()
 
-    // TODO: Replace with your own API Key
-    val API_KEY = "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f"
-    Grovs.configure(this, API_KEY, useTestEnvironment = true, baseURL = null, autoTrackScreenViews = false, clipboardDomains = null, enabled = GrovsConsent.isEnabled(this))
+    val prefs = ExampleStore.prefs(this)
+    ExampleStore.startedProfile = try {
+      configure(ExampleStore.activeProfile(prefs))
+    } catch (e: Exception) {
+      ExampleStore.configureError = e.message ?: e.toString()
+      configure(Profile.DEFAULT)
+    }
+    val debugLevel = if (prefs.getString(ExampleStore.KEY_DEBUG_LEVEL, null) == "error") LogLevel.ERROR else LogLevel.INFO
+    Grovs.setDebug(debugLevel)
 
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
       load()
     }
+  }
+
+  private fun configure(profile: Profile): Profile {
+    Grovs.configure(
+      this,
+      profile.apiKey,
+      useTestEnvironment = profile.test,
+      baseURL = profile.baseUrl,
+      autoTrackScreenViews = profile.autoTrack,
+      clipboardDomains = profile.clipboardDomains.ifEmpty { null },
+      enabled = profile.startEnabled && GrovsConsent.isEnabled(this),
+    )
+    return profile
   }
 }
