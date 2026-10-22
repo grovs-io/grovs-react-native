@@ -133,7 +133,10 @@ final class ExampleStore: NSObject {
   }
 
   @objc func restart() {
-    DispatchQueue.main.async { exit(0) }
+    DispatchQueue.main.async {
+      Self.defaults.synchronize()
+      exit(0)
+    }
   }
 
   @objc func fetchPushToken(_ resolve: RCTPromiseResolveBlock, rejecter reject: RCTPromiseRejectBlock) {
