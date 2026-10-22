@@ -14,6 +14,7 @@ import {
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/ThemeContext';
 import { MIN_TOUCH } from './Buttons';
+import { ToastHost } from './Toast';
 
 const DISMISS_FRACTION = 0.25;
 const DISMISS_VELOCITY = 1.5;
@@ -148,6 +149,7 @@ export function Sheet({
           )}
         </Animated.View>
       </KeyboardAvoidingView>
+      <ToastHost />
     </Modal>
   );
 }

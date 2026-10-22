@@ -18,7 +18,7 @@ import {
 import { useTheme } from '../../theme/ThemeContext';
 import { type } from '../../theme/type';
 import { FieldLabel, HelpText } from './Basics';
-import { AppButton, TextAction } from './Buttons';
+import { AppButton, MIN_TOUCH, TextAction } from './Buttons';
 import { Chip } from './Chips';
 import type { Info } from './Info';
 import { Sheet } from './Sheet';
@@ -239,7 +239,12 @@ const styles = StyleSheet.create({
   },
   key: { flex: 1 },
   value: { flex: 1.2 },
-  badge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  badge: {
+    minHeight: MIN_TOUCH - 12,
+    justifyContent: 'center',
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
   addRow: { gap: 8 },
   title: { marginBottom: 8 },
   json: { minHeight: 160 },

@@ -6,11 +6,14 @@ import { type } from '../../theme/type';
 const SHOW_MS = 1800;
 
 type Listener = (text: string) => void;
-const listeners = new Set<Listener>();
+const hosts: Listener[] = [];
 
-/** Shows a short message at the bottom of the app. Needs a mounted ToastHost. */
+/**
+ * Shows a short message at the bottom of the app. Only the most recently
+ * mounted ToastHost shows it, so a toast from inside a sheet appears on top.
+ */
 export function showToast(text: string) {
-  listeners.forEach((listener) => listener(text));
+  hosts[hosts.length - 1]?.(text);
 }
 
 export function ToastHost() {
@@ -36,10 +39,10 @@ export function ToastHost() {
         }).start(({ finished }) => finished && setText(null));
       }, SHOW_MS);
     };
-    listeners.add(listener);
+    hosts.push(listener);
     return () => {
       clearTimeout(timer);
-      listeners.delete(listener);
+      hosts.splice(hosts.indexOf(listener), 1);
     };
   }, [opacity]);
 
