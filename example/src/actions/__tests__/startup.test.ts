@@ -20,7 +20,8 @@ const listeners: {
 } = {};
 
 jest.mock('react-native-grovs-wrapper', () => ({
-  Grovs: {
+  __esModule: true,
+  default: {
     onDeeplinkReceived: (cb: any) => {
       listeners.link = cb;
     },

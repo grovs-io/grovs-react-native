@@ -53,6 +53,13 @@ describe('exampleStore', () => {
     expect(store.get('missing')).toBeUndefined();
   });
 
+  it('loads from native once', async () => {
+    const store = freshStore();
+    await Promise.all([store.load(), store.load()]);
+    await store.load();
+    expect(native.getAll).toHaveBeenCalledTimes(1);
+  });
+
   it('updates the cache and native on set', async () => {
     const store = freshStore();
     await store.load();
