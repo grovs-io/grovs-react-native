@@ -1,16 +1,5 @@
 import { NativeModules } from 'react-native';
-
-/** Settings read by native `Grovs.configure` at launch. Same JSON shape on both platforms. */
-export type Profile = {
-  id: string;
-  name: string;
-  apiKey: string;
-  test: boolean;
-  baseUrl: string | null;
-  autoTrack: boolean;
-  startEnabled: boolean;
-  clipboardDomains: string[];
-};
+import type { Profile } from '../data/profile';
 
 /** Keys native reads before React Native starts. */
 export const NativeKeys = {
