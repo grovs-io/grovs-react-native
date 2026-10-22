@@ -1,5 +1,5 @@
 import { useMemo, useRef } from 'react';
-import { PanResponder, Pressable, StyleSheet, Text } from 'react-native';
+import { PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { LogEntry } from '../../actions/log';
 import { formatClock } from '../../data/strings';
 import { useTheme } from '../../theme/ThemeContext';
@@ -8,6 +8,9 @@ import { StatusDot } from '../controls/Basics';
 import { ICON_PATHS, StrokeIcon } from '../TabIcons';
 
 const DRAG_OPEN_DISTANCE = 8;
+
+export const isOpenDrag = (dx: number, dy: number): boolean =>
+  dy < -DRAG_OPEN_DISTANCE && Math.abs(dy) > Math.abs(dx);
 
 /** The newest log entry above the tab bar. Tap or drag up to open the logs panel. */
 export function ConsoleStrip({
@@ -25,45 +28,45 @@ export function ConsoleStrip({
   const pan = useMemo(
     () =>
       PanResponder.create({
-        onMoveShouldSetPanResponder: (_, g) =>
-          g.dy < -DRAG_OPEN_DISTANCE && Math.abs(g.dy) > Math.abs(g.dx),
+        onMoveShouldSetPanResponderCapture: (_, g) => isOpenDrag(g.dx, g.dy),
         onPanResponderGrant: () => onOpenRef.current(),
       }),
     []
   );
   return (
-    <Pressable
-      {...pan.panHandlers}
-      onPress={onOpen}
-      testID="consoleStrip"
-      accessibilityRole="button"
-      accessibilityLabel="Open logs"
-      style={[
-        styles.strip,
-        { backgroundColor: colors.surface, borderTopColor: colors.border },
-      ]}
-    >
-      <StatusDot
-        state={unseenError ? 'error' : (latest?.state ?? 'neutral')}
-        testID="consoleStripDot"
-      />
-      <Text
-        numberOfLines={1}
-        style={[type.caption, styles.title, { color: colors.text }]}
+    <View {...pan.panHandlers} testID="consoleStripDrag">
+      <Pressable
+        onPress={onOpen}
+        testID="consoleStrip"
+        accessibilityRole="button"
+        accessibilityLabel="Open logs"
+        style={[
+          styles.strip,
+          { backgroundColor: colors.surface, borderTopColor: colors.border },
+        ]}
       >
-        {latest?.title ?? 'No events yet'}
-      </Text>
-      {latest ? (
-        <Text style={[type.caption, { color: colors.textFaint }]}>
-          {formatClock(latest.time)}
+        <StatusDot
+          state={unseenError ? 'error' : (latest?.state ?? 'neutral')}
+          testID="consoleStripDot"
+        />
+        <Text
+          numberOfLines={1}
+          style={[type.caption, styles.title, { color: colors.text }]}
+        >
+          {latest?.title ?? 'No events yet'}
         </Text>
-      ) : null}
-      <StrokeIcon
-        path={ICON_PATHS.chevronUp}
-        color={colors.textFaint}
-        size={16}
-      />
-    </Pressable>
+        {latest ? (
+          <Text style={[type.caption, { color: colors.textFaint }]}>
+            {formatClock(latest.time)}
+          </Text>
+        ) : null}
+        <StrokeIcon
+          path={ICON_PATHS.chevronUp}
+          color={colors.textFaint}
+          size={16}
+        />
+      </Pressable>
+    </View>
   );
 }
 

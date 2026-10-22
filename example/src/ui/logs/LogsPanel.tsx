@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import {
   FlatList,
   Pressable,
@@ -52,35 +52,39 @@ export function LogsPanel({
   const { entries, unseenError } = useLog();
   const [filter, setFilter] = useState<LogFilter>('All');
   const [selectedId, setSelectedId] = useState(focusEntryId);
+  const [openedOn, setOpenedOn] = useState(focusEntryId);
   const selected = entries.find((e) => e.id === selectedId);
+  const select = useCallback((entry: LogEntry) => setSelectedId(entry.id), []);
 
   useEffect(() => {
-    if (visible) setSelectedId(focusEntryId);
+    if (!visible) return;
+    setSelectedId(focusEntryId);
+    setOpenedOn(focusEntryId);
   }, [visible, focusEntryId]);
 
   useEffect(() => {
     if (visible && unseenError) appLog.markSeen();
   }, [visible, unseenError]);
 
+  const showList = () => {
+    setSelectedId(undefined);
+    setOpenedOn(undefined);
+  };
   const back = () => {
-    if (selected && focusEntryId === undefined) setSelectedId(undefined);
+    if (selected && selectedId !== openedOn) showList();
     else onClose();
   };
 
   return (
     <Sheet visible={visible} onClose={back}>
       {selected ? (
-        <LogDetail
-          entry={selected}
-          onBack={() => setSelectedId(undefined)}
-          onInspect={onInspect}
-        />
+        <LogDetail entry={selected} onBack={showList} onInspect={onInspect} />
       ) : (
         <LogList
           entries={entries}
           filter={filter}
           onFilter={setFilter}
-          onSelect={(entry) => setSelectedId(entry.id)}
+          onSelect={select}
         />
       )}
     </Sheet>
@@ -149,9 +153,7 @@ function LogList({
           </Text>
         }
         ItemSeparatorComponent={Separator}
-        renderItem={({ item }) => (
-          <LogRow entry={item} onPress={() => onSelect(item)} />
-        )}
+        renderItem={({ item }) => <LogRow entry={item} onSelect={onSelect} />}
       />
     </>
   );
@@ -162,12 +164,18 @@ function Separator() {
   return <View style={[styles.divider, { backgroundColor: colors.divider }]} />;
 }
 
-function LogRow({ entry, onPress }: { entry: LogEntry; onPress: () => void }) {
+const LogRow = memo(function LogRow({
+  entry,
+  onSelect,
+}: {
+  entry: LogEntry;
+  onSelect: (entry: LogEntry) => void;
+}) {
   const { colors } = useTheme();
   const action = entry.action;
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => onSelect(entry)}
       style={({ pressed }) => [
         styles.row,
         styles.logRow,
@@ -211,7 +219,7 @@ function LogRow({ entry, onPress }: { entry: LogEntry; onPress: () => void }) {
       ) : null}
     </Pressable>
   );
-}
+});
 
 function LogDetail({
   entry,

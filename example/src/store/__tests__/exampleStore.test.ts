@@ -60,6 +60,15 @@ describe('exampleStore', () => {
     expect(native.getAll).toHaveBeenCalledTimes(1);
   });
 
+  it('retries the load after a failure', async () => {
+    const store = freshStore();
+    native.getAll.mockRejectedValueOnce(new Error('no native'));
+    await expect(store.load()).rejects.toThrow('no native');
+    await store.load();
+    expect(store.get('debugLevel')).toBe('error');
+    expect(native.getAll).toHaveBeenCalledTimes(2);
+  });
+
   it('updates the cache and native on set', async () => {
     const store = freshStore();
     await store.load();
