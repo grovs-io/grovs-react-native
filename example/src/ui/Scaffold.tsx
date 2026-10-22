@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   BackHandler,
@@ -30,6 +30,7 @@ import { useLog } from './useStore';
 
 const TAB_KEY = 'tab';
 const TRANSITION_MS = 260;
+const SLIDE_DISTANCE = 24;
 
 const SCREENS: Record<Tab, () => React.ReactElement> = {
   home: HomeScreen,
@@ -40,9 +41,9 @@ const SCREENS: Record<Tab, () => React.ReactElement> = {
 
 type Panel = { open: boolean; entryId?: number };
 
-function useSavedTab(): [Tab, (tab: Tab) => void] {
-  const [tab, setTab] = useState<Tab>('home');
-  const picked = useRef(false);
+/** The tab is null until the store has loaded, so the saved tab shows first. */
+function useSavedTab(): [Tab | null, (tab: Tab) => void] {
+  const [tab, setTab] = useState<Tab | null>(null);
   useEffect(() => {
     let active = true;
     exampleStore
@@ -50,14 +51,13 @@ function useSavedTab(): [Tab, (tab: Tab) => void] {
       .catch(() => undefined)
       .then(() => {
         const saved = exampleStore.get(TAB_KEY);
-        if (active && !picked.current && isTab(saved)) setTab(saved);
+        if (active) setTab(isTab(saved) ? saved : 'home');
       });
     return () => {
       active = false;
     };
   }, []);
   const select = (next: Tab) => {
-    picked.current = true;
     setTab(next);
     exampleStore.set(TAB_KEY, next);
   };
@@ -81,45 +81,38 @@ function useKeyboardVisible(): boolean {
 
 /** Tabs fade in with a short slide toward the side of the new tab. */
 function TabContent({ tab }: { tab: Tab }) {
-  const visited = useRef<Tab[]>([]);
-  if (!visited.current.includes(tab)) visited.current.push(tab);
-  const progress = useRef(new Animated.Value(1)).current;
-  const last = useRef({ tab, direction: 1 });
-  if (last.current.tab !== tab) {
-    const forward = TABS.indexOf(tab) > TABS.indexOf(last.current.tab);
-    last.current = { tab, direction: forward ? 1 : -1 };
-    progress.setValue(0);
-  }
-  const { direction } = last.current;
+  const [visited, setVisited] = useState<Tab[]>([tab]);
+  const opacity = useRef(new Animated.Value(1)).current;
+  const offset = useRef(new Animated.Value(0)).current;
+  const previous = useRef(tab);
 
-  useEffect(() => {
-    Animated.timing(progress, {
-      toValue: 1,
-      duration: TRANSITION_MS,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
-  }, [tab, progress]);
+  useLayoutEffect(() => {
+    if (previous.current === tab) return;
+    const forward = TABS.indexOf(tab) > TABS.indexOf(previous.current);
+    previous.current = tab;
+    setVisited((list) => (list.includes(tab) ? list : [...list, tab]));
+    opacity.setValue(0);
+    offset.setValue(forward ? SLIDE_DISTANCE : -SLIDE_DISTANCE);
+    const timing = (value: Animated.Value, toValue: number) =>
+      Animated.timing(value, {
+        toValue,
+        duration: TRANSITION_MS,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      });
+    Animated.parallel([timing(opacity, 1), timing(offset, 0)]).start();
+  }, [tab, opacity, offset]);
 
-  const slide = {
-    opacity: progress,
-    transform: [
-      {
-        translateX: progress.interpolate({
-          inputRange: [0, 1],
-          outputRange: [direction * 24, 0],
-        }),
-      },
-    ],
-  };
+  const shown = visited.includes(tab) ? visited : [...visited, tab];
+  const slide = { opacity, transform: [{ translateX: offset }] };
   return (
     <>
-      {visited.current.map((shown) => {
-        const ScreenForTab = SCREENS[shown];
-        const current = shown === tab;
+      {shown.map((screen) => {
+        const ScreenForTab = SCREENS[screen];
+        const current = screen === tab;
         return (
           <Animated.View
-            key={shown}
+            key={screen}
             style={[styles.fill, current ? slide : styles.hidden]}
           >
             <ScreenForTab />
@@ -207,6 +200,12 @@ export function Scaffold() {
     });
     return () => sub.remove();
   }, [excluded, settings]);
+
+  if (tab === null) {
+    return (
+      <View style={[styles.fill, { backgroundColor: colors.background }]} />
+    );
+  }
 
   return (
     <NavContext.Provider value={nav}>

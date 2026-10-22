@@ -24,13 +24,19 @@ class ExampleStore {
   private values: Record<string, string> = {};
   private loaded?: Promise<void>;
 
-  /** Reads native once; later calls wait for the same read. */
+  /** Reads native once; later calls wait for the same read. A failed read is retried on the next call. */
   load(): Promise<void> {
     this.loaded ??= native()
       .getAll()
-      .then((all) => {
-        this.values = { ...all };
-      });
+      .then(
+        (all) => {
+          this.values = { ...all };
+        },
+        (error) => {
+          this.loaded = undefined;
+          throw error;
+        }
+      );
     return this.loaded;
   }
 

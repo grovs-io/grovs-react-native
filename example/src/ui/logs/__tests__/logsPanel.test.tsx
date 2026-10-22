@@ -12,6 +12,7 @@ import type { TestAction } from '../../../actions/log';
 import { appLog } from '../../../actions/testLog';
 import { lightColors } from '../../../theme/colors';
 import { Scaffold } from '../../Scaffold';
+import { ConsoleStrip, isOpenDrag } from '../ConsoleStrip';
 import { LogsPanel } from '../LogsPanel';
 
 const mockValues: Record<string, string> = {};
@@ -84,7 +85,66 @@ describe('console strip', () => {
   });
 });
 
+/** A one-finger move from y=100 to y=100+dy, as the responder system reports it. */
+function moveEvent(dx: number, dy: number) {
+  const touchHistory = {
+    numberActiveTouches: 1,
+    indexOfSingleActiveTouch: 0,
+    mostRecentTimeStamp: 1,
+    touchBank: [
+      {
+        touchActive: true,
+        startPageX: 100,
+        startPageY: 100,
+        startTimeStamp: 0,
+        currentPageX: 100 + dx,
+        currentPageY: 100 + dy,
+        currentTimeStamp: 1,
+        previousPageX: 100,
+        previousPageY: 100,
+        previousTimeStamp: 0,
+      },
+    ],
+  };
+  return { nativeEvent: { touches: [{}] }, touchHistory };
+}
+
+describe('strip drag', () => {
+  it('treats only a mostly vertical upward drag as open', () => {
+    expect(isOpenDrag(0, -20)).toBe(true);
+    expect(isOpenDrag(2, -9)).toBe(true);
+    expect(isOpenDrag(0, -5)).toBe(false);
+    expect(isOpenDrag(0, 20)).toBe(false);
+    expect(isOpenDrag(30, -20)).toBe(false);
+  });
+
+  it('opens when dragged up over the strip', () => {
+    const onOpen = jest.fn();
+    render(<ConsoleStrip unseenError={false} onOpen={onOpen} />);
+    const drag = screen.getByTestId('consoleStripDrag');
+    expect(drag.props.onMoveShouldSetResponderCapture(moveEvent(0, 3))).toBe(
+      false
+    );
+    const up = moveEvent(0, -40);
+    up.touchHistory.mostRecentTimeStamp = 2;
+    up.touchHistory.touchBank[0]!.currentTimeStamp = 2;
+    expect(drag.props.onMoveShouldSetResponderCapture(up)).toBe(true);
+    drag.props.onResponderGrant(up);
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('tabs', () => {
+  it('shows no tab before the store has loaded', async () => {
+    mockValues.tab = 'events';
+    renderApp();
+    expect(screen.queryByRole('tab')).toBeNull();
+    expect(
+      await screen.findByRole('tab', { name: 'Events', selected: true })
+    ).toBeTruthy();
+    expect(screen.queryByText('Settings')).toBeNull();
+  });
+
   it('switches tabs and saves the choice', async () => {
     renderApp();
     fireEvent.press(await screen.findByRole('tab', { name: 'Events' }));
@@ -165,5 +225,31 @@ describe('LogsPanel', () => {
     );
     fireEvent.press(screen.getByText('Inspect link'));
     expect(onInspect).toHaveBeenCalledWith('https://grovs.link/abc');
+  });
+
+  it('closes from the focused entry, but returns to the list once it was left', () => {
+    appLog.add('EVENT', 'ok', 'Track signup', 'sent', 'Grovs.track("signup")');
+    const entry = appLog.recordLinkOpen('https://grovs.link/abc', {});
+    const onClose = jest.fn();
+    render(<LogsPanel visible onClose={onClose} focusEntryId={entry.id} />);
+    fireEvent.press(screen.getByLabelText('Back'));
+    fireEvent.press(screen.getByText('Track signup'));
+    fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).not.toHaveBeenCalled();
+    expect(screen.getByText('Logs')).toBeTruthy();
+
+    fireEvent.press(screen.getByText('Opened from link'));
+    fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes straight away when opened on an entry', () => {
+    const entry = appLog.recordLinkOpen('https://grovs.link/abc', {});
+    const onClose = jest.fn();
+    render(<LogsPanel visible onClose={onClose} focusEntryId={entry.id} />);
+    fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
