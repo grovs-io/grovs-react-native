@@ -18,6 +18,9 @@ export type AppColors = {
   neutralDot: string;
   onAccent: string;
   scrim: string;
+  /** QR codes stay dark on light in both modes so every scanner reads them. */
+  qrDark: string;
+  qrLight: string;
 };
 
 export const lightColors: AppColors = {
@@ -40,6 +43,8 @@ export const lightColors: AppColors = {
   neutralDot: '#CBD5E1',
   onAccent: '#FFFFFF',
   scrim: 'rgba(2, 6, 23, 0.3)',
+  qrDark: '#000000',
+  qrLight: '#FFFFFF',
 };
 
 export const darkColors: AppColors = {
@@ -62,4 +67,6 @@ export const darkColors: AppColors = {
   neutralDot: '#525252',
   onAccent: '#FFFFFF',
   scrim: 'rgba(2, 6, 23, 0.3)',
+  qrDark: '#000000',
+  qrLight: '#FFFFFF',
 };

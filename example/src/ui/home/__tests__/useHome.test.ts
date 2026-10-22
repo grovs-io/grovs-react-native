@@ -39,11 +39,27 @@ beforeEach(() => {
 });
 
 describe('useHome', () => {
-  it('generates with the link form saved after it mounted', async () => {
+  it('follows the link form saved by another screen', async () => {
     const { result } = renderHook(() => useHome());
-    settingsStore.linkForm = { ...settingsStore.linkForm, title: 'From Links' };
+    act(() => {
+      settingsStore.linkForm = {
+        ...settingsStore.linkForm,
+        title: 'From Links',
+      };
+    });
     await act(async () => result.current.generate());
     expect(grovs.generateLink.mock.calls[0]![0]).toBe('From Links');
+  });
+
+  it('blocks generate while the saved link form has a bad URL', () => {
+    const { result } = renderHook(() => useHome());
+    expect(result.current.generateError).toBeNull();
+    act(() => {
+      settingsStore.linkForm = { ...settingsStore.linkForm, imageUrl: 'x' };
+    });
+    expect(result.current.generateError).toBe(
+      'Image URL must start with http:// or https://'
+    );
   });
 
   it('starts from the saved identity', () => {

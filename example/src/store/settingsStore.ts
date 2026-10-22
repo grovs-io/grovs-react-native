@@ -36,6 +36,22 @@ export const DEFAULT_IDENTITY: Identity = {
   ],
 };
 
+export type SavedForms = {
+  linkForm: LinkForm;
+  eventForm: EventForm;
+  screenForm: ScreenForm;
+  purchaseForm: PurchaseForm;
+};
+export type FormKey = keyof SavedForms;
+
+type FormListener = (key: FormKey) => void;
+const formListeners = new Set<FormListener>();
+
+function putForm(key: FormKey, json: string) {
+  exampleStore.set(key, json);
+  formListeners.forEach((listener) => listener(key));
+}
+
 export const DEFAULT_EXCLUDED_SCREENS = ['Excluded'];
 
 const LOG_LEVELS: readonly LogLevel[] = ['info', 'error'];
@@ -90,6 +106,14 @@ function readProfiles(): Profile[] {
 
 /** Typed access to the app's saved settings. Reads need `exampleStore.load()` to have finished. */
 export const settingsStore = {
+  /** Calls the listener with the key of each saved form that changes. */
+  subscribeForms(listener: FormListener): () => void {
+    formListeners.add(listener);
+    return () => {
+      formListeners.delete(listener);
+    };
+  },
+
   get identity(): Identity {
     return readIdentity();
   },
@@ -109,28 +133,28 @@ export const settingsStore = {
     return decodeLinkForm(exampleStore.get('linkForm'));
   },
   set linkForm(value: LinkForm) {
-    exampleStore.set('linkForm', encodeLinkForm(value));
+    putForm('linkForm', encodeLinkForm(value));
   },
 
   get eventForm(): EventForm {
     return decodeEventForm(exampleStore.get('eventForm'));
   },
   set eventForm(value: EventForm) {
-    exampleStore.set('eventForm', encodeEventForm(value));
+    putForm('eventForm', encodeEventForm(value));
   },
 
   get screenForm(): ScreenForm {
     return decodeScreenForm(exampleStore.get('screenForm'));
   },
   set screenForm(value: ScreenForm) {
-    exampleStore.set('screenForm', encodeScreenForm(value));
+    putForm('screenForm', encodeScreenForm(value));
   },
 
   get purchaseForm(): PurchaseForm {
     return decodePurchaseForm(exampleStore.get('purchaseForm'));
   },
   set purchaseForm(value: PurchaseForm) {
-    exampleStore.set('purchaseForm', encodePurchaseForm(value));
+    putForm('purchaseForm', encodePurchaseForm(value));
   },
 
   get globalTags(): string[] {

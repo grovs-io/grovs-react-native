@@ -2,9 +2,12 @@ import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { Linking, Platform, Share } from 'react-native';
 import Grovs from 'react-native-grovs-wrapper';
+import { renderHook } from '@testing-library/react-native';
 import { appLog } from '../../../actions/testLog';
 import { DEFAULT_LINK_FORM } from '../../../data/forms';
 import { openCommand } from '../../../data/linkTools';
+import { settingsStore } from '../../../store/settingsStore';
+import { useHome } from '../../home/useHome';
 import { NavContext, type Nav } from '../../nav';
 import { LinksScreen } from '../LinksScreen';
 
@@ -73,7 +76,32 @@ describe('LinksScreen', () => {
     expect(generateLink).toHaveBeenCalledTimes(1);
     expect(screen.getByText(LINK)).toBeTruthy();
     expect(screen.getByText(/^Created · /)).toBeTruthy();
-    expect(JSON.parse(mockValues.linkForm!)).toEqual(DEFAULT_LINK_FORM);
+  });
+
+  it('saves each edit right away', () => {
+    renderLinks();
+    fireEvent.changeText(screen.getByDisplayValue('Test title'), 'Edited');
+    expect(settingsStore.linkForm.title).toBe('Edited');
+    expect(settingsStore.linkForm.subtitle).toBe('Test subtitle');
+  });
+
+  it('shows a form saved from Home while mounted', () => {
+    const home = renderHook(() => useHome());
+    renderLinks();
+    act(() =>
+      home.result.current.saveLinkForm({
+        ...DEFAULT_LINK_FORM,
+        title: 'From Home',
+      })
+    );
+    expect(screen.getByDisplayValue('From Home')).toBeTruthy();
+  });
+
+  it('gives Home the form edited here', () => {
+    const home = renderHook(() => useHome());
+    renderLinks();
+    fireEvent.changeText(screen.getByDisplayValue('Test title'), 'From Links');
+    expect(home.result.current.linkForm.title).toBe('From Links');
   });
 
   it('copies the link and the open command', async () => {

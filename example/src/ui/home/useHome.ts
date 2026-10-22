@@ -11,9 +11,9 @@ import { runAction } from '../../actions/testRunner';
 import { eventNameError, tagsError } from '../../data/eventRules';
 import {
   isPurchaseValid,
+  linkFormError,
   purchaseLabel,
   type EventForm,
-  type LinkForm,
   type PurchaseForm,
 } from '../../data/forms';
 import type { KeyValueRow } from '../../data/keyValue';
@@ -24,7 +24,7 @@ import { relativeTime } from '../../data/strings';
 import { exampleStore, NativeKeys } from '../../store/exampleStore';
 import { settingsStore, type Identity } from '../../store/settingsStore';
 import { showToast } from '../controls/Toast';
-import { useLog } from '../useStore';
+import { useLog, useSavedForm } from '../useStore';
 
 const TICK_MS = 30_000;
 
@@ -109,6 +109,7 @@ export function useHome() {
   const [identity, setIdentity] = useState(() => settingsStore.identity);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(identity);
+  const [linkForm, saveLinkForm] = useSavedForm('linkForm');
   const [eventForm, setEventForm] = useState(() => settingsStore.eventForm);
   const [purchaseForm, setPurchaseForm] = useState(
     () => settingsStore.purchaseForm
@@ -133,10 +134,6 @@ export function useHome() {
     run(identityAction(draft));
   };
 
-  // The Links tab saves this form too, so it is read fresh each time.
-  const saveLinkForm = (form: LinkForm) => {
-    settingsStore.linkForm = form;
-  };
   const saveEventForm = (form: EventForm) => {
     setEventForm(form);
     settingsStore.eventForm = form;
@@ -146,7 +143,7 @@ export function useHome() {
     settingsStore.purchaseForm = form;
   };
 
-  const generate = (form = settingsStore.linkForm) => {
+  const generate = (form = linkForm) => {
     setGenerating(true);
     run(buildGenerateLink(form)).finally(() => setGenerating(false));
   };
@@ -174,7 +171,7 @@ export function useHome() {
     startEditing,
     cancelEditing: () => setEditing(false),
     saveIdentity,
-    linkForm: settingsStore.linkForm,
+    linkForm,
     eventForm,
     purchaseForm,
     saveLinkForm,
@@ -185,6 +182,7 @@ export function useHome() {
     track,
     purchase,
     openClipboard,
+    generateError: linkFormError(linkForm),
     trackError: eventNameError(eventForm.name) ?? tagsError(eventForm.tags),
     purchaseValid: isPurchaseValid(purchaseForm),
     labels: {

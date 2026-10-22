@@ -8,7 +8,7 @@ import {
   RESERVED_EVENTS,
   tagsError,
 } from '../../data/eventRules';
-import { isPurchaseValid } from '../../data/forms';
+import { isPurchaseValid, linkFormError } from '../../data/forms';
 import { parseAmountToCents } from '../../data/money';
 import { useTheme } from '../../theme/ThemeContext';
 import { type } from '../../theme/type';
@@ -38,6 +38,7 @@ const PRODUCTS = ['pro_monthly', 'pro_yearly', 'coins_100'];
 
 function LinkForm({ home, onDone }: FormProps) {
   const [form, setForm] = useState(home.linkForm);
+  const formError = linkFormError(form);
   return (
     <>
       <SuggestField
@@ -61,7 +62,8 @@ function LinkForm({ home, onDone }: FormProps) {
       />
       <AppButton
         title="Save and generate"
-        disabled={home.generating}
+        disabled={home.generating || formError !== null}
+        disabledReason={formError ?? undefined}
         onPress={() => {
           home.saveLinkForm(form);
           home.generate(form);

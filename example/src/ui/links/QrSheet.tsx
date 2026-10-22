@@ -34,12 +34,13 @@ export function QrSheet({
         <Text style={[type.caption, { color: colors.textMuted }]}>
           Tests install and deferred deep links
         </Text>
-        <View style={styles.code}>
+        <View style={[styles.code, { backgroundColor: colors.qrLight }]}>
           <QRCode
             value={link}
             size={220}
-            color={colors.text}
-            backgroundColor={colors.background}
+            quietZone={12}
+            color={colors.qrDark}
+            backgroundColor={colors.qrLight}
           />
         </View>
         <Text style={[type.mono, { color: colors.accent }]}>{link}</Text>
@@ -64,7 +65,7 @@ export function QrSheet({
 
 const styles = StyleSheet.create({
   body: { alignItems: 'center' },
-  code: { paddingVertical: 14 },
+  code: { marginVertical: 14, borderRadius: 10, overflow: 'hidden' },
   buttons: {
     flexDirection: 'row',
     alignSelf: 'stretch',
