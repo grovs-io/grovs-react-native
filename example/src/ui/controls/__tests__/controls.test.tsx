@@ -1,7 +1,13 @@
 import { useState } from 'react';
-import { Text } from 'react-native';
+import { Text, View } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react-native';
 import type { KeyValueRow } from '../../../data/keyValue';
 import type { TriState as TriStateValue } from '../../../data/forms';
 import { CopyRow, FoldRow, SwitchRow, TriState } from '../Basics';
@@ -10,6 +16,7 @@ import { ChipInput, ChipPicker } from '../Chips';
 import { LinkField, MoneyField } from '../Fields';
 import { InfoButton } from '../Info';
 import { KeyValueRows } from '../KeyValueRows';
+import { Sheet } from '../Sheet';
 import { ToastHost } from '../Toast';
 
 function Stateful<T>({
@@ -91,6 +98,22 @@ describe('ChipInput', () => {
     expect(screen.getByText('20 of 20')).toBeTruthy();
     fireEvent.changeText(screen.getByTestId('chipInputField'), 'extra,');
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('adds only what fits under the limit', () => {
+    const almost = Array.from({ length: 19 }, (_, i) => `t${i}`);
+    const onChange = jest.fn();
+    render(
+      <Stateful initial={almost} onValue={onChange}>
+        {(values, set) => (
+          <ChipInput label="Tags" values={values} onChange={set} max={20} />
+        )}
+      </Stateful>
+    );
+    fireEvent.changeText(screen.getByTestId('chipInputField'), 'a,b,');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenLastCalledWith([...almost, 'a']);
+    expect(screen.getByText('20 of 20')).toBeTruthy();
   });
 });
 
@@ -189,6 +212,15 @@ describe('MoneyField', () => {
     fireEvent.changeText(screen.getByTestId('moneyField'), '4.999');
     expect(screen.getByText('Enter an amount like 4.99')).toBeTruthy();
   });
+
+  it('stays neutral while empty', () => {
+    const onChange = jest.fn();
+    render(<MoneyField cents={499} currency="USD" onChange={onChange} />);
+    fireEvent.changeText(screen.getByTestId('moneyField'), '');
+    expect(onChange).toHaveBeenLastCalledWith(null, '');
+    expect(screen.queryByText('Enter an amount like 4.99')).toBeNull();
+    expect(screen.queryByText(/Sent as/)).toBeNull();
+  });
 });
 
 describe('AppButton', () => {
@@ -244,6 +276,35 @@ describe('CopyRow', () => {
     fireEvent.press(screen.getByText('API key'));
     expect(Clipboard.setString).toHaveBeenCalledWith('grovst_1234567890');
     expect(screen.getByText('Copied')).toBeTruthy();
+  });
+});
+
+describe('Sheet', () => {
+  it('closes when the handle is pressed', () => {
+    const onClose = jest.fn();
+    render(
+      <Sheet visible onClose={onClose}>
+        <Text>Body</Text>
+      </Sheet>
+    );
+    fireEvent.press(screen.getByLabelText('Close'));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows one toast on top of the sheet', () => {
+    render(
+      <>
+        <View testID="app">
+          <ToastHost />
+        </View>
+        <Sheet visible onClose={jest.fn()} heightRatio={null}>
+          <CopyRow label="Link" value="https://grovs.link/abc" />
+        </Sheet>
+      </>
+    );
+    fireEvent.press(screen.getByText('Link'));
+    expect(screen.getAllByText('Copied')).toHaveLength(1);
+    expect(within(screen.getByTestId('app')).queryByText('Copied')).toBeNull();
   });
 });
 

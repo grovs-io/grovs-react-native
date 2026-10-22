@@ -144,6 +144,7 @@ export function MoneyField({
     }
   }
   const parsed = parseAmountToCents(text);
+  const invalid = parsed === null && text.trim() !== '';
   const change = (input: string) => {
     const clean = input.replace(AMOUNT_CHARS, '');
     setText(clean);
@@ -155,7 +156,7 @@ export function MoneyField({
         value={text}
         onChange={change}
         keyboard="decimal"
-        error={parsed === null}
+        error={invalid}
         clearable={false}
         textStyle={type.amount}
         testID="moneyField"
@@ -165,14 +166,8 @@ export function MoneyField({
           </Text>
         }
       />
-      <HelpText
-        text={
-          parsed === null
-            ? 'Enter an amount like 4.99'
-            : `Sent as ${parsed} cents`
-        }
-        isError={parsed === null}
-      />
+      {invalid ? <HelpText text="Enter an amount like 4.99" isError /> : null}
+      {parsed !== null ? <HelpText text={`Sent as ${parsed} cents`} /> : null}
     </View>
   );
 }
