@@ -15,6 +15,7 @@ type NativeExampleStore = {
   restart(): void;
   fetchPushToken(): Promise<string | null>;
   startedProfile: string;
+  defaultProfile: string;
   configureError: string | null;
 };
 
@@ -55,6 +56,11 @@ class ExampleStore {
 
   get startedProfile(): Profile {
     return JSON.parse(native().startedProfile);
+  }
+
+  /** The built-in profile native falls back to. */
+  get defaultProfile(): Profile {
+    return JSON.parse(native().defaultProfile);
   }
 
   get configureError(): string | null {

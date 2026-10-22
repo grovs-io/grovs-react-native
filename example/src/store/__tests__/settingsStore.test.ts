@@ -1,4 +1,3 @@
-import { DEFAULT_PROFILES } from '../../data/profile';
 import { DEFAULT_PURCHASE_FORM } from '../../data/forms';
 import {
   DEFAULT_EXCLUDED_SCREENS,
@@ -7,6 +6,16 @@ import {
 } from '../settingsStore';
 
 const mockValues: Record<string, string> = {};
+const mockDefault = {
+  id: 'grovs-test',
+  name: 'Grovs test',
+  apiKey: 'grovst_key',
+  test: true,
+  baseUrl: null,
+  autoTrack: false,
+  startEnabled: true,
+  clipboardDomains: [] as string[],
+};
 
 jest.mock('../exampleStore', () => ({
   NativeKeys: jest.requireActual('../exampleStore').NativeKeys,
@@ -15,6 +24,9 @@ jest.mock('../exampleStore', () => ({
     set: (key: string, value: string | null) => {
       if (value === null) delete mockValues[key];
       else mockValues[key] = value;
+    },
+    get defaultProfile() {
+      return mockDefault;
     },
   },
 }));
@@ -35,7 +47,7 @@ describe('settingsStore', () => {
     expect(settingsStore.excludedScreens).toEqual(DEFAULT_EXCLUDED_SCREENS);
     expect(settingsStore.inAppDebug).toBe(true);
     expect(settingsStore.inAppRunning).toBe(true);
-    expect(settingsStore.profiles).toEqual(DEFAULT_PROFILES);
+    expect(settingsStore.profiles).toEqual([mockDefault]);
     expect(settingsStore.activeProfileId).toBe('grovs-test');
     expect(settingsStore.debugLevel).toBe('info');
   });
@@ -68,7 +80,7 @@ describe('settingsStore', () => {
     expect(settingsStore.identity).toEqual(DEFAULT_IDENTITY);
     expect(settingsStore.globalTags).toEqual([]);
     expect(settingsStore.debugLevel).toBe('info');
-    expect(settingsStore.profiles).toEqual(DEFAULT_PROFILES);
+    expect(settingsStore.profiles).toEqual([mockDefault]);
   });
 
   it('keeps an identity with no identifier', () => {

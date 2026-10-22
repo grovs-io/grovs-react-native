@@ -1,5 +1,4 @@
 import {
-  DEFAULT_PROFILES,
   apiKeyError,
   baseUrlError,
   decodeProfiles,
@@ -117,23 +116,6 @@ describe('json', () => {
 });
 
 describe('validation', () => {
-  it('has valid defaults', () => {
-    expect(new Set(DEFAULT_PROFILES.map((p) => p.id)).size).toBe(
-      DEFAULT_PROFILES.length
-    );
-    DEFAULT_PROFILES.forEach((p) => {
-      expect(profileNameError(p.name)).toBeNull();
-      expect(apiKeyError(p.apiKey)).toBeNull();
-      expect(baseUrlError(p.baseUrl ?? '')).toBeNull();
-    });
-    expect(DEFAULT_PROFILES[0]).toMatchObject({
-      id: 'grovs-test',
-      name: 'Grovs test',
-      test: true,
-      baseUrl: null,
-    });
-  });
-
   it('validates settings', () => {
     expect(profileNameError(' ')).not.toBeNull();
     expect(apiKeyError('')).not.toBeNull();

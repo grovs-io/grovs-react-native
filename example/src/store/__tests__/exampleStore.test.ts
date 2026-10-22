@@ -15,6 +15,7 @@ const mockNative = {
   restart: jest.fn(),
   fetchPushToken: jest.fn(),
   startedProfile: JSON.stringify(startedProfile),
+  defaultProfile: JSON.stringify(startedProfile),
   configureError: null as string | null,
 };
 const native = mockNative;
@@ -89,6 +90,7 @@ describe('exampleStore', () => {
     native.configureError = 'Enter an API key';
     const store = freshStore();
     expect(store.startedProfile).toEqual(startedProfile);
+    expect(store.defaultProfile).toEqual(startedProfile);
     expect(store.configureError).toBe('Enter an API key');
   });
 

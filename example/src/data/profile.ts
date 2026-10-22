@@ -12,20 +12,6 @@ export type Profile = {
   clipboardDomains: string[];
 };
 
-export const DEFAULT_PROFILES: Profile[] = [
-  {
-    id: 'grovs-test',
-    name: 'Grovs test',
-    apiKey:
-      'grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f',
-    test: true,
-    baseUrl: null,
-    autoTrack: true,
-    startEnabled: true,
-    clipboardDomains: [],
-  },
-];
-
 export const profileNameError = (name: string): string | null =>
   name.trim() === '' ? 'Enter a name' : null;
 
