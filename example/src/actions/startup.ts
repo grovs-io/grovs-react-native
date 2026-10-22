@@ -1,4 +1,4 @@
-import { Grovs } from 'react-native-grovs-wrapper';
+import Grovs from 'react-native-grovs-wrapper';
 import type { InAppMessageEvent } from 'react-native-grovs-wrapper';
 import { middleEllipsis } from '../data/strings';
 import { exampleStore } from '../store/exampleStore';

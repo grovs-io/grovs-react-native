@@ -315,10 +315,17 @@ function softStateColor(state: LogState, colors: AppColors): string {
   }[state];
 }
 
-export function StatusDot({ state }: { state: LogState }) {
+export function StatusDot({
+  state,
+  testID,
+}: {
+  state: LogState;
+  testID?: string;
+}) {
   const { colors } = useTheme();
   return (
     <View
+      testID={testID}
       style={[styles.dot, { backgroundColor: stateColor(state, colors) }]}
     />
   );

@@ -22,9 +22,16 @@ const native = (): NativeExampleStore => NativeModules.ExampleStore;
 
 class ExampleStore {
   private values: Record<string, string> = {};
+  private loaded?: Promise<void>;
 
-  async load(): Promise<void> {
-    this.values = { ...(await native().getAll()) };
+  /** Reads native once; later calls wait for the same read. */
+  load(): Promise<void> {
+    this.loaded ??= native()
+      .getAll()
+      .then((all) => {
+        this.values = { ...all };
+      });
+    return this.loaded;
   }
 
   get(key: string): string | undefined {
