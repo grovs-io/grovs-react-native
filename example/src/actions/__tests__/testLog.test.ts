@@ -105,6 +105,24 @@ describe('TestLog', () => {
     expect(history.saved).toHaveLength(1);
   });
 
+  it('does not bring old links back when cleared before restore', () => {
+    const fresh = new TestLog(history, () => now);
+    history.saved = [
+      {
+        id: 0,
+        time: 5,
+        type: 'LINK',
+        state: 'ok',
+        title: 't',
+        detail: '',
+        code: '',
+      },
+    ];
+    fresh.clear();
+    fresh.restoreHistory();
+    expect(fresh.entries()).toEqual([]);
+  });
+
   it('marks errors unseen until marked', () => {
     log.add('EVENT', 'ok', 'fine');
     expect(log.unseenError()).toBe(false);
