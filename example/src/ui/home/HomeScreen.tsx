@@ -265,7 +265,7 @@ function QuickActions({ home }: { home: Home }) {
           <AppButton
             title={labels.generate}
             onPress={() => home.generate()}
-            disabled={home.generating}
+            disabled={home.generating || home.generateError !== null}
             onLongPress={() => edit('link')}
             containerStyle={styles.grow}
           />

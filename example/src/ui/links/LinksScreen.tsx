@@ -125,7 +125,9 @@ function ResultCard({
             <TextAction
               title="Share"
               onPress={() => {
-                Share.share({ message: link }).catch(() => undefined);
+                Share.share({ message: link }).catch(() =>
+                  showToast('Could not share the link')
+                );
               }}
             />
             <TextAction title="QR" onPress={() => setQrVisible(true)} />

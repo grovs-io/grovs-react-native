@@ -9,7 +9,9 @@ import {
   type LinkForm,
 } from '../../data/forms';
 import { settingsStore } from '../../store/settingsStore';
+import { showToast } from '../controls/Toast';
 import { useNav } from '../nav';
+import { useSavedForm } from '../useStore';
 
 export type LinkResult = {
   ok: boolean;
@@ -26,10 +28,10 @@ export async function inspectLink(input: string): Promise<number> {
   return entry.id;
 }
 
-/** The link form, kept in the settings store when a link is generated. */
+/** The link form, saved on every change and shared with Home. */
 export function useLinks() {
   const { openLogs } = useNav();
-  const [form, setForm] = useState(() => settingsStore.linkForm);
+  const [form, saveForm] = useSavedForm('linkForm');
   const [formKey, setFormKey] = useState(0);
   const [inspectInput, setInspectState] = useState('');
   // Paste fills the field and runs Done in the same tick, before state updates.
@@ -46,23 +48,25 @@ export function useLinks() {
   const run = async (action: TestAction) => {
     lastAction.current = action;
     setRunning(true);
-    const outcome = await runAction(appLog, action);
-    const ok = outcome.result.state !== 'error';
-    setResult({
-      ok,
-      time: outcome.entry.time,
-      elapsedMs: outcome.elapsedMs,
-      link: ok ? outcome.result.value : undefined,
-      message: outcome.result.detail,
-    });
-    setRunning(false);
+    try {
+      const outcome = await runAction(appLog, action);
+      const ok = outcome.result.state !== 'error';
+      setResult({
+        ok,
+        time: outcome.entry.time,
+        elapsedMs: outcome.elapsedMs,
+        link: ok ? outcome.result.value : undefined,
+        message: outcome.result.detail,
+      });
+    } finally {
+      setRunning(false);
+    }
   };
 
   const formError = linkFormError(form);
 
   const generate = () => {
     if (formError !== null || running) return;
-    settingsStore.linkForm = form;
     run(buildGenerateLink(form));
   };
 
@@ -70,9 +74,11 @@ export function useLinks() {
     if (lastAction.current && !running) run(lastAction.current);
   };
 
-  const inspect = async (input = latestInput.current) => {
+  const inspect = (input = latestInput.current) => {
     if (input.trim() === '') return;
-    openLogs(await inspectLink(input));
+    inspectLink(input)
+      .then(openLogs)
+      .catch(() => showToast('Could not inspect the link'));
   };
 
   const inspectGenerated = (link: string) => {
@@ -81,16 +87,16 @@ export function useLinks() {
   };
 
   const reset = () => {
-    setForm(DEFAULT_LINK_FORM);
+    saveForm(DEFAULT_LINK_FORM);
     setFormKey((key) => key + 1);
-    settingsStore.linkForm = DEFAULT_LINK_FORM;
   };
 
   return {
     form,
     formKey,
+    // Reads the store, so two changes in one tick both land.
     update: (change: Partial<LinkForm>) =>
-      setForm((current) => ({ ...current, ...change })),
+      saveForm({ ...settingsStore.linkForm, ...change }),
     formError,
     inspectInput,
     setInspectInput,
