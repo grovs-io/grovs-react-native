@@ -119,7 +119,7 @@ function addGrovsUniversalLinkHandler(contents) {
   // that body in place is mandatory. Adding a sibling method causes "Invalid
   // redeclaration" because Swift treats the signatures as identical.
   const existingMethodRegex =
-    /(public\s+override\s+func\s+application\([^)]*continue\s+userActivity:[^{]*\{)/;
+    /(override\s+func\s+application\([^)]*continue\s+userActivity:[^{]*\{)/;
   const m = contents.match(existingMethodRegex);
   if (m) {
     const insertPoint = m.index + m[0].length;
@@ -145,7 +145,7 @@ function addGrovsURLHandler(contents) {
 
   // Same rationale as above for the `open: url` method.
   const existingMethodRegex =
-    /(public\s+override\s+func\s+application\([^)]*open\s+url:[^{]*\{)/;
+    /(override\s+func\s+application\([^)]*open\s+url:[^{]*\{)/;
   const m = contents.match(existingMethodRegex);
   if (m) {
     const insertPoint = m.index + m[0].length;
@@ -170,7 +170,7 @@ function addGrovsPushTokenHandler(contents) {
   }
 
   const existingMethodRegex =
-    /(public\s+override\s+func\s+application\([^)]*didRegisterForRemoteNotificationsWithDeviceToken[^{]*\{)/;
+    /(override\s+func\s+application\([^)]*didRegisterForRemoteNotificationsWithDeviceToken[^{]*\{)/;
   const m = contents.match(existingMethodRegex);
   if (m) {
     const insertPoint = m.index + m[0].length;

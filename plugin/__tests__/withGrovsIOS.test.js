@@ -174,6 +174,22 @@ describe('withGrovsIOS - AppDelegate transforms', () => {
       expect(result).toContain('Grovs.handleAppDelegate(open: url');
     });
 
+    it('inserts the call into an existing method without an access modifier', () => {
+      const existing = SAMPLE_APP_DELEGATE.replace(
+        /\}$/,
+        `
+  override func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+    return super.application(app, open: url, options: options)
+  }
+}`
+      );
+      const result = addGrovsURLHandler(existing);
+      expect(result).toContain(
+        '= [:]) -> Bool {\n    if Grovs.handleAppDelegate(open: url, options: options) { return true }\n    return super.application('
+      );
+      expect(result.match(/open url: URL/g)).toHaveLength(1);
+    });
+
     it('does not duplicate handler', () => {
       const first = addGrovsURLHandler(SAMPLE_APP_DELEGATE);
       const second = addGrovsURLHandler(first);
@@ -254,6 +270,26 @@ describe('withGrovsIOS - push', () => {
         /\}$/,
         `
   public override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+    super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
+  }
+}`
+      );
+      const result = addGrovsPushTokenHandler(existing);
+      expect(result).toContain(
+        'deviceToken: Data) {\n    Grovs.setPushToken(deviceToken: deviceToken)\n    super.application('
+      );
+      expect(
+        result.match(
+          /didRegisterForRemoteNotificationsWithDeviceToken deviceToken/g
+        )
+      ).toHaveLength(1);
+    });
+
+    it('inserts the call into an existing method without an access modifier', () => {
+      const existing = SAMPLE_APP_DELEGATE.replace(
+        /\}$/,
+        `
+  override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     super.application(application, didRegisterForRemoteNotificationsWithDeviceToken: deviceToken)
   }
 }`
