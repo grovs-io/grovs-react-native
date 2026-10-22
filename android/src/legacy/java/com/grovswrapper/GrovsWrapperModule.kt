@@ -36,6 +36,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   init {
     GrovsInAppEvents.install()
     GrovsPush.fetchFirebaseToken()
+    reactContext.addActivityEventListener(GrovsPush)
   }
 
   private fun rejectIfDisabled(promise: Promise): Boolean {
@@ -303,7 +304,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun handleNotificationOpen(data: ReadableMap, promise: Promise) {
-    promise.resolve(GrovsPush.handleNotificationOpen(data.toMap()))
+    GrovsPush.handleNotificationOpen(data.toMap(), currentActivity, promise::resolve)
   }
 
   @ReactMethod

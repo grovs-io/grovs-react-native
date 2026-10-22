@@ -463,7 +463,7 @@ if (token) {
 messaging().onTokenRefresh((newToken) => Grovs.setPushToken(newToken));
 ```
 
-**3. Taps.** Taps are handled from the launcher intent, through the `Grovs.onStart` and `Grovs.onNewIntent` calls you already have in `MainActivity`. You do not need to call anything else. If you call `handleNotificationOpen` on Android, it only reports whether the push is a Grovs push and does not handle it a second time.
+**3. Taps.** Taps on pushes Android shows for you are handled from the launcher intent, through the `Grovs.onStart` and `Grovs.onNewIntent` calls you already have in `MainActivity`. If a push library shows pushes while the app is open (for example `expo-notifications`), their taps do not reach the launcher intent. Call `handleNotificationOpen` from its tap listeners, as in the iOS JS path. A tap the launcher intent already handled is not handled a second time.
 
 **4. Notification icon (optional).** Set a small icon in `AndroidManifest.xml`, inside `<application>`:
 
@@ -477,7 +477,7 @@ messaging().onTokenRefresh((newToken) => Grovs.setPushToken(newToken));
 <service android:name="io.grovs.handlers.MessagingService" tools:node="remove" />
 ```
 
-Taps and background pushes still work. What you lose is Grovs drawing pushes while the app is open; your push library handles that.
+Taps and background pushes still work. What you lose is Grovs drawing pushes while the app is open; your push library handles that. Forward taps on those pushes with `handleNotificationOpen` (see **3. Taps** above).
 
 **Your own messaging service.** If your app has its own `FirebaseMessagingService`, remove the Grovs service as above and forward to Grovs:
 
@@ -679,7 +679,7 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | `setSDK(enabled)` | Enable or disable the SDK. Remembered across launches |
 | `setDebug(level)` | Set logging level (`'info'`, `'error'`) |
 | `setPushToken(token)` | Set FCM/APNs push token |
-| `handleNotificationOpen(data)` | Handle a push tap from your push library. Resolves `true` for a Grovs push. On Android it only reports |
+| `handleNotificationOpen(data)` | Handle a push tap from your push library. Resolves `true` for a Grovs push. On Android it skips taps the launcher intent already handled |
 | `isGrovsNotification(data)` | Resolves `true` if the payload is from Grovs |
 | `pauseInAppMessages()` / `resumeInAppMessages()` | Hold back or release in-app messages |
 | `discardInAppMessages(opts?)` | Drop queued in-app messages. `{ dismissCurrent: true }` also closes the one on screen |
