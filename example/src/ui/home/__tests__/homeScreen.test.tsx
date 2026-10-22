@@ -4,6 +4,7 @@ import { Linking } from 'react-native';
 import Grovs from 'react-native-grovs-wrapper';
 import { appLog } from '../../../actions/testLog';
 import { NavContext, type Nav } from '../../nav';
+import { ToastHost } from '../../controls/Toast';
 import { HomeScreen } from '../HomeScreen';
 
 const mockValues: Record<string, string> = {};
@@ -44,6 +45,7 @@ function renderHome() {
   return render(
     <NavContext.Provider value={nav}>
       <HomeScreen />
+      <ToastHost />
     </NavContext.Provider>
   );
 }
@@ -100,5 +102,26 @@ describe('HomeScreen', () => {
     renderHome();
     await press('Open clipboard');
     expect(open).not.toHaveBeenCalled();
+  });
+
+  it('shows a toast instead of rejecting when the clipboard cannot be read', async () => {
+    jest.spyOn(Clipboard, 'getString').mockRejectedValue(new Error('denied'));
+    const open = jest.spyOn(Linking, 'openURL');
+    renderHome();
+    await press('Open clipboard');
+    expect(open).not.toHaveBeenCalled();
+    expect(screen.getByText('Could not read the clipboard')).toBeTruthy();
+  });
+
+  it('does not keep a failed clipboard open as link history', async () => {
+    jest
+      .spyOn(Clipboard, 'getString')
+      .mockResolvedValue('https://grovs.link/x');
+    jest.spyOn(Linking, 'openURL').mockRejectedValue(new Error('no app'));
+    renderHome();
+    await press('Open clipboard');
+    const failed = appLog.entries()[0]!;
+    expect(failed).toMatchObject({ type: 'LINK', state: 'error' });
+    expect(JSON.parse(mockValues.linkHistory ?? '[]')).toEqual([]);
   });
 });

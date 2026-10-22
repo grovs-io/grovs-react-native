@@ -7,7 +7,6 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
 import {
   detectType,
   rowsFromJson,
@@ -17,7 +16,7 @@ import {
 } from '../../data/keyValue';
 import { useTheme } from '../../theme/ThemeContext';
 import { type } from '../../theme/type';
-import { FieldLabel, HelpText } from './Basics';
+import { FieldLabel, HelpText, readClipboard } from './Basics';
 import { AppButton, MIN_TOUCH, TextAction } from './Buttons';
 import { Chip } from './Chips';
 import type { Info } from './Info';
@@ -217,7 +216,10 @@ function JsonPaste({
         <AppButton
           title="Paste"
           style="outline"
-          onPress={async () => setText(await Clipboard.getString())}
+          onPress={async () => {
+            const pasted = await readClipboard();
+            if (pasted !== null) setText(pasted);
+          }}
           containerStyle={styles.button}
         />
         <AppButton

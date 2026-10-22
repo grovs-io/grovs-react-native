@@ -12,6 +12,18 @@ export type Profile = {
   clipboardDomains: string[];
 };
 
+/** Stands in for the native default profile in a stale build without the native module. */
+export const MISSING_NATIVE_PROFILE: Profile = {
+  id: 'missing-native',
+  name: 'Rebuild the app',
+  apiKey: '',
+  test: true,
+  baseUrl: null,
+  autoTrack: false,
+  startEnabled: true,
+  clipboardDomains: [],
+};
+
 export const profileNameError = (name: string): string | null =>
   name.trim() === '' ? 'Enter a name' : null;
 

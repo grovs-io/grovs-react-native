@@ -1,4 +1,5 @@
 const mockStore = {
+  available: true,
   values: {} as Record<string, string>,
   configureError: null as string | null,
   startedProfile: {
@@ -7,6 +8,10 @@ const mockStore = {
     apiKey:
       'grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f',
     test: true,
+    baseUrl: null,
+    autoTrack: false,
+    startEnabled: true,
+    clipboardDomains: [],
   },
   load: jest.fn(),
   get: jest.fn((key: string) => mockStore.values[key]),
@@ -64,6 +69,7 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
 beforeEach(() => {
   mockStore.values = {};
   mockStore.configureError = null;
+  mockStore.available = true;
   Object.values(mockGrovs).forEach((fn) => fn.mockReset());
   mockStore.load.mockReset().mockResolvedValue(undefined);
   mockStore.set.mockReset();
@@ -128,6 +134,23 @@ describe('startLogging', () => {
     expect(entry.state).toBe('ok');
     expect(entry.detail).toBe('Grovs test · test');
     expect(entry.code).toContain('…');
+    expect(entry.code).toContain('useTestEnvironment = true');
+    expect(entry.code).toContain('baseURL = null');
+    expect(entry.code).toContain('autoTrackScreenViews = false');
+    expect(entry.code).toContain('clipboardDomains = []');
+    expect(entry.code).toContain('enabled = true');
+  });
+
+  it('logs an error when the native module is missing and still restores', async () => {
+    mockStore.available = false;
+    const log = start();
+    await flush();
+    expect(log.entries().find((e) => e.state === 'error')).toMatchObject({
+      type: 'SDK',
+      title: 'Example native module missing, rebuild the app',
+    });
+    expect(titles(log)).not.toContain('SDK configured');
+    expect(mockGrovs.setIdentifier).toHaveBeenCalled();
   });
 
   it('logs a configure error', () => {
@@ -181,6 +204,17 @@ describe('startLogging', () => {
     expect(
       log.entries().some((e) => e.type === 'SDK' && e.state === 'error')
     ).toBe(true);
+  });
+
+  it('does not overwrite saved link history when the load fails', async () => {
+    mockStore.load.mockRejectedValue(new Error('bridge down'));
+    const log = start();
+    listeners.link!({ link: 'https://grovs.link/cold' });
+    await flush();
+    expect(titles(log)).toContain('Saved data not read');
+    expect(mockStore.set).not.toHaveBeenCalled();
+    expect(mockGrovs.setIdentifier).not.toHaveBeenCalled();
+    expect(log.entries().some((e) => e.type === 'PUSH')).toBe(true);
   });
 
   it('survives an empty in-app event type', () => {

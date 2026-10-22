@@ -15,7 +15,12 @@ import {
   type ScreenForm,
 } from '../data/forms';
 import type { KeyValueRow } from '../data/keyValue';
-import { decodeProfiles, encodeProfiles, type Profile } from '../data/profile';
+import {
+  decodeProfiles,
+  encodeProfiles,
+  MISSING_NATIVE_PROFILE,
+  type Profile,
+} from '../data/profile';
 import { exampleStore, NativeKeys } from './exampleStore';
 
 /** An empty identifier means none. */
@@ -95,7 +100,7 @@ function readIdentity(): Identity {
 }
 
 function readProfiles(): Profile[] {
-  const fallback = [exampleStore.defaultProfile];
+  const fallback = [exampleStore.defaultProfile ?? MISSING_NATIVE_PROFILE];
   try {
     const profiles = decodeProfiles(
       exampleStore.get(NativeKeys.profiles) ?? ''

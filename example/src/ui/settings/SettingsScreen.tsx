@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { LogLevel } from 'react-native-grovs-wrapper';
 import { middleEllipsis } from '../../data/strings';
 import { useTheme } from '../../theme/ThemeContext';
@@ -10,6 +9,7 @@ import {
   FieldLabel,
   FoldRow,
   HelpText,
+  readClipboard,
   ScreenTitle,
   SectionHeader,
   Segment,
@@ -49,6 +49,11 @@ export function SettingsScreen() {
 function ProjectSection({ settings }: { settings: Settings }) {
   const { colors } = useTheme();
   const { profile, profiles, errors, update } = settings;
+  const confirmDelete = () =>
+    Alert.alert('Delete this profile?', profile.name, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: settings.deleteActive },
+    ]);
   return (
     <>
       <SectionHeader title="Project" />
@@ -133,8 +138,8 @@ function ProjectSection({ settings }: { settings: Settings }) {
         <View style={styles.delete}>
           <TextAction
             title="Delete this profile"
-            onPress={settings.deleteActive}
-            color={colors.error}
+            onPress={confirmDelete}
+            color={colors.textMuted}
           />
         </View>
       ) : null}
@@ -162,8 +167,8 @@ function EditableRow({
   const [editing, setEditing] = useState(false);
   if (editing || error) {
     const paste = async () => {
-      const text = (await Clipboard.getString()).trim();
-      if (text !== '') onChange(text);
+      const text = await readClipboard();
+      if (text) onChange(text);
     };
     return (
       <View style={styles.field}>

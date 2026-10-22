@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
 import { extractLinkPath, isWebUrl } from '../../data/linkTools';
 import {
   currencySymbol,
@@ -9,7 +8,7 @@ import {
 } from '../../data/money';
 import { useTheme } from '../../theme/ThemeContext';
 import { type } from '../../theme/type';
-import { FieldLabel, HelpText } from './Basics';
+import { FieldLabel, HelpText, readClipboard } from './Basics';
 import { TextAction } from './Buttons';
 import { ChipRow } from './Chips';
 import type { Info } from './Info';
@@ -86,8 +85,8 @@ export function LinkField({
   onDone?: () => void;
 }) {
   const paste = async () => {
-    const text = (await Clipboard.getString()).trim();
-    if (text === '') return;
+    const text = await readClipboard();
+    if (!text) return;
     onChange(text);
     if (showPath) onDone?.();
   };

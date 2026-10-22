@@ -18,6 +18,7 @@ const link: LogEntry = {
   detail: 'a',
   code: 'c',
   link: 'https://grovs.link/a',
+  fromLink: true,
 };
 
 beforeEach(() => {

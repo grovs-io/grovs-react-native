@@ -433,6 +433,16 @@ export function copyToClipboard(text: string) {
   showToast('Copied');
 }
 
+/** The trimmed clipboard text, or null (with a toast) when it cannot be read. */
+export async function readClipboard(): Promise<string | null> {
+  try {
+    return (await Clipboard.getString()).trim();
+  } catch {
+    showToast('Could not read the clipboard');
+    return null;
+  }
+}
+
 export function CopyRow({
   label,
   value,

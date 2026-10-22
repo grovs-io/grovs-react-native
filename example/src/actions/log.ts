@@ -55,6 +55,8 @@ export type LogEntry = {
   code: string;
   action?: TestAction;
   link?: string;
+  /** Set on real link opens; only these are kept between launches. */
+  fromLink?: boolean;
 };
 
 const FILTER_TYPES: Record<Exclude<LogFilter, 'All' | 'Errors'>, LogType[]> = {

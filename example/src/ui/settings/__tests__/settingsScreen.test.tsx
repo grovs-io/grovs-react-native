@@ -1,3 +1,4 @@
+import { Alert } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import Grovs from 'react-native-grovs-wrapper';
 import { SettingsScreen } from '../SettingsScreen';
@@ -71,6 +72,29 @@ describe('SettingsScreen', () => {
     const copy = `${mockDefault.name} copy`;
     expect(screen.getAllByText(copy)).toHaveLength(2);
     expect(screen.getAllByText('Project')).toHaveLength(2);
+    expect(screen.getByText('Delete this profile')).toBeTruthy();
+  });
+
+  it('asks before deleting a profile and deletes on confirm', () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    render(<SettingsScreen />);
+    press('+ New');
+    const copy = `${mockDefault.name} copy`;
+    press('Delete this profile');
+    expect(screen.getAllByText(copy)).toHaveLength(2);
+    const buttons = alert.mock.calls[0]![2]!;
+    expect(buttons.map((b) => b.text)).toEqual(['Cancel', 'Delete']);
+    act(() => buttons[1]!.onPress!());
+    expect(screen.queryByText(copy)).toBeNull();
+    expect(screen.queryByText('Delete this profile')).toBeNull();
+  });
+
+  it('keeps the profile when the delete is cancelled', () => {
+    const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+    render(<SettingsScreen />);
+    press('+ New');
+    press('Delete this profile');
+    expect(alert.mock.calls[0]![2]![0]!.onPress).toBeUndefined();
     expect(screen.getByText('Delete this profile')).toBeTruthy();
   });
 
