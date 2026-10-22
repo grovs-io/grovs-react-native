@@ -263,6 +263,22 @@ describe('LinkField', () => {
     });
     expect(onChange).toHaveBeenCalledWith('mockString');
   });
+
+  it('shows a toast and leaves the field alone when the clipboard cannot be read', async () => {
+    jest.spyOn(Clipboard, 'getString').mockRejectedValueOnce(new Error('no'));
+    const onChange = jest.fn();
+    render(
+      <>
+        <LinkField value="" onChange={onChange} />
+        <ToastHost />
+      </>
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByText('Paste'));
+    });
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByText('Could not read the clipboard')).toBeTruthy();
+  });
 });
 
 describe('CopyRow', () => {

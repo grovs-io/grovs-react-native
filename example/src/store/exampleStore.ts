@@ -18,25 +18,30 @@ type NativeExampleStore = {
   configureError: string | null;
 };
 
-const native = (): NativeExampleStore => NativeModules.ExampleStore;
+const native = (): NativeExampleStore | undefined => NativeModules.ExampleStore;
 
 class ExampleStore {
   private values: Record<string, string> = {};
   private loaded?: Promise<void>;
 
+  /** False in a stale native build; the store then stays empty and ignores writes. */
+  get available(): boolean {
+    return native() !== undefined;
+  }
+
   /** Reads native once; later calls wait for the same read. A failed read is retried on the next call. */
   load(): Promise<void> {
-    this.loaded ??= native()
-      .getAll()
-      .then(
-        (all) => {
-          this.values = { ...all };
-        },
-        (error) => {
-          this.loaded = undefined;
-          throw error;
-        }
-      );
+    const module = native();
+    if (!module) return Promise.resolve();
+    this.loaded ??= module.getAll().then(
+      (all) => {
+        this.values = { ...all };
+      },
+      (error) => {
+        this.loaded = undefined;
+        throw error;
+      }
+    );
     return this.loaded;
   }
 
@@ -50,23 +55,24 @@ class ExampleStore {
     } else {
       this.values[key] = value;
     }
-    native().set(key, value);
+    native()?.set(key, value);
   }
 
-  get startedProfile(): Profile {
-    return JSON.parse(native().startedProfile);
+  get startedProfile(): Profile | null {
+    const json = native()?.startedProfile;
+    return json ? JSON.parse(json) : null;
   }
 
   get configureError(): string | null {
-    return native().configureError ?? null;
+    return native()?.configureError ?? null;
   }
 
   restart(): void {
-    native().restart();
+    native()?.restart();
   }
 
   async fetchPushToken(): Promise<string | null> {
-    return (await native().fetchPushToken()) ?? null;
+    return (await native()?.fetchPushToken()) ?? null;
   }
 }
 

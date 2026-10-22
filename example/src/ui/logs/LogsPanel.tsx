@@ -25,6 +25,7 @@ import { copyToClipboard, StatusDot } from '../controls/Basics';
 import { AppButton, MIN_TOUCH, TextAction } from '../controls/Buttons';
 import { Chip } from '../controls/Chips';
 import { Sheet } from '../controls/Sheet';
+import { showToast } from '../controls/Toast';
 import { ICON_PATHS, StrokeIcon } from '../TabIcons';
 import { useLog } from '../useStore';
 import { deviceInfo } from './deviceInfo';
@@ -106,7 +107,9 @@ function LogList({
   const errors = entries.filter((e) => e.state === 'error').length;
   const shown = entries.filter((e) => matchesFilter(filter, e));
   const share = () => {
-    Share.share({ message: exportLog(entries, deviceInfo()) });
+    Share.share({ message: exportLog(entries, deviceInfo()) }).catch(() =>
+      showToast('Could not share the log')
+    );
   };
   return (
     <>

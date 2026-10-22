@@ -20,7 +20,13 @@ export const storeLinkHistory: LinkHistory = {
     try {
       const parsed = JSON.parse(exampleStore.get(HISTORY_KEY) ?? '[]');
       return Array.isArray(parsed)
-        ? parsed.map((e) => ({ ...e, id: 0, type: 'LINK', state: 'ok' }))
+        ? parsed.map((e) => ({
+            ...e,
+            id: 0,
+            type: 'LINK',
+            state: 'ok',
+            fromLink: true,
+          }))
         : [];
     } catch {
       return [];
@@ -100,6 +106,7 @@ export class TestLog {
         ['link', link ?? null],
         ['data', data ?? null],
       ]),
+      fromLink: true,
       ...(link ? { link } : {}),
     };
     this.prepend(entry);
@@ -138,9 +145,7 @@ export class TestLog {
 
   private saveLinks(): void {
     if (!this.restored) return;
-    this.history.save(
-      this.list.filter((e) => e.type === 'LINK').slice(0, MAX_LINKS)
-    );
+    this.history.save(this.list.filter((e) => e.fromLink).slice(0, MAX_LINKS));
   }
 
   private emit(): void {

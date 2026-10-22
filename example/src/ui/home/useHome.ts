@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { AppState, Linking, PermissionsAndroid, Platform } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
 import Grovs from 'react-native-grovs-wrapper';
 import { callCode } from '../../actions/callCode';
 import { buildPurchase, buildTrack } from '../../actions/eventActions';
@@ -20,6 +19,7 @@ import type { Profile } from '../../data/profile';
 import { relativeTime } from '../../data/strings';
 import { exampleStore, NativeKeys } from '../../store/exampleStore';
 import { settingsStore, type Identity } from '../../store/settingsStore';
+import { readClipboard } from '../controls/Basics';
 import { showToast } from '../controls/Toast';
 import { useLog, useSavedForm } from '../useStore';
 
@@ -132,7 +132,8 @@ export function useHome() {
   const purchase = (form = purchaseForm) => run(buildPurchase(form));
 
   const openClipboard = async () => {
-    const text = (await Clipboard.getString()).trim();
+    const text = await readClipboard();
+    if (text === null) return;
     if (!isWebUrl(text)) {
       showToast('Clipboard has no link');
       return;
@@ -189,6 +190,9 @@ export function usePushToken(): [string | null, () => void] {
   return [token, refresh];
 }
 
+const openSystemSettings = () =>
+  Linking.openSettings().catch(() => showToast('Could not open settings'));
+
 const ASKS_PERMISSION =
   Platform.OS === 'android' && Number(Platform.Version) >= 33;
 
@@ -214,15 +218,21 @@ export function useNotifications(onGranted: () => void) {
 
   const allow = async () => {
     if (!ASKS_PERMISSION) {
-      Linking.openSettings();
+      await openSystemSettings();
       return;
     }
-    const result = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-    );
+    let result;
+    try {
+      result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+      );
+    } catch {
+      showToast('Could not ask for permission');
+      return;
+    }
     setAllowed(result === 'granted');
     if (result === 'granted') onGranted();
-    if (result === 'never_ask_again') Linking.openSettings();
+    if (result === 'never_ask_again') await openSystemSettings();
   };
   return { allowed, allow };
 }

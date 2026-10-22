@@ -100,6 +100,25 @@ describe('exampleStore', () => {
     await expect(store.fetchPushToken()).resolves.toBe('token');
   });
 
+  it('fails soft when the native module is missing', async () => {
+    const { NativeModules } = require('react-native');
+    const saved = NativeModules.ExampleStore;
+    NativeModules.ExampleStore = undefined;
+    try {
+      const store = freshStore();
+      expect(store.available).toBe(false);
+      await expect(store.load()).resolves.toBeUndefined();
+      expect(() => store.set('debugLevel', 'info')).not.toThrow();
+      expect(store.get('debugLevel')).toBe('info');
+      expect(store.startedProfile).toBeNull();
+      expect(store.configureError).toBeNull();
+      expect(() => store.restart()).not.toThrow();
+      await expect(store.fetchPushToken()).resolves.toBeNull();
+    } finally {
+      NativeModules.ExampleStore = saved;
+    }
+  });
+
   it('returns null when native has no push token', async () => {
     native.fetchPushToken.mockResolvedValue(undefined);
     await expect(freshStore().fetchPushToken()).resolves.toBeNull();

@@ -43,6 +43,13 @@ describe('TestLog', () => {
     expect(history.saved[0]?.detail).toBe('a');
   });
 
+  it('does not save a failed clipboard open as link history', () => {
+    log.recordLinkOpen('https://grovs.link/a');
+    log.add('LINK', 'error', 'Open clipboard link', 'no handler');
+    expect(history.saved.map((e) => e.link)).toEqual(['https://grovs.link/a']);
+    expect(matchesFilter('Links', log.entries()[0]!)).toBe(true);
+  });
+
   it('keeps at most 50 links in history', () => {
     for (let i = 0; i < MAX_LINKS + 10; i++) {
       log.recordLinkOpen(`https://grovs.link/${i}`);
@@ -69,6 +76,7 @@ describe('TestLog', () => {
         detail: 'old',
         code: '',
         link: 'https://grovs.link/old',
+        fromLink: true,
       },
     ];
     fresh.recordLinkOpen('https://grovs.link/new');

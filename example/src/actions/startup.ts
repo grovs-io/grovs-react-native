@@ -20,12 +20,21 @@ function inAppDetail(event: InAppMessageEvent): string {
 }
 
 function logConfigure(): void {
+  if (!exampleStore.available) {
+    appLog.add(
+      'SDK',
+      'error',
+      'Example native module missing, rebuild the app'
+    );
+    return;
+  }
   const error = exampleStore.configureError;
   if (error) {
     appLog.add('SDK', 'error', 'SDK configure failed', error);
     return;
   }
   const profile = exampleStore.startedProfile;
+  if (!profile) return;
   appLog.add(
     'SDK',
     'ok',
@@ -34,6 +43,10 @@ function logConfigure(): void {
     callCode('configure', [
       ['apiKey', middleEllipsis(profile.apiKey)],
       ['useTestEnvironment', profile.test],
+      ['baseURL', profile.baseUrl],
+      ['autoTrackScreenViews', profile.autoTrack],
+      ['clipboardDomains', profile.clipboardDomains],
+      ['enabled', profile.startEnabled],
     ])
   );
 }

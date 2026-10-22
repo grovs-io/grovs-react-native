@@ -22,7 +22,7 @@ function model(constants: PlatformConstants): string {
 
 function projectName(): string {
   try {
-    return exampleStore.startedProfile.name;
+    return exampleStore.startedProfile?.name ?? 'unknown';
   } catch {
     return 'unknown';
   }

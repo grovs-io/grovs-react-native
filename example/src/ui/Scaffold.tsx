@@ -15,7 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { exampleStore } from '../store/exampleStore';
 import { useTheme } from '../theme/ThemeContext';
-import { ToastHost } from './controls/Toast';
+import { showToast, ToastHost } from './controls/Toast';
 import { EventsScreen } from './events/EventsScreen';
 import { HomeScreen } from './home/HomeScreen';
 import { ExcludedScreen } from './inapp/ExcludedScreen';
@@ -240,7 +240,11 @@ export function Scaffold() {
           visible={panel.open}
           focusEntryId={panel.entryId}
           onClose={() => setPanel({ open: false })}
-          onInspect={(link) => inspectLink(link).then(nav.openLogs)}
+          onInspect={(link) =>
+            inspectLink(link)
+              .then(nav.openLogs)
+              .catch(() => showToast('Could not inspect the link'))
+          }
         />
         <ToastHost />
       </View>
