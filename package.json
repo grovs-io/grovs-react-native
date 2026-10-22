@@ -126,6 +126,19 @@
         ]
       },
       {
+        "preset": "react-native",
+        "displayName": "example",
+        "testMatch": [
+          "<rootDir>/example/src/**/__tests__/**/*.{ts,tsx}"
+        ],
+        "transformIgnorePatterns": [
+          "node_modules/(?!((jest-)?react-native|@react-native(-community)?|react-native-svg|react-native-qrcode-svg)/)"
+        ],
+        "moduleNameMapper": {
+          "^@react-native-clipboard/clipboard$": "<rootDir>/example/node_modules/@react-native-clipboard/clipboard/jest/clipboard-mock.js"
+        }
+      },
+      {
         "displayName": "plugin",
         "testMatch": [
           "<rootDir>/plugin/__tests__/*.{ts,tsx,js}"

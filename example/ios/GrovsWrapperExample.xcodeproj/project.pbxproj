@@ -7,24 +7,36 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		09735C70BF47416292108E1C /* GeistMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 3883DF89167140F9A84E1A63 /* GeistMono-Medium.ttf */; };
 		0C80B921A6F3F58F76C31292 /* libPods-GrovsWrapperExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5DCACB8F33CDC322A6C60F78 /* libPods-GrovsWrapperExample.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		3BBA6F3AD25840698F351C19 /* GeistMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 0C20110AAD5C49D59918D9F3 /* GeistMono-Regular.ttf */; };
 		5F8F6BDAA2E8F09B5DC55E9D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		654A8A9BC47B421895E7D51D /* Geist-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A419D544DA3C48B4AF57DC34 /* Geist-Regular.ttf */; };
+		74DD7AFD193144E5BDD37FD7 /* Geist-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E46320013D0B4674804F1209 /* Geist-Medium.ttf */; };
 		761780ED2CA45674006654EE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761780EC2CA45674006654EE /* AppDelegate.swift */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		A252573946CC415AB162FC3C /* Geist-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 56002808AED04A5493F8F540 /* Geist-SemiBold.ttf */; };
+		BFDD999A38974596B4570078 /* Geist-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 07D513364F9B4D49AEB45A8D /* Geist-Bold.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		07D513364F9B4D49AEB45A8D /* Geist-Bold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Bold.ttf"; path = "../assets/fonts/Geist-Bold.ttf"; sourceTree = "<group>"; };
+		0C20110AAD5C49D59918D9F3 /* GeistMono-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "GeistMono-Regular.ttf"; path = "../assets/fonts/GeistMono-Regular.ttf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* GrovsWrapperExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GrovsWrapperExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = GrovsWrapperExample/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = GrovsWrapperExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = GrovsWrapperExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3883DF89167140F9A84E1A63 /* GeistMono-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "GeistMono-Medium.ttf"; path = "../assets/fonts/GeistMono-Medium.ttf"; sourceTree = "<group>"; };
 		3B4392A12AC88292D35C810B /* Pods-GrovsWrapperExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GrovsWrapperExample.debug.xcconfig"; path = "Target Support Files/Pods-GrovsWrapperExample/Pods-GrovsWrapperExample.debug.xcconfig"; sourceTree = "<group>"; };
+		56002808AED04A5493F8F540 /* Geist-SemiBold.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-SemiBold.ttf"; path = "../assets/fonts/Geist-SemiBold.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-GrovsWrapperExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GrovsWrapperExample.release.xcconfig"; path = "Target Support Files/Pods-GrovsWrapperExample/Pods-GrovsWrapperExample.release.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-GrovsWrapperExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-GrovsWrapperExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		74308F9D2D5F934100C07787 /* GrovsWrapperExample.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = GrovsWrapperExample.entitlements; path = GrovsWrapperExample/GrovsWrapperExample.entitlements; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = GrovsWrapperExample/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = GrovsWrapperExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A419D544DA3C48B4AF57DC34 /* Geist-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Regular.ttf"; path = "../assets/fonts/Geist-Regular.ttf"; sourceTree = "<group>"; };
+		E46320013D0B4674804F1209 /* Geist-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Medium.ttf"; path = "../assets/fonts/Geist-Medium.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -77,6 +89,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				B02FB750347E4BA5977731BC /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -89,6 +102,20 @@
 				13B07F961A680F5B00A75B9A /* GrovsWrapperExample.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B02FB750347E4BA5977731BC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				A419D544DA3C48B4AF57DC34 /* Geist-Regular.ttf */,
+				07D513364F9B4D49AEB45A8D /* Geist-Bold.ttf */,
+				E46320013D0B4674804F1209 /* Geist-Medium.ttf */,
+				3883DF89167140F9A84E1A63 /* GeistMono-Medium.ttf */,
+				0C20110AAD5C49D59918D9F3 /* GeistMono-Regular.ttf */,
+				56002808AED04A5493F8F540 /* Geist-SemiBold.ttf */,
+			);
+			name = Resources;
+			path = "";
 			sourceTree = "<group>";
 		};
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
@@ -163,6 +190,12 @@
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				5F8F6BDAA2E8F09B5DC55E9D /* PrivacyInfo.xcprivacy in Resources */,
+				654A8A9BC47B421895E7D51D /* Geist-Regular.ttf in Resources */,
+				BFDD999A38974596B4570078 /* Geist-Bold.ttf in Resources */,
+				74DD7AFD193144E5BDD37FD7 /* Geist-Medium.ttf in Resources */,
+				09735C70BF47416292108E1C /* GeistMono-Medium.ttf in Resources */,
+				3BBA6F3AD25840698F351C19 /* GeistMono-Regular.ttf in Resources */,
+				A252573946CC415AB162FC3C /* Geist-SemiBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
