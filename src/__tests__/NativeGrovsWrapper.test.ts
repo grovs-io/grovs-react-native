@@ -1,6 +1,7 @@
 export {};
 
 const mockMarkReadyForInAppEvents = jest.fn();
+const mockLinkDetails = jest.fn();
 const mockRemove = jest.fn();
 const mockEmitterAddListener = jest.fn(
   (_event: string, _callback: (raw: unknown) => void) => ({
@@ -11,7 +12,10 @@ const mockEmitterAddListener = jest.fn(
 jest.mock('react-native', () => ({
   NativeModules: {},
   TurboModuleRegistry: {
-    get: () => ({ markReadyForInAppEvents: mockMarkReadyForInAppEvents }),
+    get: () => ({
+      markReadyForInAppEvents: mockMarkReadyForInAppEvents,
+      linkDetails: mockLinkDetails,
+    }),
   },
   NativeEventEmitter: jest.fn(() => ({
     addListener: mockEmitterAddListener,
@@ -65,5 +69,15 @@ describe('TurboModuleGrovs.onInAppMessage', () => {
     const subscription = Grovs.onInAppMessage(jest.fn());
     subscription.remove();
     expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('TurboModuleGrovs.linkDetails', () => {
+  it('passes the path to the native module and returns its result', async () => {
+    const details = { path: 'abc123', title: 'Title' };
+    mockLinkDetails.mockResolvedValue(details);
+
+    await expect(Grovs.linkDetails('abc123')).resolves.toEqual(details);
+    expect(mockLinkDetails).toHaveBeenCalledWith('abc123');
   });
 });

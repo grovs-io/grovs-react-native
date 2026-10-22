@@ -49,6 +49,41 @@ export interface GenerateLinkOptions {
   copyToClipboardAndroid?: boolean;
 }
 
+export interface LinkCustomRedirect {
+  url?: string;
+  open_app_if_installed?: boolean;
+  [key: string]: unknown;
+}
+
+/** Details of a Grovs link, as returned by the backend. New fields may be added later. */
+export interface LinkDetails {
+  id?: number;
+  name?: string;
+  path?: string;
+  title?: string;
+  subtitle?: string;
+  image?: string;
+  access_path?: string;
+  active?: boolean;
+  sdk_generated?: boolean;
+  data?: { [key: string]: unknown };
+  tags?: Array<string>;
+  updated_at?: string;
+  show_preview_ios?: boolean;
+  show_preview_android?: boolean;
+  ads_platform?: string;
+  generated_from_platform?: string;
+  tracking_source?: string;
+  tracking_medium?: string;
+  tracking_campaign?: string;
+  visitor_id?: number;
+  campaign_id?: number;
+  ios_custom_redirect?: LinkCustomRedirect | null;
+  android_custom_redirect?: LinkCustomRedirect | null;
+  desktop_custom_redirect?: LinkCustomRedirect | null;
+  [key: string]: unknown;
+}
+
 export interface Spec extends TurboModule {
   setIdentifier(identifier?: string): void;
   setPushToken(pushToken?: string): void;
@@ -68,6 +103,7 @@ export interface Spec extends TurboModule {
     copyToClipboardIos?: boolean,
     copyToClipboardAndroid?: boolean
   ): Promise<string>;
+  linkDetails(path: string): Promise<UnsafeObject>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
   logInAppPurchase(
@@ -188,6 +224,13 @@ export class TurboModuleGrovs {
       copyToClipboardIos,
       copyToClipboardAndroid
     );
+  }
+
+  async linkDetails(path: string): Promise<LinkDetails> {
+    if (!NativeModule) {
+      throw new Error('Native module GrovsWrapper is not linked');
+    }
+    return NativeModule.linkDetails(path) as Promise<LinkDetails>;
   }
 
   async displayMessages(): Promise<void> {

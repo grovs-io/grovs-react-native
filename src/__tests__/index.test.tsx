@@ -4,6 +4,7 @@ const mockSetAttributes = jest.fn();
 const mockSetSDK = jest.fn();
 const mockSetDebug = jest.fn();
 const mockGenerateLink = jest.fn();
+const mockLinkDetails = jest.fn();
 const mockDisplayMessages = jest.fn();
 const mockNumberOfUnreadMessages = jest.fn();
 const mockMarkReadyToHandleDeeplinks = jest.fn();
@@ -43,6 +44,7 @@ jest.mock('react-native', () => {
         setSDK: mockSetSDK,
         setDebug: mockSetDebug,
         generateLink: mockGenerateLink,
+        linkDetails: mockLinkDetails,
         displayMessages: mockDisplayMessages,
         numberOfUnreadMessages: mockNumberOfUnreadMessages,
         markReadyToHandleDeeplinks: mockMarkReadyToHandleDeeplinks,
@@ -326,6 +328,56 @@ describe('GrovsWrapper', () => {
 
       await expect(Grovs.generateLink('Title')).rejects.toThrow(
         'Failed to generate link: Network error'
+      );
+    });
+  });
+
+  describe('linkDetails', () => {
+    it('resolves with the native link details', async () => {
+      const details = {
+        path: 'abc123',
+        title: 'Title',
+        data: { screen: 'product' },
+        tags: ['promo'],
+        ios_custom_redirect: null,
+      };
+      mockLinkDetails.mockResolvedValue(details);
+
+      await expect(Grovs.linkDetails('abc123')).resolves.toEqual(details);
+      expect(mockLinkDetails).toHaveBeenCalledWith('abc123');
+    });
+
+    it.each(['', '   '])(
+      'rejects without calling native for path %p',
+      async (path) => {
+        await expect(Grovs.linkDetails(path)).rejects.toThrow(
+          'linkDetails requires a non-empty path'
+        );
+        expect(mockLinkDetails).not.toHaveBeenCalled();
+      }
+    );
+
+    it('keeps the SDK_DISABLED code from native', async () => {
+      const err = Object.assign(
+        new Error('Grovs SDK is disabled. Call setSDK(true) first.'),
+        { code: 'SDK_DISABLED' }
+      );
+      mockLinkDetails.mockRejectedValue(err);
+
+      await expect(Grovs.linkDetails('abc123')).rejects.toMatchObject({
+        message:
+          'Failed to get link details: Grovs SDK is disabled. Call setSDK(true) first.',
+        code: 'SDK_DISABLED',
+      });
+    });
+
+    it('throws on native error', async () => {
+      mockLinkDetails.mockRejectedValue(
+        new Error('Failed to get link details.')
+      );
+
+      await expect(Grovs.linkDetails('missing')).rejects.toThrow(
+        'Failed to get link details: Failed to get link details.'
       );
     });
   });

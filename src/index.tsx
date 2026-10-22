@@ -8,6 +8,7 @@ import type {
   TransactionType,
   InAppPurchase,
   GenerateLinkOptions,
+  LinkDetails,
   Any,
 } from './NativeGrovsWrapper';
 import { log } from './Logger';
@@ -51,6 +52,7 @@ interface GrovsWrapperInterface {
     copyToClipboardIos?: boolean,
     copyToClipboardAndroid?: boolean
   ): Promise<string>;
+  linkDetails(path: string): Promise<LinkDetails>;
   displayMessages(): Promise<void>;
   numberOfUnreadMessages(): Promise<number>;
   logInAppPurchase(
@@ -353,6 +355,25 @@ class GrovsWrapper {
   }
 
   /**
+   * Fetch the details of a Grovs link generated in the current environment.
+   *
+   * Rejects when the path is empty, the SDK is disabled (`SDK_DISABLED`),
+   * the link does not exist, or the request fails.
+   * @param path - The path of the link, for example `abc123`
+   * @returns Link details
+   */
+  async linkDetails(path: string): Promise<LinkDetails> {
+    if (typeof path !== 'string' || path.trim().length === 0) {
+      throw new Error('linkDetails requires a non-empty path');
+    }
+    try {
+      return await this.module.linkDetails(path);
+    } catch (error) {
+      throw nativeErrorWithContext('Failed to get link details', error);
+    }
+  }
+
+  /**
    * Display messages
    * @deprecated The inbox was removed in Grovs 3.1. This resolves without showing anything.
    */
@@ -581,6 +602,8 @@ export type {
   TransactionType,
   InAppPurchase,
   GenerateLinkOptions,
+  LinkDetails,
+  LinkCustomRedirect,
 } from './NativeGrovsWrapper';
 export type { InAppMessageEvent, InAppDismissReason } from './InAppMessages';
 export type { NavigationContainerRefLike } from './ScreenTracking';
