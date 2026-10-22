@@ -346,6 +346,22 @@ The older positional form `generateLink(title, subtitle, imageURL, data, tags, c
 
 Leave the copy flags undefined to inherit the project default.
 
+### Inspect a link
+
+Fetch the details of a link generated in the current environment by its path (the part after the domain):
+
+```typescript
+try {
+    const details = await Grovs.linkDetails('abc123');
+    console.log(details.title, details.data, details.tags);
+} catch (error) {
+    // The link does not exist, the request failed, or the SDK is disabled (SDK_DISABLED)
+    console.error('Error:', error);
+}
+```
+
+The result has the type `LinkDetails`. It includes fields such as `path`, `title`, `subtitle`, `image`, `data`, `tags`, `access_path`, `active`, the tracking fields and the custom redirects.
+
 ## Messages
 
 > If console messages have **automatic display** enabled in your dashboard, they will appear in your app without any additional integration.
@@ -689,6 +705,7 @@ Grovs.configure(this, "API_KEY", useTestEnvironment = false, baseURL = null, aut
 | `setIdentifier(identifier)` | Set user ID for dashboard and reports |
 | `setAttributes(attributes)` | Set user attributes for analytics |
 | `generateLink(options)` | Generate a smart link (`GenerateLinkOptions`; positional form still supported). Rejects with `SDK_DISABLED` while disabled |
+| `linkDetails(path)` | Get the details of a link by its path. Rejects if the link does not exist, the request fails, or the SDK is disabled (`SDK_DISABLED`) |
 | `displayMessages()` | Deprecated. Resolves without showing anything. Rejects with `SDK_DISABLED` while disabled |
 | `numberOfUnreadMessages()` | Deprecated. Resolves `0`. Rejects with `SDK_DISABLED` while disabled |
 | `logInAppPurchase(purchase)` | Log a store purchase (`{ transactionId }` on iOS, `{ originalJson }` on Android) |

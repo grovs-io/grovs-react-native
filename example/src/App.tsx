@@ -44,6 +44,8 @@ export default function App() {
   const [label2, setLabel2] = useState('Generated link:');
   const [label3, setLabel3] = useState('Unread messages:');
   const [label4, setLabel4] = useState('Revenue:');
+  const [lastLink, setLastLink] = useState<string | null>(null);
+  const [label5, setLabel5] = useState('Link details:');
   const [inAppLog, setInAppLog] = useState<string[]>([]);
   const [sdkEnabled, setSdkEnabled] = useState(true);
   const [copyToClipboard, setCopyToClipboard] = useState(false);
@@ -102,9 +104,26 @@ export default function App() {
       });
       console.log(`Generated link: ${link}`);
       setLabel2(`Generated link: ${link}`);
+      setLastLink(link);
     } catch (error) {
       console.log('Error generating link:', error);
       setLabel2(`Generated link error: ${error}`);
+    }
+  }
+
+  async function handleInspectLastLink() {
+    if (!lastLink) {
+      setLabel5('Link details: generate a link first');
+      return;
+    }
+    const path = lastLink
+      .replace(/^[a-z]+:\/\/[^/]+\/+/i, '')
+      .split(/[?#]/)[0]!;
+    try {
+      const details = await Grovs.linkDetails(path);
+      setLabel5(`Link details: ${JSON.stringify(details)}`);
+    } catch (error) {
+      setLabel5(`Link details error: ${error}`);
     }
   }
 
@@ -216,6 +235,11 @@ export default function App() {
       </View>
       <View style={{ height: 20 }} />
       <Button title="Generate link" onPress={handleGenerateLinkPress} />
+      <View style={{ height: 20 }} />
+      <Button title="Inspect last link" onPress={handleInspectLastLink} />
+      <View style={styles.labelContainer}>
+        <Text style={styles.label}>{label5}</Text>
+      </View>
       <View style={{ height: 20 }} />
       <Button
         title="Show notifications"
