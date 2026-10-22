@@ -348,7 +348,7 @@ Leave the copy flags undefined to inherit the project default.
 
 ### Inspect a link
 
-Fetch the details of a link generated in the current environment by its path (the part after the domain):
+Fetch the details of a link generated in the current environment by its path. The path is the part after the domain, without the leading `/` and without any query string, for example `abc123`:
 
 ```typescript
 try {

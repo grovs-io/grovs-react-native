@@ -49,35 +49,36 @@ export interface GenerateLinkOptions {
   copyToClipboardAndroid?: boolean;
 }
 
+/** Redirect shape returned by `linkDetails`. Differs from `CustomLinkRedirect`, the input shape used by `generateLink`. */
 export interface LinkCustomRedirect {
-  url?: string;
+  url?: string | null;
   open_app_if_installed?: boolean;
   [key: string]: unknown;
 }
 
 /** Details of a Grovs link, as returned by the backend. New fields may be added later. */
 export interface LinkDetails {
-  id?: number;
-  name?: string;
+  id?: number | string;
+  name?: string | null;
   path?: string;
-  title?: string;
-  subtitle?: string;
-  image?: string;
+  title?: string | null;
+  subtitle?: string | null;
+  image?: string | null;
   access_path?: string;
   active?: boolean;
   sdk_generated?: boolean;
-  data?: { [key: string]: unknown };
-  tags?: Array<string>;
+  data?: { [key: string]: unknown } | null;
+  tags?: Array<string> | null;
   updated_at?: string;
-  show_preview_ios?: boolean;
-  show_preview_android?: boolean;
-  ads_platform?: string;
-  generated_from_platform?: string;
-  tracking_source?: string;
-  tracking_medium?: string;
-  tracking_campaign?: string;
-  visitor_id?: number;
-  campaign_id?: number;
+  show_preview_ios?: boolean | null;
+  show_preview_android?: boolean | null;
+  ads_platform?: string | null;
+  generated_from_platform?: string | null;
+  tracking_source?: string | null;
+  tracking_medium?: string | null;
+  tracking_campaign?: string | null;
+  visitor_id?: number | null;
+  campaign_id?: number | null;
   ios_custom_redirect?: LinkCustomRedirect | null;
   android_custom_redirect?: LinkCustomRedirect | null;
   desktop_custom_redirect?: LinkCustomRedirect | null;

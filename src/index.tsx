@@ -359,7 +359,8 @@ class GrovsWrapper {
    *
    * Rejects when the path is empty, the SDK is disabled (`SDK_DISABLED`),
    * the link does not exist, or the request fails.
-   * @param path - The path of the link, for example `abc123`
+   * @param path - The part of the link after the domain, without the leading `/`
+   * and without any query string, for example `abc123`
    * @returns Link details
    */
   async linkDetails(path: string): Promise<LinkDetails> {

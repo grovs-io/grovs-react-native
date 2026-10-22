@@ -357,6 +357,16 @@ describe('GrovsWrapper', () => {
       }
     );
 
+    it.each([undefined, null, 42])(
+      'rejects without calling native for non-string path %p',
+      async (path) => {
+        await expect(
+          Grovs.linkDetails(path as unknown as string)
+        ).rejects.toThrow('linkDetails requires a non-empty path');
+        expect(mockLinkDetails).not.toHaveBeenCalled();
+      }
+    );
+
     it('keeps the SDK_DISABLED code from native', async () => {
       const err = Object.assign(
         new Error('Grovs SDK is disabled. Call setSDK(true) first.'),
