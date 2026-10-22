@@ -62,3 +62,9 @@ export function toAliasMap(rows: KeyValueRow[]): Record<string, string> {
     });
   return map;
 }
+
+export const keysSummary = (rows: KeyValueRow[]): string =>
+  rows
+    .map((row) => row.key.trim())
+    .filter((key) => key !== '')
+    .join(', ');

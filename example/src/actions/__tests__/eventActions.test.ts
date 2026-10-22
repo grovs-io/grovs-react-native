@@ -2,18 +2,34 @@ import Grovs from 'react-native-grovs-wrapper';
 import {
   DEFAULT_EVENT_FORM,
   DEFAULT_PURCHASE_FORM,
+  DEFAULT_SCREEN_FORM,
   type EventForm,
   type PurchaseForm,
 } from '../../data/forms';
-import { buildPurchase, buildTrack } from '../eventActions';
+import {
+  buildPurchase,
+  buildScreenView,
+  buildSetAliases,
+  buildSetGlobalTags,
+  buildStorePurchase,
+  buildTrack,
+} from '../eventActions';
 
 jest.mock('react-native-grovs-wrapper', () => ({
   __esModule: true,
-  default: { track: jest.fn(), logCustomPurchase: jest.fn() },
+  default: {
+    track: jest.fn(),
+    trackScreenView: jest.fn(),
+    setGlobalTags: jest.fn(),
+    setScreenAliases: jest.fn(),
+    logCustomPurchase: jest.fn(),
+    logInAppPurchase: jest.fn(),
+  },
 }));
 
-const track = jest.mocked(Grovs.track);
-const logCustomPurchase = jest.mocked(Grovs.logCustomPurchase);
+const grovs = jest.mocked(Grovs);
+const track = grovs.track;
+const logCustomPurchase = grovs.logCustomPurchase;
 
 const event = (overrides: Partial<EventForm> = {}): EventForm => ({
   ...DEFAULT_EVENT_FORM,
@@ -25,8 +41,26 @@ const purchase = (overrides: Partial<PurchaseForm> = {}): PurchaseForm => ({
 });
 
 beforeEach(() => {
-  track.mockReset();
-  logCustomPurchase.mockReset().mockResolvedValue(true);
+  jest.clearAllMocks();
+  logCustomPurchase.mockResolvedValue(true);
+  grovs.logInAppPurchase.mockResolvedValue(true);
+});
+
+describe('repeatable', () => {
+  it('setters cannot run again', () => {
+    expect(buildSetGlobalTags(['qa']).repeatable).toBe(false);
+    expect(
+      buildSetAliases([{ key: 'Home', value: 'Home screen', type: 'text' }])
+        .repeatable
+    ).toBe(false);
+  });
+
+  it('tests can run again', () => {
+    expect(buildTrack(event()).repeatable).not.toBe(false);
+    expect(buildScreenView(DEFAULT_SCREEN_FORM).repeatable).not.toBe(false);
+    expect(buildPurchase(purchase()).repeatable).not.toBe(false);
+    expect(buildStorePurchase('1000').repeatable).not.toBe(false);
+  });
 });
 
 describe('buildTrack', () => {
@@ -115,5 +149,98 @@ describe('buildPurchase', () => {
     logCustomPurchase.mockResolvedValue(false);
     const result = await buildPurchase(purchase()).run();
     expect(result.state).toBe('warning');
+  });
+});
+
+describe('buildScreenView', () => {
+  it('tracks the screen without properties', async () => {
+    const action = buildScreenView({ name: ' Home ', properties: [] });
+    const result = await action.run();
+    expect(grovs.trackScreenView).toHaveBeenCalledWith('Home', undefined);
+    expect(action).toMatchObject({ type: 'SCREEN', title: 'Screen Home' });
+    expect(result.state).toBe('ok');
+  });
+
+  it('sends typed properties', async () => {
+    await buildScreenView({
+      name: 'Links',
+      properties: [{ key: 'from', value: 'tab', type: 'text' }],
+    }).run();
+    expect(grovs.trackScreenView).toHaveBeenCalledWith('Links', {
+      from: 'tab',
+    });
+  });
+
+  it('blocks a blank name before calling the SDK', async () => {
+    await expect(
+      buildScreenView({ name: ' ', properties: [] }).run()
+    ).rejects.toThrow('Enter a screen name');
+    expect(grovs.trackScreenView).not.toHaveBeenCalled();
+  });
+});
+
+describe('buildStorePurchase', () => {
+  it('sends the transaction id on iOS', async () => {
+    const action = buildStorePurchase(' 2000000123 ', 'ios');
+    const result = await action.run();
+    expect(grovs.logInAppPurchase).toHaveBeenCalledWith({
+      transactionId: '2000000123',
+    });
+    expect(action).toMatchObject({
+      type: 'PURCHASE',
+      title: 'App Store purchase',
+    });
+    expect(result.state).toBe('ok');
+  });
+
+  it('sends the original JSON on Android', async () => {
+    const json = '{"orderId":"GPA.1"}';
+    const action = buildStorePurchase(json, 'android');
+    await action.run();
+    expect(grovs.logInAppPurchase).toHaveBeenCalledWith({ originalJson: json });
+    expect(action.title).toBe('Google Play purchase');
+  });
+
+  it('blocks blank input before calling the SDK', async () => {
+    await expect(buildStorePurchase('  ', 'ios').run()).rejects.toThrow(
+      'Enter a transaction id'
+    );
+    await expect(buildStorePurchase('', 'android').run()).rejects.toThrow(
+      'Paste the purchase JSON'
+    );
+    expect(grovs.logInAppPurchase).not.toHaveBeenCalled();
+  });
+
+  it('warns when the SDK reports the purchase was not logged', async () => {
+    grovs.logInAppPurchase.mockResolvedValue(false);
+    const result = await buildStorePurchase('1', 'ios').run();
+    expect(result.state).toBe('warning');
+  });
+});
+
+describe('buildSetGlobalTags', () => {
+  it('sets the tags', async () => {
+    const result = await buildSetGlobalTags(['beta', 'qa']).run();
+    expect(grovs.setGlobalTags).toHaveBeenCalledWith(['beta', 'qa']);
+    expect(result).toMatchObject({ state: 'ok', detail: 'beta, qa' });
+  });
+
+  it('clears the tags with no list', async () => {
+    const result = await buildSetGlobalTags([]).run();
+    expect(grovs.setGlobalTags).toHaveBeenCalledWith(undefined);
+    expect(result.detail).toBe('cleared');
+  });
+});
+
+describe('buildSetAliases', () => {
+  it('sends the rows as a string map, skipping blank keys', async () => {
+    const result = await buildSetAliases([
+      { key: 'Home', value: 'Home screen', type: 'text' },
+      { key: ' ', value: 'ignored', type: 'text' },
+    ]).run();
+    expect(grovs.setScreenAliases).toHaveBeenCalledWith({
+      Home: 'Home screen',
+    });
+    expect(result).toMatchObject({ state: 'ok', detail: '1 aliases' });
   });
 });

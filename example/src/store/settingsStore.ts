@@ -54,6 +54,10 @@ function putForm(key: FormKey, json: string) {
 
 export const DEFAULT_EXCLUDED_SCREENS = ['Excluded'];
 
+export const DEFAULT_SCREEN_ALIASES: KeyValueRow[] = [
+  { key: 'Home', value: 'Home screen', type: 'text' },
+];
+
 const LOG_LEVELS: readonly LogLevel[] = ['info', 'error'];
 
 function parse(key: string): unknown {
@@ -165,7 +169,7 @@ export const settingsStore = {
   },
 
   get screenAliases(): KeyValueRow[] {
-    return decodeRows(parse('screenAliases'), []);
+    return decodeRows(parse('screenAliases'), DEFAULT_SCREEN_ALIASES);
   },
   set screenAliases(value: KeyValueRow[]) {
     putJson('screenAliases', value);

@@ -29,7 +29,9 @@ describe('settingsStore', () => {
     expect(settingsStore.sdkEnabled).toBe(true);
     expect(settingsStore.purchaseForm).toEqual(DEFAULT_PURCHASE_FORM);
     expect(settingsStore.globalTags).toEqual([]);
-    expect(settingsStore.screenAliases).toEqual([]);
+    expect(settingsStore.screenAliases).toEqual([
+      { key: 'Home', value: 'Home screen', type: 'text' },
+    ]);
     expect(settingsStore.excludedScreens).toEqual(DEFAULT_EXCLUDED_SCREENS);
     expect(settingsStore.inAppDebug).toBe(true);
     expect(settingsStore.inAppRunning).toBe(true);

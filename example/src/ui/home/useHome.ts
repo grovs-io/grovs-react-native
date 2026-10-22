@@ -13,11 +13,8 @@ import {
   isPurchaseValid,
   linkFormError,
   purchaseLabel,
-  type EventForm,
-  type PurchaseForm,
 } from '../../data/forms';
-import type { KeyValueRow } from '../../data/keyValue';
-import { toValueMap } from '../../data/keyValue';
+import { keysSummary, toValueMap } from '../../data/keyValue';
 import { isWebUrl } from '../../data/linkTools';
 import type { Profile } from '../../data/profile';
 import { relativeTime } from '../../data/strings';
@@ -49,12 +46,6 @@ export function randomId(): string {
   ).join('');
   return `user_${hex}`;
 }
-
-export const keysSummary = (rows: KeyValueRow[]): string =>
-  rows
-    .map((row) => row.key.trim())
-    .filter((key) => key !== '')
-    .join(', ');
 
 const run = (action: TestAction) => runAction(appLog, action);
 
@@ -110,10 +101,8 @@ export function useHome() {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(identity);
   const [linkForm, saveLinkForm] = useSavedForm('linkForm');
-  const [eventForm, setEventForm] = useState(() => settingsStore.eventForm);
-  const [purchaseForm, setPurchaseForm] = useState(
-    () => settingsStore.purchaseForm
-  );
+  const [eventForm, saveEventForm] = useSavedForm('eventForm');
+  const [purchaseForm, savePurchaseForm] = useSavedForm('purchaseForm');
   const [generating, setGenerating] = useState(false);
 
   const setSdkEnabled = (on: boolean) => {
@@ -132,15 +121,6 @@ export function useHome() {
     settingsStore.identity = draft;
     setEditing(false);
     run(identityAction(draft));
-  };
-
-  const saveEventForm = (form: EventForm) => {
-    setEventForm(form);
-    settingsStore.eventForm = form;
-  };
-  const savePurchaseForm = (form: PurchaseForm) => {
-    setPurchaseForm(form);
-    settingsStore.purchaseForm = form;
   };
 
   const generate = (form = linkForm) => {

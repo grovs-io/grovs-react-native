@@ -351,7 +351,7 @@ export function StatusPill({ text, state }: { text: string; state: LogState }) {
   );
 }
 
-function Chevron({ direction }: { direction: 'down' | 'up' | 'right' }) {
+export function Chevron({ direction }: { direction: 'down' | 'up' | 'right' }) {
   const { colors } = useTheme();
   const rotate = { down: '45deg', up: '-135deg', right: '-45deg' }[direction];
   return (
