@@ -109,7 +109,6 @@ export function useHome() {
   const [identity, setIdentity] = useState(() => settingsStore.identity);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(identity);
-  const [linkForm, setLinkForm] = useState(() => settingsStore.linkForm);
   const [eventForm, setEventForm] = useState(() => settingsStore.eventForm);
   const [purchaseForm, setPurchaseForm] = useState(
     () => settingsStore.purchaseForm
@@ -134,8 +133,8 @@ export function useHome() {
     run(identityAction(draft));
   };
 
+  // The Links tab saves this form too, so it is read fresh each time.
   const saveLinkForm = (form: LinkForm) => {
-    setLinkForm(form);
     settingsStore.linkForm = form;
   };
   const saveEventForm = (form: EventForm) => {
@@ -147,7 +146,7 @@ export function useHome() {
     settingsStore.purchaseForm = form;
   };
 
-  const generate = (form = linkForm) => {
+  const generate = (form = settingsStore.linkForm) => {
     setGenerating(true);
     run(buildGenerateLink(form)).finally(() => setGenerating(false));
   };
@@ -175,7 +174,7 @@ export function useHome() {
     startEditing,
     cancelEditing: () => setEditing(false),
     saveIdentity,
-    linkForm,
+    linkForm: settingsStore.linkForm,
     eventForm,
     purchaseForm,
     saveLinkForm,

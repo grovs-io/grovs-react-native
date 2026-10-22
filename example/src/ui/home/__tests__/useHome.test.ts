@@ -26,6 +26,7 @@ jest.mock('react-native-grovs-wrapper', () => ({
     setIdentifier: jest.fn(),
     setAttributes: jest.fn(),
     setSDK: jest.fn(),
+    generateLink: jest.fn(() => Promise.resolve('https://grovs.link/abc')),
   },
 }));
 
@@ -38,6 +39,13 @@ beforeEach(() => {
 });
 
 describe('useHome', () => {
+  it('generates with the link form saved after it mounted', async () => {
+    const { result } = renderHook(() => useHome());
+    settingsStore.linkForm = { ...settingsStore.linkForm, title: 'From Links' };
+    await act(async () => result.current.generate());
+    expect(grovs.generateLink.mock.calls[0]![0]).toBe('From Links');
+  });
+
   it('starts from the saved identity', () => {
     settingsStore.identity = {
       identifier: 'saved_user',

@@ -1,13 +1,20 @@
 import Grovs from 'react-native-grovs-wrapper';
 import { DEFAULT_LINK_FORM, type LinkForm } from '../../data/forms';
-import { buildGenerateLink, toGenerateOptions } from '../linkActions';
+import {
+  buildGenerateLink,
+  buildInspect,
+  toGenerateOptions,
+} from '../linkActions';
+import { TestLog } from '../testLog';
+import { runAction } from '../testRunner';
 
 jest.mock('react-native-grovs-wrapper', () => ({
   __esModule: true,
-  default: { generateLink: jest.fn() },
+  default: { generateLink: jest.fn(), linkDetails: jest.fn() },
 }));
 
 const generateLink = jest.mocked(Grovs.generateLink);
+const linkDetails = jest.mocked(Grovs.linkDetails);
 
 const form = (overrides: Partial<LinkForm> = {}): LinkForm => ({
   ...DEFAULT_LINK_FORM,
@@ -71,6 +78,14 @@ describe('toGenerateOptions', () => {
     });
   });
 
+  it('leaves out redirects when every platform URL is blank', () => {
+    const blank = { url: ' ', openAppIfInstalled: true };
+    const options = toGenerateOptions(
+      form({ redirectsOn: true, android: blank, ios: blank, desktop: blank })
+    );
+    expect(options).not.toHaveProperty('customRedirects');
+  });
+
   it('leaves out platform overrides set to default', () => {
     const options = toGenerateOptions(
       form({ previewIos: 'on', clipboardAndroid: 'off' })
@@ -123,5 +138,49 @@ describe('buildGenerateLink', () => {
       'copyToClipboardAndroid',
     ].forEach((name) => expect(code).toContain(`${name} = `));
     expect(code.startsWith('generateLink(')).toBe(true);
+  });
+});
+
+describe('buildInspect', () => {
+  const log = () =>
+    new TestLog({ load: () => [], save: () => undefined }, () => 0);
+
+  it('looks up the path of a full link and shows the details', async () => {
+    linkDetails.mockResolvedValue({
+      path: 'abc',
+      title: 'Promo',
+      active: true,
+    });
+    const action = buildInspect('https://grovs.link/abc?x=1');
+    const result = await action.run();
+    expect(linkDetails).toHaveBeenCalledWith('abc');
+    expect(action.type).toBe('INSPECT');
+    expect(result.state).toBe('ok');
+    expect(result.detail).toBe('Promo · abc');
+    expect(result.code).toContain('linkDetails(\n  path = "abc"\n)');
+    expect(result.code).toContain('title: "Promo"');
+    expect(result.code).toContain('active: true');
+  });
+
+  it('calls a link without a title Untitled', async () => {
+    linkDetails.mockResolvedValue({ path: 'abc', title: null });
+    const result = await buildInspect('abc').run();
+    expect(result.detail).toBe('Untitled · abc');
+  });
+
+  it('logs an error without calling the SDK when there is no path', async () => {
+    linkDetails.mockReset();
+    const { result, entry } = await runAction(log(), buildInspect(''));
+    expect(linkDetails).not.toHaveBeenCalled();
+    expect(result.state).toBe('error');
+    expect(result.detail).toBe('Not a Grovs link');
+    expect(entry.type).toBe('INSPECT');
+  });
+
+  it('logs the SDK error when the lookup fails', async () => {
+    linkDetails.mockRejectedValue(new Error('Link not found'));
+    const { result } = await runAction(log(), buildInspect('grovs.link/zzz'));
+    expect(linkDetails).toHaveBeenCalledWith('zzz');
+    expect(result).toMatchObject({ state: 'error', detail: 'Link not found' });
   });
 });

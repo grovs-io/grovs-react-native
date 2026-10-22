@@ -21,6 +21,7 @@ import { HomeScreen } from './home/HomeScreen';
 import { ExcludedScreen } from './inapp/ExcludedScreen';
 import { InAppScreen } from './inapp/InAppScreen';
 import { LinksScreen } from './links/LinksScreen';
+import { inspectLink } from './links/useLinks';
 import { ConsoleStrip } from './logs/ConsoleStrip';
 import { LogsPanel } from './logs/LogsPanel';
 import { isTab, NavContext, TABS, type Nav, type Tab } from './nav';
@@ -239,6 +240,7 @@ export function Scaffold() {
           visible={panel.open}
           focusEntryId={panel.entryId}
           onClose={() => setPanel({ open: false })}
+          onInspect={(link) => inspectLink(link).then(nav.openLogs)}
         />
         <ToastHost />
       </View>

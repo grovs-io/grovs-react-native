@@ -1,5 +1,6 @@
 import type { TransactionType } from 'react-native-grovs-wrapper';
 import { detectType, type KeyValueRow, type ValueType } from './keyValue';
+import { isWebUrl } from './linkTools';
 import { currencySymbol, formatCents, parseAmountToCents } from './money';
 
 export type TriState = 'default' | 'on' | 'off';
@@ -107,6 +108,22 @@ export function linkOverridesSummary(form: LinkForm): string {
     form.clipboardIos,
   ].filter((state) => state !== 'default').length;
   return set === 0 ? 'all default' : `${set} set`;
+}
+
+const URL_RULE = 'must start with http:// or https://';
+
+/** Why the form cannot be sent, or null when it can. Blank URLs are left out, so they pass. */
+export function linkFormError(form: LinkForm): string | null {
+  const bad = (url: string) => url.trim() !== '' && !isWebUrl(url);
+  if (bad(form.imageUrl)) return `Image URL ${URL_RULE}`;
+  if (!form.redirectsOn) return null;
+  const platforms: Array<[string, Redirect]> = [
+    ['Android', form.android],
+    ['iOS', form.ios],
+    ['Desktop', form.desktop],
+  ];
+  const broken = platforms.find(([, r]) => bad(r.url));
+  return broken ? `${broken[0]} redirect ${URL_RULE}` : null;
 }
 
 export function purchaseLabel(form: PurchaseForm): string {
