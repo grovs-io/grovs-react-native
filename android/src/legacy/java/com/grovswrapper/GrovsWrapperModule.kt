@@ -206,6 +206,15 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
   }
 
   @ReactMethod
+  fun linkDetails(path: String, promise: Promise) {
+    if (rejectIfDisabled(promise)) return
+    Grovs.linkDetails(path = path, lifecycleOwner = null) { details, error ->
+      details?.let { promise.resolve(it.toWritableMap()) }
+        ?: promise.reject("Error", error?.message ?: "Failed to get link details.")
+    }
+  }
+
+  @ReactMethod
   fun logInAppPurchase(transactionId: String?, originalJson: String?, promise: Promise) {
     // transactionId is iOS-only; Android logs the Play Billing purchase JSON.
     if (originalJson == null) {
