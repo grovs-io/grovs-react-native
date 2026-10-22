@@ -38,6 +38,7 @@ export type PurchaseForm = {
   amount: string;
   currency: string;
   productId: string;
+  startDaysAgo: number;
   originalJson: string;
 };
 
@@ -85,6 +86,7 @@ export const DEFAULT_PURCHASE_FORM: PurchaseForm = {
   amount: '4.99',
   currency: 'USD',
   productId: 'pro_monthly',
+  startDaysAgo: 0,
   originalJson: '',
 };
 
@@ -116,12 +118,23 @@ export function purchaseLabel(form: PurchaseForm): string {
 export const purchaseFullLabel = (form: PurchaseForm): string =>
   `${purchaseLabel(form)} · ${form.currency} · ${form.productId}`;
 
+const DAY_MS = 86_400_000;
+
+/** ISO start date for the purchase, or undefined to start now. */
+export const purchaseStartDate = (
+  daysAgo: number,
+  now = Date.now()
+): string | undefined =>
+  daysAgo > 0 ? new Date(now - daysAgo * DAY_MS).toISOString() : undefined;
+
 export const isPurchaseValid = (form: PurchaseForm): boolean =>
   parseAmountToCents(form.amount) !== null &&
   form.currency.trim() !== '' &&
   form.productId.trim() !== '';
 
 type Json = Record<string, unknown>;
+
+const copy = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 function parseObject(json: string | null | undefined): Json | null {
   if (json == null) return null;
@@ -192,7 +205,7 @@ export const encodeLinkForm = (form: LinkForm): string => JSON.stringify(form);
 
 export function decodeLinkForm(json: string | null | undefined): LinkForm {
   const o = parseObject(json);
-  const d = DEFAULT_LINK_FORM;
+  const d = copy(DEFAULT_LINK_FORM);
   if (!o) return d;
   return {
     title: text(o, 'title', d.title),
@@ -225,7 +238,7 @@ export const encodeEventForm = (form: EventForm): string =>
 
 export function decodeEventForm(json: string | null | undefined): EventForm {
   const o = parseObject(json);
-  const d = DEFAULT_EVENT_FORM;
+  const d = copy(DEFAULT_EVENT_FORM);
   if (!o) return d;
   return {
     name: text(o, 'name', d.name),
@@ -239,7 +252,7 @@ export const encodeScreenForm = (form: ScreenForm): string =>
 
 export function decodeScreenForm(json: string | null | undefined): ScreenForm {
   const o = parseObject(json);
-  const d = DEFAULT_SCREEN_FORM;
+  const d = copy(DEFAULT_SCREEN_FORM);
   if (!o) return d;
   return {
     name: text(o, 'name', d.name),
@@ -254,13 +267,17 @@ export function decodePurchaseForm(
   json: string | null | undefined
 ): PurchaseForm {
   const o = parseObject(json);
-  const d = DEFAULT_PURCHASE_FORM;
+  const d = copy(DEFAULT_PURCHASE_FORM);
   if (!o) return d;
   return {
     type: oneOf(o, 'type', PURCHASE_TYPES, d.type),
     amount: text(o, 'amount', d.amount),
     currency: text(o, 'currency', d.currency),
     productId: text(o, 'productId', d.productId),
+    startDaysAgo:
+      typeof o.startDaysAgo === 'number' && o.startDaysAgo >= 0
+        ? o.startDaysAgo
+        : d.startDaysAgo,
     originalJson: text(o, 'originalJson', d.originalJson),
   };
 }
