@@ -403,17 +403,23 @@ if (token) {
   }
 
   // expo-notifications
-  const pushData = (response: Notifications.NotificationResponse) => {
+  let lastHandledId: string | undefined;
+  const handleTap = (response: Notifications.NotificationResponse) => {
       const { request } = response.notification;
+      // On a cold start the same tap can reach both the listener and getLastNotificationResponseAsync.
+      if (request.identifier === lastHandledId) {
+          return;
+      }
+      lastHandledId = request.identifier;
+      // Stops the tap from being replayed after a JS reload. Skip this if other code in your app reads the last response.
+      Notifications.clearLastNotificationResponseAsync();
       // On iOS, content.data only holds the "body" key of an APNs push; the full payload is in the trigger.
-      return (request.trigger as any)?.payload ?? request.content.data;
+      Grovs.handleNotificationOpen((request.trigger as any)?.payload ?? request.content.data);
   };
-  Notifications.addNotificationResponseReceivedListener((response) => {
-      Grovs.handleNotificationOpen(pushData(response));
-  });
+  Notifications.addNotificationResponseReceivedListener(handleTap);
   const last = await Notifications.getLastNotificationResponseAsync();
   if (last) {
-      Grovs.handleNotificationOpen(pushData(last));
+      handleTap(last);
   }
   ```
 
