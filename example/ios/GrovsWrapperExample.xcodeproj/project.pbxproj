@@ -18,6 +18,8 @@
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		A252573946CC415AB162FC3C /* Geist-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 56002808AED04A5493F8F540 /* Geist-SemiBold.ttf */; };
 		BFDD999A38974596B4570078 /* Geist-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 07D513364F9B4D49AEB45A8D /* Geist-Bold.ttf */; };
+		9AD364F4B6D0753A37E1BED1 /* ExampleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A04AFC066E67D2A15DCA1A3E /* ExampleStore.swift */; };
+		4E0B050BF7F108031EA7BFF6 /* ExampleStore.m in Sources */ = {isa = PBXBuildFile; fileRef = 291F5D113A2192BDCB7984C1 /* ExampleStore.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,8 @@
 		A419D544DA3C48B4AF57DC34 /* Geist-Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Regular.ttf"; path = "../assets/fonts/Geist-Regular.ttf"; sourceTree = "<group>"; };
 		E46320013D0B4674804F1209 /* Geist-Medium.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Medium.ttf"; path = "../assets/fonts/Geist-Medium.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		A04AFC066E67D2A15DCA1A3E /* ExampleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ExampleStore.swift; path = GrovsWrapperExample/ExampleStore.swift; sourceTree = "<group>"; };
+		291F5D113A2192BDCB7984C1 /* ExampleStore.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = ExampleStore.m; path = GrovsWrapperExample/ExampleStore.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +62,8 @@
 				74308F9D2D5F934100C07787 /* GrovsWrapperExample.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				A04AFC066E67D2A15DCA1A3E /* ExampleStore.swift */,
+				291F5D113A2192BDCB7984C1 /* ExampleStore.m */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
@@ -282,6 +288,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				9AD364F4B6D0753A37E1BED1 /* ExampleStore.swift in Sources */,
+				4E0B050BF7F108031EA7BFF6 /* ExampleStore.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -16,10 +16,13 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
     // They will be passed down to the ViewController used by React Native.
     self.initialProps = [:]
 
-    // TODO: Replace with your own API Key
-    let apiKey = "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f"
-    Grovs.configure(APIKey: apiKey, useTestEnvironment: true, autoTrackScreenViews: false, clipboardDomains: nil, enabled: GrovsWrapperSwift.isSDKEnabled(), delegate: GrovsWrapperSwift.shared)
-    Grovs.setDebug(level: .info)
+    do {
+      ExampleStore.startedProfile = configure(try ExampleStore.activeProfile())
+    } catch {
+      ExampleStore.configureError = error.localizedDescription
+      ExampleStore.startedProfile = configure(.default)
+    }
+    Grovs.setDebug(level: ExampleStore.string(ExampleStore.debugLevelKey) == "error" ? .error : .info)
 
     UNUserNotificationCenter.current().delegate = self
     UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, _ in
@@ -30,6 +33,19 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
     }
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  private func configure(_ profile: Profile) -> Profile {
+    Grovs.configure(
+      APIKey: profile.apiKey,
+      useTestEnvironment: profile.test,
+      baseURL: profile.baseUrl,
+      autoTrackScreenViews: profile.autoTrack,
+      clipboardDomains: profile.clipboardDomains.isEmpty ? nil : profile.clipboardDomains,
+      enabled: profile.startEnabled && GrovsWrapperSwift.isSDKEnabled(),
+      delegate: GrovsWrapperSwift.shared
+    )
+    return profile
   }
 
   override func sourceURL(for bridge: RCTBridge) -> URL? {
@@ -56,6 +72,7 @@ class AppDelegate: RCTAppDelegate, UNUserNotificationCenterDelegate {
 
   override func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
     Grovs.setPushToken(deviceToken: deviceToken)
+    ExampleStore.savePushToken(deviceToken)
   }
 
   func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
