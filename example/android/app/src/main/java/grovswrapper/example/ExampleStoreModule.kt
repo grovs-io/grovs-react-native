@@ -41,6 +41,7 @@ data class Profile(
       apiKey = "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f",
       test = true,
       baseUrl = null,
+      autoTrack = false,
     )
 
     fun fromJson(o: JSONObject): Profile {

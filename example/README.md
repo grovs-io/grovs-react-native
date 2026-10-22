@@ -46,7 +46,7 @@ The SDK is configured natively before React Native starts, so a change to the ke
 
 ## Logs
 
-The strip at the top shows the latest log line. Tap it to open the logs panel with the full history (up to 500 entries in memory). Tap an entry to see its detail, and export the log. The last 50 link opens are kept between launches. The ↻ button on an entry runs that action again.
+The strip at the bottom, above the tab bar, shows the latest log line. Tap it, or drag it up, to open the logs panel with the full history (up to 500 entries in memory). Tap an entry to see its detail, and export the log. The last 50 link opens are kept between launches. The ↻ button on an entry runs that action again.
 
 ## iOS and Android differences
 

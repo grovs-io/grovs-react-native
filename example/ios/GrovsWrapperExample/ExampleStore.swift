@@ -12,13 +12,17 @@ struct Profile {
   var startEnabled = true
   var clipboardDomains: [String] = []
 
-  static let `default` = Profile(
-    id: "grovs-test",
-    name: "Grovs test",
-    apiKey: "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f",
-    test: true,
-    baseUrl: nil
-  )
+  static let `default`: Profile = {
+    var profile = Profile(
+      id: "grovs-test",
+      name: "Grovs test",
+      apiKey: "grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f",
+      test: true,
+      baseUrl: nil
+    )
+    profile.autoTrack = false
+    return profile
+  }()
 
   init(id: String, name: String, apiKey: String, test: Bool, baseUrl: String?) {
     self.id = id

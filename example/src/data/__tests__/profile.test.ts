@@ -117,6 +117,12 @@ describe('json', () => {
   });
 });
 
+describe('default profile', () => {
+  it('does not auto track screens, as the old app did', () => {
+    expect(DEFAULT_PROFILES[0]?.autoTrack).toBe(false);
+  });
+});
+
 describe('validation', () => {
   it('has valid defaults', () => {
     expect(new Set(DEFAULT_PROFILES.map((p) => p.id)).size).toBe(
