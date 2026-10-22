@@ -16,6 +16,8 @@ export type AppColors = {
   error: string;
   errorSoft: string;
   neutralDot: string;
+  onAccent: string;
+  scrim: string;
 };
 
 export const lightColors: AppColors = {
@@ -36,6 +38,8 @@ export const lightColors: AppColors = {
   error: '#DC2626',
   errorSoft: '#FBE8E9',
   neutralDot: '#CBD5E1',
+  onAccent: '#FFFFFF',
+  scrim: 'rgba(2, 6, 23, 0.3)',
 };
 
 export const darkColors: AppColors = {
@@ -56,4 +60,6 @@ export const darkColors: AppColors = {
   error: '#F87171',
   errorSoft: 'rgba(248, 113, 113, 0.20)',
   neutralDot: '#525252',
+  onAccent: '#FFFFFF',
+  scrim: 'rgba(2, 6, 23, 0.3)',
 };

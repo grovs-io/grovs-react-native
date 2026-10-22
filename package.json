@@ -125,11 +125,19 @@
         ]
       },
       {
-        "preset": "react-native",
+        "preset": "<rootDir>/example/node_modules/react-native",
         "displayName": "example",
         "testMatch": [
           "<rootDir>/example/src/**/__tests__/**/*.{ts,tsx}"
         ],
+        "transform": {
+          "^.+\\.(js|ts|tsx)$": [
+            "babel-jest",
+            {
+              "configFile": "./example/babel.config.js"
+            }
+          ]
+        },
         "transformIgnorePatterns": [
           "node_modules/(?!((jest-)?react-native|@react-native(-community)?|react-native-svg|react-native-qrcode-svg)/)"
         ],
