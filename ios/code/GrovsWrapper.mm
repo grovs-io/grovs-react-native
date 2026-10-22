@@ -211,6 +211,21 @@ copyToClipboardAndroid:(NSNumber *)copyToClipboardAndroid
   }];
 }
 
+- (void)linkDetails:(NSString *)path
+            resolve:(RCTPromiseResolveBlock)resolve
+             reject:(RCTPromiseRejectBlock)reject {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
+  [GrovsWrapperSwift.shared linkDetailsWithPath:path completion:^(NSDictionary<NSString *, id> * _Nullable details) {
+    if (details != nil) {
+      resolve(details);
+    } else {
+      reject(@"Error", @"Failed to get link details.", nil);
+    }
+  }];
+}
+
 - (void)logInAppPurchase:(NSString *)transactionId
             originalJson:(NSString *)originalJson
                  resolve:(RCTPromiseResolveBlock)resolve
@@ -394,6 +409,21 @@ RCT_EXPORT_METHOD(numberOfUnreadMessages:(RCTPromiseResolveBlock)resolve
       reject(@"200", @"Failed to get number of messages", nil);
     } else {
       resolve(@(value));
+    }
+  }];
+}
+
+RCT_EXPORT_METHOD(linkDetails:(NSString *)path
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  if (GrovsRejectIfDisabled(reject)) {
+    return;
+  }
+  [GrovsWrapperSwift.shared linkDetailsWithPath:path completion:^(NSDictionary<NSString *, id> * _Nullable details) {
+    if (details != nil) {
+      resolve(details);
+    } else {
+      reject(@"Error", @"Failed to get link details.", nil);
     }
   }];
 }

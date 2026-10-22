@@ -190,6 +190,11 @@ public class GrovsWrapperSwift: NSObject {
   }
   
   @objc
+  public func linkDetails(path: String, completion: @escaping ([String: Any]?) -> Void) {
+    Grovs.linkDetails(path: path, completion: completion)
+  }
+  
+  @objc
   public func displayMessagesViewController(completion: GrovsEmptyClosure?) {
     DispatchQueue.main.async {
       Grovs.displayMessagesViewController(completion: completion)
