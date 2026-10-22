@@ -1,7 +1,9 @@
 import Grovs from 'react-native-grovs-wrapper';
 import type { InAppMessageEvent } from 'react-native-grovs-wrapper';
+import { toAliasMap, toValueMap } from '../data/keyValue';
 import { middleEllipsis } from '../data/strings';
 import { exampleStore } from '../store/exampleStore';
+import { settingsStore } from '../store/settingsStore';
 import { callCode } from './callCode';
 import { appLog } from './testLog';
 
@@ -60,6 +62,33 @@ async function logPushToken(): Promise<void> {
   }
 }
 
+/** The native SDKs do not keep these between launches, so the app sends them again. */
+export function applySavedSettings(): void {
+  const { identifier, attributes } = settingsStore.identity;
+  Grovs.setIdentifier(identifier || undefined);
+  Grovs.setAttributes(toValueMap(attributes));
+  const tags = settingsStore.globalTags;
+  Grovs.setGlobalTags(tags.length > 0 ? tags : undefined);
+  Grovs.setScreenAliases(toAliasMap(settingsStore.screenAliases));
+  Grovs.setInAppExcludedScreens(settingsStore.excludedScreens);
+  Grovs.setInAppDebugLogging(settingsStore.inAppDebug);
+  if (!settingsStore.inAppRunning) Grovs.pauseInAppMessages();
+  Grovs.setDebug(settingsStore.debugLevel);
+}
+
+function applySettingsOrLog(): void {
+  try {
+    applySavedSettings();
+  } catch (e) {
+    appLog.add(
+      'SDK',
+      'error',
+      'Saved settings not applied',
+      e instanceof Error ? e.message : String(e)
+    );
+  }
+}
+
 /** Listeners go on synchronously so a cold start link open is not missed. */
 export function startLogging(): void {
   Grovs.onDeeplinkReceived(({ link, data }) => {
@@ -78,6 +107,7 @@ export function startLogging(): void {
     .load()
     .catch(() => undefined)
     .then(() => {
+      applySettingsOrLog();
       appLog.restoreHistory();
       return logPushToken();
     })

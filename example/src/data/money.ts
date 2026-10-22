@@ -16,7 +16,12 @@ export function formatCents(cents: number): string {
   return `${Math.floor(cents / 100)}.${rest}`;
 }
 
+/** Hermes on iOS often formats with the code, so the common symbols are known here. */
+const SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', GBP: '£' };
+
 export function currencySymbol(code: string): string {
+  const known = SYMBOLS[code.toUpperCase()];
+  if (known) return known;
   try {
     const parts = new Intl.NumberFormat('en-US', {
       style: 'currency',
