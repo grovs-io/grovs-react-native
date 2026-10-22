@@ -69,7 +69,7 @@ export function startLogging(): void {
     appLog.add(
       'IN-APP',
       event.type === 'failed' ? 'error' : 'ok',
-      event.type[0]!.toUpperCase() + event.type.slice(1),
+      event.type.charAt(0).toUpperCase() + event.type.slice(1),
       inAppDetail(event)
     );
   });
@@ -80,5 +80,13 @@ export function startLogging(): void {
     .then(() => {
       appLog.restoreHistory();
       return logPushToken();
+    })
+    .catch((e) => {
+      appLog.add(
+        'SDK',
+        'error',
+        'Startup logging failed',
+        e instanceof Error ? e.message : String(e)
+      );
     });
 }

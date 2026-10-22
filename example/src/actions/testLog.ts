@@ -81,7 +81,7 @@ export class TestLog {
       code,
       ...(action ? { action } : {}),
     };
-    this.list = [entry, ...this.list].slice(0, MAX_ENTRIES);
+    this.prepend(entry);
     if (state === 'error') this.unseen = true;
     this.emit();
     return entry;
@@ -102,7 +102,7 @@ export class TestLog {
       ]),
       ...(link ? { link } : {}),
     };
-    this.list = [entry, ...this.list].slice(0, MAX_ENTRIES);
+    this.prepend(entry);
     this.saveLinks();
     this.emit();
     return entry;
@@ -127,8 +127,13 @@ export class TestLog {
   clear(): void {
     this.list = [];
     this.unseen = false;
-    if (this.restored) this.history.save([]);
+    this.restored = true;
+    this.history.save([]);
     this.emit();
+  }
+
+  private prepend(entry: LogEntry): void {
+    this.list = [entry, ...this.list].slice(0, MAX_ENTRIES);
   }
 
   private saveLinks(): void {
