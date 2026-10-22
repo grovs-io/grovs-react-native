@@ -11,7 +11,7 @@ import { MoneyField, SuggestField } from '../controls/Fields';
 import { KeyValueRows } from '../controls/KeyValueRows';
 import { help } from '../help';
 
-const EVENT_NAMES = ['signup', 'level_up', 'share'];
+export const EVENT_NAMES = ['signup', 'level_up', 'share'];
 const PURCHASE_TYPES: TransactionType[] = ['buy', 'cancel', 'refund'];
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'RON'];
 const PRODUCTS = ['pro_monthly', 'pro_yearly', 'coins_100'];
