@@ -29,9 +29,9 @@ yarn android
 
 ## What each tab tests
 
-- **Home**: SDK status (key, environment, push token, notification permission), the link the app was opened from, user identity (id and attributes), and quick actions for a link, the clipboard and a QR code.
+- **Home**: the SDK on/off switch, the active project, notification permission and the push token, the link the app was opened from, user identity (id and attributes), and quick actions: Generate link, Open clipboard, Track event and Purchase.
 - **Links**: build a link (title, subtitle, image, tags, data, custom redirects, access and tracking options), generate it, then copy, share, show it as a QR code, or inspect it. Inspect calls `Grovs.linkDetails`. The result card also shows the command to open the link on a device (`adb` on Android, `xcrun simctl` on iOS) so you can test a cold start.
-- **Events**: track custom events with tags and data, screen views (with global tags and screen aliases), and purchases. Reserved event names (`view`, `open`, `install`, `reinstall`, `app_open`, `time_spent`, `reactivation`, `user_referred`, `custom`, `screen_view`) are rejected. Purchases use a Play JSON on Android and an App Store transaction id on iOS.
+- **Events**: track custom events with tags and data, screen views (with global tags and screen aliases), and purchases. Reserved event names (`view`, `open`, `install`, `reinstall`, `app_open`, `time_spent`, `reactivation`, `user_referred`, `custom`, `screen_view`) show a warning, with a "Send anyway" button if you want to send them. Purchases use a Play JSON on Android and an App Store transaction id on iOS.
 - **In-app**: turn message display on or off, trigger a message, manage the queue (discard waiting, close current), set debug logging and the excluded screens (a second screen lets you open one to check no message shows).
 - **Settings**: pick the profile and change SDK options (see below).
 
