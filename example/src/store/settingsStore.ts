@@ -54,6 +54,8 @@ function putForm(key: FormKey, json: string) {
 
 export const DEFAULT_EXCLUDED_SCREENS = ['Excluded'];
 
+export const DEFAULT_IN_APP_TRIGGER = 'demo_tapped';
+
 export const DEFAULT_SCREEN_ALIASES: KeyValueRow[] = [
   { key: 'Home', value: 'Home screen', type: 'text' },
 ];
@@ -194,6 +196,13 @@ export const settingsStore = {
   },
   set inAppRunning(value: boolean) {
     putBool('inAppRunning', value);
+  },
+
+  get inAppTrigger(): string {
+    return exampleStore.get('inAppTrigger') ?? DEFAULT_IN_APP_TRIGGER;
+  },
+  set inAppTrigger(value: string) {
+    exampleStore.set('inAppTrigger', value);
   },
 
   get profiles(): Profile[] {
