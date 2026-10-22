@@ -16,7 +16,13 @@ import { ConsoleStrip, isOpenDrag } from '../ConsoleStrip';
 import { LogsPanel } from '../LogsPanel';
 
 const mockValues: Record<string, string> = {};
+jest.mock('react-native-grovs-wrapper', () => ({
+  __esModule: true,
+  default: {},
+}));
+
 jest.mock('../../../store/exampleStore', () => ({
+  NativeKeys: jest.requireActual('../../../store/exampleStore').NativeKeys,
   exampleStore: {
     load: () => Promise.resolve(),
     get: (key: string) => mockValues[key],

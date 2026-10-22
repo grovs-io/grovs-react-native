@@ -51,3 +51,14 @@ export function rowsFromJson(json: string): KeyValueRow[] {
 export function rowsToJson(rows: KeyValueRow[]): string {
   return JSON.stringify(toValueMap(rows), null, 2);
 }
+
+/** Text-only rows as a string map, for screen aliases. */
+export function toAliasMap(rows: KeyValueRow[]): Record<string, string> {
+  const map: Record<string, string> = {};
+  rows
+    .filter((row) => row.key.trim() !== '')
+    .forEach((row) => {
+      map[row.key.trim()] = row.value;
+    });
+  return map;
+}

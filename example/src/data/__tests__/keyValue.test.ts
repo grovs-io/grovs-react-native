@@ -2,6 +2,7 @@ import {
   detectType,
   rowsFromJson,
   rowsToJson,
+  toAliasMap,
   toValueMap,
   type KeyValueRow,
 } from '../keyValue';
@@ -79,5 +80,13 @@ describe('rowsToJson', () => {
       { key: 'level', value: '3', type: 'number' },
       { key: 'on', value: 'false', type: 'bool' },
     ]);
+  });
+});
+
+describe('toAliasMap', () => {
+  it('keeps values as text and skips blank keys', () => {
+    expect(
+      toAliasMap([row(' Checkout ', '12'), row('', 'x'), row('Home', 'Main')])
+    ).toEqual({ Checkout: '12', Home: 'Main' });
   });
 });

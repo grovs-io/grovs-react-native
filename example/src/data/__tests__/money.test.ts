@@ -27,4 +27,15 @@ describe('formatCents and currencySymbol', () => {
     expect(currencySymbol('USD')).toBe('$');
     expect(currencySymbol('XYZ1')).toBe('XYZ1');
   });
+
+  it('knows common symbols when Intl only gives the code, as Hermes on iOS does', () => {
+    const spy = jest.spyOn(Intl, 'NumberFormat').mockImplementation(() => {
+      throw new Error('no Intl');
+    });
+    expect(currencySymbol('USD')).toBe('$');
+    expect(currencySymbol('EUR')).toBe('€');
+    expect(currencySymbol('GBP')).toBe('£');
+    expect(currencySymbol('RON')).toBe('RON');
+    spy.mockRestore();
+  });
 });

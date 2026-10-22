@@ -163,8 +163,11 @@ const strings = (o: Json, key: string): string[] =>
 
 const TYPES: ValueType[] = ['text', 'number', 'bool'];
 
-function rows(o: Json, key: string, fallback: KeyValueRow[]): KeyValueRow[] {
-  const list = o[key];
+/** Rows read back from JSON, or `fallback` when it is not a list. */
+export function decodeRows(
+  list: unknown,
+  fallback: KeyValueRow[]
+): KeyValueRow[] {
   if (!Array.isArray(list)) return fallback;
   return list
     .filter((r): r is Json => typeof r === 'object' && r !== null)
@@ -174,6 +177,9 @@ function rows(o: Json, key: string, fallback: KeyValueRow[]): KeyValueRow[] {
       return { key: typeof r.key === 'string' ? r.key : '', value, type };
     });
 }
+
+const rows = (o: Json, key: string, fallback: KeyValueRow[]): KeyValueRow[] =>
+  decodeRows(o[key], fallback);
 
 function oneOf<T extends string>(
   o: Json,

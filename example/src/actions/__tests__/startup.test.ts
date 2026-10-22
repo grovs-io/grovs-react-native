@@ -19,9 +19,21 @@ const listeners: {
   inApp?: (e: any) => void;
 } = {};
 
+const mockGrovs = {
+  setIdentifier: jest.fn(),
+  setAttributes: jest.fn(),
+  setGlobalTags: jest.fn(),
+  setScreenAliases: jest.fn(),
+  setInAppExcludedScreens: jest.fn(),
+  setInAppDebugLogging: jest.fn(),
+  pauseInAppMessages: jest.fn(),
+  setDebug: jest.fn(),
+};
+
 jest.mock('react-native-grovs-wrapper', () => ({
   __esModule: true,
   default: {
+    ...mockGrovs,
     onDeeplinkReceived: (cb: any) => {
       listeners.link = cb;
     },
@@ -30,7 +42,10 @@ jest.mock('react-native-grovs-wrapper', () => ({
     },
   },
 }));
-jest.mock('../../store/exampleStore', () => ({ exampleStore: mockStore }));
+jest.mock('../../store/exampleStore', () => ({
+  NativeKeys: jest.requireActual('../../store/exampleStore').NativeKeys,
+  exampleStore: mockStore,
+}));
 
 function start() {
   let mod!: { startLogging: () => void; log: any };
@@ -49,6 +64,7 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
 beforeEach(() => {
   mockStore.values = {};
   mockStore.configureError = null;
+  Object.values(mockGrovs).forEach((fn) => fn.mockReset());
   mockStore.load.mockReset().mockResolvedValue(undefined);
   mockStore.set.mockReset();
   mockStore.fetchPushToken
@@ -171,5 +187,62 @@ describe('startLogging', () => {
     const log = start();
     expect(() => listeners.inApp!({ type: '', campaignId: 'c' })).not.toThrow();
     expect(log.entries()[0]?.type).toBe('IN-APP');
+  });
+
+  it('applies the default settings on first launch', async () => {
+    start();
+    await flush();
+    expect(mockGrovs.setIdentifier).toHaveBeenCalledWith('React native id');
+    expect(mockGrovs.setGlobalTags).toHaveBeenCalledWith(undefined);
+    expect(mockGrovs.setScreenAliases).toHaveBeenCalledWith({});
+    expect(mockGrovs.setInAppExcludedScreens).toHaveBeenCalledWith([
+      'Excluded',
+    ]);
+    expect(mockGrovs.setInAppDebugLogging).toHaveBeenCalledWith(true);
+    expect(mockGrovs.pauseInAppMessages).not.toHaveBeenCalled();
+    expect(mockGrovs.setDebug).toHaveBeenCalledWith('info');
+  });
+
+  it('applies saved settings once the store has loaded', async () => {
+    let finishLoad!: () => void;
+    mockStore.load.mockReturnValue(new Promise<void>((r) => (finishLoad = r)));
+    mockStore.values = {
+      identity: JSON.stringify({
+        identifier: '',
+        attributes: [{ key: 'plan', value: 'pro', type: 'text' }],
+      }),
+      globalTags: JSON.stringify(['beta']),
+      screenAliases: JSON.stringify([
+        { key: 'Checkout', value: 'Pay', type: 'text' },
+      ]),
+      excludedScreens: JSON.stringify([]),
+      inAppDebug: 'false',
+      inAppRunning: 'false',
+      debugLevel: 'error',
+    };
+    start();
+    expect(mockGrovs.setIdentifier).not.toHaveBeenCalled();
+    finishLoad();
+    await flush();
+    expect(mockGrovs.setIdentifier).toHaveBeenCalledWith(undefined);
+    expect(mockGrovs.setAttributes).toHaveBeenCalledWith({ plan: 'pro' });
+    expect(mockGrovs.setGlobalTags).toHaveBeenCalledWith(['beta']);
+    expect(mockGrovs.setScreenAliases).toHaveBeenCalledWith({
+      Checkout: 'Pay',
+    });
+    expect(mockGrovs.setInAppExcludedScreens).toHaveBeenCalledWith([]);
+    expect(mockGrovs.setInAppDebugLogging).toHaveBeenCalledWith(false);
+    expect(mockGrovs.pauseInAppMessages).toHaveBeenCalledTimes(1);
+    expect(mockGrovs.setDebug).toHaveBeenCalledWith('error');
+  });
+
+  it('logs an error when saved settings cannot be applied and still logs the push token', async () => {
+    mockGrovs.setIdentifier.mockImplementation(() => {
+      throw new Error('not linked');
+    });
+    const log = start();
+    await flush();
+    expect(titles(log)).toContain('Saved settings not applied');
+    expect(log.entries().some((e) => e.type === 'PUSH')).toBe(true);
   });
 });
