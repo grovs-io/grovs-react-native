@@ -73,16 +73,14 @@ describe('json', () => {
   });
 
   it('writes a blank base URL as null', () => {
-    const [encoded] = JSON.parse(
+    const [blank, empty] = JSON.parse(
       encodeProfiles([
         { ...base, baseUrl: '  ' },
         { ...base, baseUrl: '' },
       ])
     );
-    expect(encoded.baseUrl).toBeNull();
-    expect(
-      JSON.parse(encodeProfiles([{ ...base, baseUrl: '' }]))[0].baseUrl
-    ).toBeNull();
+    expect(blank.baseUrl).toBeNull();
+    expect(empty.baseUrl).toBeNull();
   });
 
   it('uses the stored field names', () => {

@@ -15,6 +15,7 @@ import {
   linkOverridesSummary,
   purchaseFullLabel,
   purchaseLabel,
+  purchaseStartDate,
   type LinkForm,
 } from '../forms';
 
@@ -35,6 +36,7 @@ describe('defaults', () => {
       amount: '4.99',
       currency: 'USD',
       productId: 'pro_monthly',
+      startDaysAgo: 0,
     });
   });
 });
@@ -90,6 +92,7 @@ describe('json', () => {
       amount: '9.99',
       currency: 'EUR',
       productId: 'coins_100',
+      startDaysAgo: 30,
       originalJson: '{}',
     };
     expect(decodePurchaseForm(encodePurchaseForm(purchase))).toEqual(purchase);
@@ -119,5 +122,27 @@ describe('summaries', () => {
     expect(purchaseLabel({ ...DEFAULT_PURCHASE_FORM, amount: 'x' })).toBe(
       'Log purchase'
     );
+  });
+});
+
+describe('purchase start date', () => {
+  it('is undefined for now and ISO for days ago', () => {
+    const now = Date.UTC(2026, 9, 22);
+    expect(purchaseStartDate(0, now)).toBeUndefined();
+    expect(purchaseStartDate(30, now)).toBe('2026-09-22T00:00:00.000Z');
+  });
+
+  it('ignores a bogus startDaysAgo', () => {
+    expect(decodePurchaseForm('{"startDaysAgo":"x"}').startDaysAgo).toBe(0);
+    expect(decodePurchaseForm('{"startDaysAgo":-2}').startDaysAgo).toBe(0);
+  });
+});
+
+describe('decoders', () => {
+  it('return copies of the defaults', () => {
+    expect(decodeLinkForm(null)).not.toBe(DEFAULT_LINK_FORM);
+    expect(decodePurchaseForm('{}')).not.toBe(DEFAULT_PURCHASE_FORM);
+    decodeLinkForm('{}').data.push({ key: 'x', value: '', type: 'text' });
+    expect(DEFAULT_LINK_FORM.data).toHaveLength(1);
   });
 });
