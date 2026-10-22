@@ -1,97 +1,62 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Grovs React Native test app
 
-# Getting Started
+A small app to try every call of the Grovs React Native wrapper by hand. It is modelled on the Grovs Android test app. It is not a template for your own app.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Run it
 
-## Step 1: Start Metro
+Run everything from the `example` folder, after `yarn install` at the repo root.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
+Start Metro:
 
 ```sh
-# Using npm
-npm start
-
-# OR using Yarn
 yarn start
-```
-
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
 ```
 
 ### iOS
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
-
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
-
 ```sh
-bundle install
-```
-
-Then, and every time you update your native dependencies, run:
-
-```sh
-bundle exec pod install
-```
-
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
-
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
+cd ios && bundle install && bundle exec pod install && cd ..
 yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### Android
 
-This is one way to run your app. You can also build it directly from Android Studio or Xcode.
+Use JDK 17 (`JAVA_HOME` must point to it). The app also needs a Firebase file at `android/app/google-services.json`. It is already in the repo. Replace it with your own if you change the application id (`io.grovs.example`).
 
-## Step 3: Modify your app
+```sh
+yarn android
+```
 
-Now that you have successfully run the app, let's make changes!
+## What each tab tests
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes. This is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+- **Home**: SDK status (key, environment, push token, notification permission), the link the app was opened from, user identity (id and attributes), and quick actions for a link, the clipboard and a QR code.
+- **Links**: build a link (title, subtitle, image, tags, data, custom redirects, access and tracking options), generate it, then copy, share, show it as a QR code, or inspect it. Inspect calls `Grovs.linkDetails`. The result card also shows the command to open the link on a device (`adb` on Android, `xcrun simctl` on iOS) so you can test a cold start.
+- **Events**: track custom events with tags and data, screen views (with global tags and screen aliases), and purchases. Reserved event names (`view`, `open`, `install`, `reinstall`, `app_open`, `time_spent`, `reactivation`, `user_referred`, `custom`, `screen_view`) are rejected. Purchases use a Play JSON on Android and an App Store transaction id on iOS.
+- **In-app**: turn message display on or off, trigger a message, manage the queue (discard waiting, close current), set debug logging and the excluded screens (a second screen lets you open one to check no message shows).
+- **Settings**: pick the profile and change SDK options (see below).
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## Settings and profiles
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+A profile is an SDK key, an environment (test or production), an optional base URL, and a few options. The first launch uses the profile "Grovs test". You can add, edit and remove profiles.
 
-## Congratulations! :tada:
+The SDK is configured natively before React Native starts, so a change to the key, environment, base URL or options only applies after a restart. When something needs it, a bar at the bottom of Settings says "Restart to apply".
 
-You've successfully run and modified your React Native App. :partying_face:
+- Android: the button relaunches the app.
+- iOS: an app cannot relaunch itself. The button closes the app and you open it again.
 
-### Now what?
+## Logs
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+The strip at the top shows the latest log line. Tap it to open the logs panel with the full history (up to 500 entries in memory). Tap an entry to see its detail, and export the log. The last 50 link opens are kept between launches. The ↻ button on an entry runs that action again.
 
-# Troubleshooting
+## iOS and Android differences
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+- Inspect works on both platforms.
+- Cold start commands: `adb shell am start -a android.intent.action.VIEW -d "<link>"` on Android, `xcrun simctl openurl booted "<link>"` on iOS. Both are shown on the link result card.
+- Purchases: Play JSON on Android, App Store transaction id on iOS.
+- There is no "Block all messages" switch, because the wrapper has no way to veto messages.
+- There is no call style option.
+- Restart: relaunch on Android, close on iOS.
 
-# Learn More
+## Fonts
 
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+The app uses Geist and Geist Mono, shipped in `assets/fonts` under the SIL Open Font License. The license text is in `assets/licenses/geist-OFL.txt`.
