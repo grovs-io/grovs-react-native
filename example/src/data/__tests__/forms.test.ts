@@ -11,6 +11,7 @@ import {
   encodeLinkForm,
   encodePurchaseForm,
   encodeScreenForm,
+  linkFormError,
   linkMoreSummary,
   linkOverridesSummary,
   purchaseFullLabel,
@@ -144,5 +145,38 @@ describe('decoders', () => {
     expect(decodePurchaseForm('{}')).not.toBe(DEFAULT_PURCHASE_FORM);
     decodeLinkForm('{}').data.push({ key: 'x', value: '', type: 'text' });
     expect(DEFAULT_LINK_FORM.data).toHaveLength(1);
+  });
+});
+
+describe('linkFormError', () => {
+  const form = (overrides: Partial<LinkForm>): LinkForm => ({
+    ...DEFAULT_LINK_FORM,
+    ...overrides,
+  });
+
+  it('accepts the default form and blank redirect URLs', () => {
+    expect(linkFormError(DEFAULT_LINK_FORM)).toBeNull();
+    expect(
+      linkFormError(
+        form({
+          redirectsOn: true,
+          android: { url: '', openAppIfInstalled: false },
+        })
+      )
+    ).toBeNull();
+  });
+
+  it('names a bad image URL', () => {
+    expect(linkFormError(form({ imageUrl: 'picsum.photos/a.png' }))).toBe(
+      'Image URL must start with http:// or https://'
+    );
+  });
+
+  it('names a bad redirect URL only while redirects are on', () => {
+    const ios = { url: 'www.google', openAppIfInstalled: false };
+    expect(linkFormError(form({ ios }))).toBeNull();
+    expect(linkFormError(form({ ios, redirectsOn: true }))).toBe(
+      'iOS redirect must start with http:// or https://'
+    );
   });
 });

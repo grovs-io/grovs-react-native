@@ -7,7 +7,8 @@ import type {
 } from 'react-native-grovs-wrapper';
 import type { LinkForm, Redirect, TriState } from '../data/forms';
 import { toValueMap } from '../data/keyValue';
-import { callCode } from './callCode';
+import { extractLinkPath } from '../data/linkTools';
+import { callCode, render } from './callCode';
 import type { TestAction } from './log';
 
 const filled = (text: string): string | undefined =>
@@ -40,13 +41,15 @@ export function toGenerateOptions(form: LinkForm): GenerateLinkOptions {
       })
     : undefined;
   // Native skips platforms that are missing, so not all three are needed.
-  const customRedirects = form.redirectsOn
-    ? (defined({
-        android: redirect(form.android),
-        ios: redirect(form.ios),
-        desktop: redirect(form.desktop),
-      }) as CustomRedirects)
-    : undefined;
+  const redirects = defined({
+    android: redirect(form.android),
+    ios: redirect(form.ios),
+    desktop: redirect(form.desktop),
+  });
+  const customRedirects =
+    form.redirectsOn && Object.keys(redirects).length > 0
+      ? (redirects as CustomRedirects)
+      : undefined;
   return defined({
     title: filled(form.title),
     subtitle: filled(form.subtitle),
@@ -101,6 +104,26 @@ export function buildGenerateLink(form: LinkForm): TestAction {
         detail: link,
         value: link,
         code: `${code}\n\n-> "${link}"`,
+      };
+    },
+  };
+}
+
+/** Looks up a link from a full link, host/path or just its path. */
+export function buildInspect(input: string): TestAction {
+  const path = extractLinkPath(input);
+  const code = callCode('linkDetails', [['path', path ?? input.trim()]]);
+  return {
+    type: 'INSPECT',
+    title: 'Inspect link',
+    code,
+    run: async () => {
+      if (path === null) throw new Error('Not a Grovs link');
+      const details = await Grovs.linkDetails(path);
+      return {
+        state: 'ok',
+        detail: `${details.title || 'Untitled'} · ${path}`,
+        code: `${code}\n\n-> ${render(details)}`,
       };
     },
   };
