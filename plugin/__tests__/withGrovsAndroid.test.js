@@ -436,11 +436,24 @@ describe('withGrovsAndroid - push', () => {
       const opts = { ...options, notificationIcon: 'ic_stat' };
       addGrovsPushManifestEntries(manifest, opts);
       addGrovsPushManifestEntries(manifest, opts);
+      expect(manifest.manifest.application[0]['meta-data']).toContainEqual({
+        $: {
+          'android:name': 'io.grovs.NotificationIconSmall',
+          'android:resource': '@drawable/ic_stat',
+        },
+      });
+      expect(manifest.manifest.application[0]['meta-data']).toHaveLength(2);
+    });
+
+    it('opts in to the Firebase token fetch once', () => {
+      const manifest = manifestFixture();
+      addGrovsPushManifestEntries(manifest, options);
+      addGrovsPushManifestEntries(manifest, options);
       expect(manifest.manifest.application[0]['meta-data']).toEqual([
         {
           $: {
-            'android:name': 'io.grovs.NotificationIconSmall',
-            'android:resource': '@drawable/ic_stat',
+            'android:name': 'io.grovs.wrapper.FetchFirebaseToken',
+            'android:value': 'true',
           },
         },
       ]);
@@ -562,8 +575,25 @@ describe('withGrovsAndroid - push', () => {
         push: false,
         androidNotificationIcon: 'ic_stat',
       });
-      expect(manifest.manifest.application[0]['meta-data']).toHaveLength(1);
+      expect(manifest.manifest.application[0]['meta-data']).toEqual([
+        {
+          $: {
+            'android:name': 'io.grovs.NotificationIconSmall',
+            'android:resource': '@drawable/ic_stat',
+          },
+        },
+      ]);
       expect(manifest.manifest['uses-permission']).toHaveLength(1);
+    });
+
+    it('opts in to the Firebase token fetch when push is on', () => {
+      const { manifest } = runManifest({ push: true });
+      expect(manifest.manifest.application[0]['meta-data']).toContainEqual({
+        $: {
+          'android:name': 'io.grovs.wrapper.FetchFirebaseToken',
+          'android:value': 'true',
+        },
+      });
     });
   });
 });

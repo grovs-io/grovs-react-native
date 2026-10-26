@@ -16,6 +16,7 @@ const FIREBASE_MESSAGING_DEP =
   "implementation 'com.google.firebase:firebase-messaging:24.0.3'";
 const GROVS_MESSAGING_SERVICE = 'io.grovs.handlers.MessagingService';
 const NOTIFICATION_ICON_META = 'io.grovs.NotificationIconSmall';
+const FETCH_FIREBASE_TOKEN_META = 'io.grovs.wrapper.FetchFirebaseToken';
 const POST_NOTIFICATIONS = 'android.permission.POST_NOTIFICATIONS';
 const RN_FIREBASE_MESSAGING = '@react-native-firebase/messaging';
 const THIRD_PARTY_PUSH_LIBRARIES = [
@@ -106,20 +107,21 @@ function withGrovsFirebaseDependency(config) {
   });
 }
 
-function addGrovsNotificationIcon(manifest, notificationIcon) {
+function setApplicationMetaData(manifest, name, attributes) {
   const application = manifest.manifest.application?.[0];
   if (!application) return manifest;
   const metaData = (application['meta-data'] ?? []).filter(
-    (entry) => entry.$?.['android:name'] !== NOTIFICATION_ICON_META
+    (entry) => entry.$?.['android:name'] !== name
   );
-  metaData.push({
-    $: {
-      'android:name': NOTIFICATION_ICON_META,
-      'android:resource': `@drawable/${notificationIcon}`,
-    },
-  });
+  metaData.push({ $: { 'android:name': name, ...attributes } });
   application['meta-data'] = metaData;
   return manifest;
+}
+
+function addGrovsNotificationIcon(manifest, notificationIcon) {
+  return setApplicationMetaData(manifest, NOTIFICATION_ICON_META, {
+    'android:resource': `@drawable/${notificationIcon}`,
+  });
 }
 
 function addGrovsPushManifestEntries(
@@ -136,6 +138,10 @@ function addGrovsPushManifestEntries(
   ) {
     root['uses-permission'].push({ $: { 'android:name': POST_NOTIFICATIONS } });
   }
+
+  setApplicationMetaData(manifest, FETCH_FIREBASE_TOKEN_META, {
+    'android:value': 'true',
+  });
 
   const application = root.application?.[0];
   if (application && removeGrovsService) {

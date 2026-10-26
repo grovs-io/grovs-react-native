@@ -35,7 +35,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   init {
     GrovsInAppEvents.install()
-    GrovsPush.fetchFirebaseToken()
+    GrovsPush.fetchFirebaseToken(reactContext)
     reactContext.addActivityEventListener(GrovsPush)
   }
 
@@ -67,6 +67,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
     GrovsConsent.setEnabled(reactApplicationContext, enabled)
     Grovs.setSDK(enabled = enabled)
     if (enabled) {
+      GrovsPush.fetchFirebaseToken(reactApplicationContext)
       // Retry a launch link that arrived while consent was disabled.
       Handler(Looper.getMainLooper()).post {
         if (GrovsConsent.isEnabled(reactApplicationContext)) {

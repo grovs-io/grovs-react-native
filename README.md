@@ -80,6 +80,7 @@ The iOS SDK is added automatically via CocoaPods when you run `pod install`. Aft
 - Run `pod install` again so iOS picks up the Grovs 3.1 pods.
 - `DeeplinkResponse.link` is optional now. A push without a link arrives without it.
 - The wrapper owns the native in-app delegate (iOS) and listener (Android). Remove any you set yourself and use `onInAppMessage`.
+- On Android the wrapper only fetches the FCM token for you if your manifest opts in. See the Android push setup.
 - `displayMessages()` and `numberOfUnreadMessages()` do nothing now. They resolve, and the count is always `0`.
 
 ## Expo Integration
@@ -119,7 +120,7 @@ If you're using Expo with a development build, the config plugin automates all n
 Set `"push": true` to add the native push setup:
 
 - **iOS:** adds the `aps-environment` entitlement (`development` if missing), `didRegisterForRemoteNotificationsWithDeviceToken` calling `Grovs.setPushToken(deviceToken:)`, and a `userNotificationCenter(_:didReceive:...)` method calling `Grovs.handleNotificationResponse`. That method only runs if your app makes `AppDelegate` the notification center delegate. The plugin never sets the delegate. If a push library owns it, use `handleNotificationOpen` instead (see [Push notifications](#push-notifications)) and wire only one path.
-- **Android:** adds `firebase-messaging` (skipped if `@react-native-firebase/messaging` is installed) and `POST_NOTIFICATIONS`. If `@react-native-firebase/messaging` or `expo-notifications` is installed, it removes the Grovs `MessagingService`. Firebase config comes from Expo's `android.googleServicesFile`.
+- **Android:** adds `firebase-messaging` (skipped if `@react-native-firebase/messaging` is installed), `POST_NOTIFICATIONS` and the `io.grovs.wrapper.FetchFirebaseToken` flag that lets the wrapper fetch the FCM token. If `@react-native-firebase/messaging` or `expo-notifications` is installed, it removes the Grovs `MessagingService`. Firebase config comes from Expo's `android.googleServicesFile`.
 
 `"iosRichPush": true` creates the `GrovsNotificationService` extension target with bundle id `<app bundle id>.GrovsNotificationService` and adds the EAS `appExtensions` entry.
 
@@ -469,7 +470,13 @@ Run `pod install` again after this.
 
 Your app asks the user for this permission at runtime.
 
-**2. Token.** When `firebase-messaging` is in your app, the wrapper fetches the FCM token for you at each cold start. While the Grovs `MessagingService` is in place, it also picks up new tokens. If you removed that service (see "Using another push library" below), pass new tokens yourself, for example with `@react-native-firebase/messaging`:
+**2. Token.** The wrapper can fetch the FCM token for you at each cold start. This is off by default. To turn it on, add this inside `<application>` in `AndroidManifest.xml` (the Expo plugin does it when `push` is `true`):
+
+```xml
+<meta-data android:name="io.grovs.wrapper.FetchFirebaseToken" android:value="true" />
+```
+
+It needs `firebase-messaging` in your app. The token is not sent while the SDK is disabled with `setSDK(false)`, and it is fetched again when you call `setSDK(true)`. While the Grovs `MessagingService` is in place, it also picks up new tokens. If you removed that service (see "Using another push library" below), pass new tokens yourself, for example with `@react-native-firebase/messaging`:
 
 ```typescript
 const token = await messaging().getToken();

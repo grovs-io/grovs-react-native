@@ -1,7 +1,9 @@
 package com.grovswrapper
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Handler
 import android.os.Looper
 import com.facebook.react.bridge.BaseActivityEventListener
@@ -12,6 +14,7 @@ import java.util.WeakHashMap
 
 object GrovsPush : BaseActivityEventListener() {
   private const val CAMPAIGN_ID = "grovs_campaign_id"
+  private const val FETCH_FIREBASE_TOKEN_META = "io.grovs.wrapper.FetchFirebaseToken"
 
   private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -54,13 +57,26 @@ object GrovsPush : BaseActivityEventListener() {
   private fun Map<String, Any?>.toStringMap(): Map<String, String> =
     mapNotNull { (key, value) -> value?.let { key to it.toString() } }.toMap()
 
-  fun fetchFirebaseToken() {
+  /** Sends the FCM token to Grovs only if the app opted in from its manifest and consent allows it. */
+  fun fetchFirebaseToken(context: Context) {
+    if (!isFirebaseTokenFetchEnabled(context) || !GrovsConsent.isEnabled(context)) return
     try {
       Class.forName("com.google.firebase.messaging.FirebaseMessaging")
-      FirebaseMessaging.getInstance().token.addOnSuccessListener { Grovs.pushToken = it }
+      FirebaseMessaging.getInstance().token.addOnSuccessListener { token ->
+        if (GrovsConsent.isEnabled(context)) Grovs.pushToken = token
+      }
     } catch (_: ClassNotFoundException) {
     } catch (_: NoClassDefFoundError) {
     } catch (_: IllegalStateException) {
     }
   }
+
+  private fun isFirebaseTokenFetchEnabled(context: Context): Boolean =
+    try {
+      context.packageManager
+        .getApplicationInfo(context.packageName, PackageManager.GET_META_DATA)
+        .metaData?.getBoolean(FETCH_FIREBASE_TOKEN_META, false) ?: false
+    } catch (_: PackageManager.NameNotFoundException) {
+      false
+    }
 }
