@@ -1,9 +1,15 @@
 /* eslint-disable no-shadow */
+const fs = require('fs');
+const path = require('path');
 const {
   withInfoPlist,
   withEntitlementsPlist,
   withAppDelegate,
+  withDangerousMod,
 } = require('expo/config-plugins');
+const { readGrovsIosSdkVersion, grovsPodLine } = require('./grovsIosPod');
+
+const GROVS_POD_MARKER = '# react-native-grovs-wrapper:pod';
 
 function withGrovsURLScheme(config, { scheme }) {
   return withInfoPlist(config, (config) => {
@@ -289,6 +295,48 @@ function withGrovsAppDelegate(config, props) {
   });
 }
 
+function leadingWhitespace(line) {
+  return line.match(/^\s*/)[0];
+}
+
+function addGrovsPod(podfile, version) {
+  const podLine = `${grovsPodLine('Grovs', version)} ${GROVS_POD_MARKER}`;
+  const lines = podfile.split('\n');
+
+  const existing = lines.findIndex((line) => line.includes(GROVS_POD_MARKER));
+  if (existing !== -1) {
+    lines[existing] = leadingWhitespace(lines[existing]) + podLine;
+    return lines.join('\n');
+  }
+
+  const anchor = lines.findIndex((line) => /^\s*use_expo_modules!/.test(line));
+  if (anchor === -1) {
+    throw new Error(
+      'react-native-grovs-wrapper plugin could not find use_expo_modules! in the Podfile.'
+    );
+  }
+  lines.splice(anchor + 1, 0, leadingWhitespace(lines[anchor]) + podLine);
+  return lines.join('\n');
+}
+
+function withGrovsPod(config) {
+  return withDangerousMod(config, [
+    'ios',
+    async (config) => {
+      const podfilePath = path.join(
+        config.modRequest.platformProjectRoot,
+        'Podfile'
+      );
+      const podfile = fs.readFileSync(podfilePath, 'utf8');
+      const updated = addGrovsPod(podfile, readGrovsIosSdkVersion());
+      if (updated !== podfile) {
+        fs.writeFileSync(podfilePath, updated, 'utf8');
+      }
+      return config;
+    },
+  ]);
+}
+
 function withGrovsIOS(config, props) {
   config = withGrovsURLScheme(config, props);
   config = withGrovsAssociatedDomains(config, props);
@@ -296,6 +344,7 @@ function withGrovsIOS(config, props) {
     config = withGrovsPushEntitlement(config);
   }
   config = withGrovsAppDelegate(config, props);
+  config = withGrovsPod(config);
   return config;
 }
 
@@ -310,3 +359,4 @@ module.exports.addGrovsPushTokenHandler = addGrovsPushTokenHandler;
 module.exports.addGrovsNotificationResponseHandler =
   addGrovsNotificationResponseHandler;
 module.exports.withGrovsPushEntitlement = withGrovsPushEntitlement;
+module.exports.addGrovsPod = addGrovsPod;

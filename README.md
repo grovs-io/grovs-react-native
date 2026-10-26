@@ -75,9 +75,17 @@ It is published on Maven Central, so no extra repository is needed. The Expo con
 
 The iOS SDK is added automatically via CocoaPods when you run `pod install`. After upgrading the wrapper, run `pod install` again.
 
+CocoaPods trunk no longer accepts new versions, so new Grovs iOS releases are installed from the Grovs GitHub repo. Add this inside your app target in `ios/Podfile`, with the tag matching `grovsIosSdkVersion` in the wrapper's `package.json`:
+
+```ruby
+pod 'Grovs', :git => 'https://github.com/grovs-io/grovs-iOS.git', :tag => '3.1.0'
+```
+
+The Expo config plugin adds this line for you.
+
 ## Upgrading from 3.0.x
 
-- Run `pod install` again so iOS picks up the Grovs 3.1 pods.
+- Run `pod install` again so iOS picks up the Grovs 3.1 pods. We recommend installing them from git, see [iOS dependency](#ios-dependency).
 - `DeeplinkResponse.link` is optional now. A push without a link arrives without it.
 - The wrapper owns the native in-app delegate (iOS) and listener (Android). Remove any you set yourself and use `onInAppMessage`.
 - On Android the wrapper only fetches the FCM token for you if your manifest opts in. See the Android push setup.
@@ -123,6 +131,8 @@ Set `"push": true` to add the native push setup:
 - **Android:** adds `firebase-messaging` (skipped if `@react-native-firebase/messaging` is installed), `POST_NOTIFICATIONS` and the `io.grovs.wrapper.FetchFirebaseToken` flag that lets the wrapper fetch the FCM token. If `@react-native-firebase/messaging` or `expo-notifications` is installed, it removes the Grovs `MessagingService`. Firebase config comes from Expo's `android.googleServicesFile`.
 
 `"iosRichPush": true` creates the `GrovsNotificationService` extension target with bundle id `<app bundle id>.GrovsNotificationService` and adds the EAS `appExtensions` entry.
+
+The plugin installs the `Grovs` pod, and the `GrovsNotificationService` pod when `iosRichPush` is on, from the Grovs GitHub repo at the tag the wrapper is built for. Each prebuild moves them to the current tag.
 
 ```json
 {
@@ -446,7 +456,7 @@ if (token) {
 
 ```ruby
 target 'GrovsNotificationService' do
-  pod 'GrovsNotificationService', '~> 3.1'
+  pod 'GrovsNotificationService', :git => 'https://github.com/grovs-io/grovs-iOS.git', :tag => '3.1.0'
 end
 ```
 

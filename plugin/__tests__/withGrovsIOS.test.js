@@ -5,12 +5,18 @@ const {
   addGrovsURLHandler,
   addGrovsPushTokenHandler,
   addGrovsNotificationResponseHandler,
+  addGrovsPod,
 } = require('../withGrovsIOS');
 const withGrovsIOS = require('../withGrovsIOS');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const {
   withEntitlementsPlist,
   withAppDelegate,
+  withDangerousMod,
 } = require('expo/config-plugins');
+const { grovsIosSdkVersion } = require('../../package.json');
 
 const SAMPLE_APP_DELEGATE = `import UIKit
 import React
@@ -402,5 +408,57 @@ describe('withGrovsIOS - push', () => {
     it('does not touch entitlements when push is off', () => {
       expect(runEntitlements({}, { push: false })).toEqual([]);
     });
+  });
+});
+
+describe('withGrovsIOS - Podfile', () => {
+  const PODFILE =
+    "target 'App' do\n  use_expo_modules!\n\n  config = use_native_modules!\nend\n";
+  const POD_LINE =
+    "  pod 'Grovs', :git => 'https://github.com/grovs-io/grovs-iOS.git', :tag => '3.1.0' # react-native-grovs-wrapper:pod";
+
+  it('adds the Grovs pod from the SDK git tag inside the app target', () => {
+    const result = addGrovsPod(PODFILE, '3.1.0');
+    expect(result).toBe(
+      `target 'App' do\n  use_expo_modules!\n${POD_LINE}\n\n  config = use_native_modules!\nend\n`
+    );
+  });
+
+  it('is idempotent', () => {
+    const once = addGrovsPod(PODFILE, '3.1.0');
+    expect(addGrovsPod(once, '3.1.0')).toBe(once);
+  });
+
+  it('moves an existing pod line to the new tag', () => {
+    const updated = addGrovsPod(addGrovsPod(PODFILE, '3.1.0'), '3.2.0');
+    expect(updated).toContain(":tag => '3.2.0'");
+    expect(updated).not.toContain("'3.1.0'");
+    expect(updated.split("pod 'Grovs'")).toHaveLength(2);
+  });
+
+  it('throws when the Podfile has no use_expo_modules!', () => {
+    expect(() => addGrovsPod("target 'App' do\nend\n", '3.1.0')).toThrow(
+      'use_expo_modules!'
+    );
+  });
+
+  it('writes the package.json SDK version into the Podfile', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'grovs-plugin-'));
+    try {
+      fs.writeFileSync(path.join(dir, 'Podfile'), PODFILE);
+      withDangerousMod.mockClear();
+      withGrovsIOS(
+        {},
+        { apiKey: 'key', scheme: 'grovs', associatedDomains: [] }
+      );
+      const [[, [platform, mod]]] = withDangerousMod.mock.calls;
+      expect(platform).toBe('ios');
+      await mod({ modRequest: { platformProjectRoot: dir } });
+      expect(fs.readFileSync(path.join(dir, 'Podfile'), 'utf8')).toContain(
+        `:tag => '${grovsIosSdkVersion}'`
+      );
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

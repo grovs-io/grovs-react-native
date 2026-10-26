@@ -171,19 +171,35 @@ describe('withGrovsNotificationService - Podfile', () => {
     "target 'GrovsNotificationService' do\n" +
     "  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']\n" +
     "  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']\n" +
-    "  pod 'GrovsNotificationService', '~> 3.1'\n" +
+    "  pod 'GrovsNotificationService', :git => 'https://github.com/grovs-io/grovs-iOS.git', :tag => '3.1.0'\n" +
     'end';
 
-  it('adds the extension pod target once', () => {
-    const result = addGrovsNotificationServicePod(PODFILE);
+  it('adds the extension pod target once, from the SDK git tag', () => {
+    const result = addGrovsNotificationServicePod(PODFILE, '3.1.0');
     expect(result.startsWith(PODFILE)).toBe(true);
     expect(result).toContain(BLOCK);
   });
 
   it('is idempotent', () => {
-    const once = addGrovsNotificationServicePod(PODFILE);
-    expect(addGrovsNotificationServicePod(once)).toBe(once);
+    const once = addGrovsNotificationServicePod(PODFILE, '3.1.0');
+    expect(addGrovsNotificationServicePod(once, '3.1.0')).toBe(once);
     expect(once.split(BLOCK)).toHaveLength(2);
+  });
+
+  it('moves an existing extension pod to the new tag', () => {
+    const old = addGrovsNotificationServicePod(PODFILE, '3.1.0');
+    const updated = addGrovsNotificationServicePod(old, '3.2.0');
+    expect(updated).toContain(":tag => '3.2.0'");
+    expect(updated).not.toContain("'3.1.0'");
+    expect(updated.split("pod 'GrovsNotificationService'")).toHaveLength(2);
+  });
+
+  it('replaces a pod pinned to a trunk version', () => {
+    const trunk = `${PODFILE}\n${BLOCK.replace(
+      /pod 'GrovsNotificationService'.*/,
+      "pod 'GrovsNotificationService', '~> 3.1'"
+    )}\n`;
+    expect(addGrovsNotificationServicePod(trunk, '3.1.0')).toContain(BLOCK);
   });
 });
 

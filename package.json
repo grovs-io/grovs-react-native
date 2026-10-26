@@ -1,6 +1,7 @@
 {
   "name": "react-native-grovs-wrapper",
   "version": "3.0.2",
+  "grovsIosSdkVersion": "3.1.0",
   "description": "Grovs react native SDK",
   "source": "./src/index.tsx",
   "main": "./lib/commonjs/index.js",

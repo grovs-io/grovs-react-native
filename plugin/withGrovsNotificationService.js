@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const { withXcodeProject, withDangerousMod } = require('expo/config-plugins');
+const { readGrovsIosSdkVersion, grovsPodLine } = require('./grovsIosPod');
 
 const NAME = 'GrovsNotificationService';
 const SOURCE_FILE = 'NotificationService.swift';
@@ -10,14 +11,7 @@ const INFO_PLIST = 'Info.plist';
 const TEMPLATES_DIR = path.join(__dirname, 'templates', NAME);
 const EMBED_PHASE = 'Embed Foundation Extensions';
 const APP_PRODUCT_TYPE = 'com.apple.product-type.application';
-// CocoaPods needs the host app and its extension to share the same linkage.
-const PODFILE_BLOCK = [
-  `target '${NAME}' do`,
-  "  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']",
-  "  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']",
-  `  pod '${NAME}', '~> 3.1'`,
-  'end',
-].join('\n');
+const POD_LINE_REGEX = new RegExp(`^([ \\t]*)pod '${NAME}'.*$`, 'm');
 
 function unquote(value) {
   return typeof value === 'string' ? value.replace(/^"(.*)"$/, '$1') : value;
@@ -231,12 +225,24 @@ function addGrovsNotificationServiceTarget(
   return project;
 }
 
-function addGrovsNotificationServicePod(podfile) {
+function addGrovsNotificationServicePod(podfile, version) {
+  const podLine = grovsPodLine(NAME, version);
   if (podfile.includes(`target '${NAME}' do`)) {
-    return podfile;
+    return podfile.replace(
+      POD_LINE_REGEX,
+      (_, indent) => `${indent}${podLine}`
+    );
   }
+  // CocoaPods needs the host app and its extension to share the same linkage.
+  const block = [
+    `target '${NAME}' do`,
+    "  use_frameworks! :linkage => podfile_properties['ios.useFrameworks'].to_sym if podfile_properties['ios.useFrameworks']",
+    "  use_frameworks! :linkage => ENV['USE_FRAMEWORKS'].to_sym if ENV['USE_FRAMEWORKS']",
+    `  ${podLine}`,
+    'end',
+  ].join('\n');
   const separator = podfile.endsWith('\n') ? '\n' : '\n\n';
-  return `${podfile}${separator}${PODFILE_BLOCK}\n`;
+  return `${podfile}${separator}${block}\n`;
 }
 
 function addGrovsEasAppExtension(config, bundleIdentifier) {
@@ -293,7 +299,10 @@ function withGrovsNotificationServiceFiles(config) {
 
       const podfilePath = path.join(iosRoot, 'Podfile');
       const podfile = fs.readFileSync(podfilePath, 'utf8');
-      const updated = addGrovsNotificationServicePod(podfile);
+      const updated = addGrovsNotificationServicePod(
+        podfile,
+        readGrovsIosSdkVersion()
+      );
       if (updated !== podfile) {
         fs.writeFileSync(podfilePath, updated, 'utf8');
       }
