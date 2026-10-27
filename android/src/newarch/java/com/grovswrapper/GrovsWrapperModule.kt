@@ -297,7 +297,7 @@ class GrovsWrapperModule(reactContext: ReactApplicationContext) :
   }
 
   override fun handleNotificationOpen(data: ReadableMap, promise: Promise) {
-    GrovsPush.handleNotificationOpen(data.toMap(), currentActivity, promise::resolve)
+    GrovsPush.handleNotificationOpen(data.toMap(), reactApplicationContext.currentActivity, promise::resolve)
   }
 
   override fun isGrovsNotification(data: ReadableMap, promise: Promise) {

@@ -314,7 +314,7 @@ class GrovsWrapperModule(private val reactContext: ReactApplicationContext) :
 
   @ReactMethod
   fun handleNotificationOpen(data: ReadableMap, promise: Promise) {
-    GrovsPush.handleNotificationOpen(data.toMap(), currentActivity, promise::resolve)
+    GrovsPush.handleNotificationOpen(data.toMap(), reactApplicationContext.currentActivity, promise::resolve)
   }
 
   @ReactMethod
