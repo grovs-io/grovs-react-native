@@ -28,13 +28,25 @@ describe('isWebUrl', () => {
 describe('openCommand', () => {
   it('builds the adb command', () => {
     expect(openCommand('https://grovs.link/x', 'android')).toBe(
-      'adb shell am start -a android.intent.action.VIEW -d "https://grovs.link/x" io.grovs.example'
+      `adb shell "am start -a android.intent.action.VIEW -d 'https://grovs.link/x' io.grovs.example"`
     );
   });
 
   it('builds the simctl command', () => {
     expect(openCommand('https://grovs.link/x', 'ios')).toBe(
-      'xcrun simctl openurl booted "https://grovs.link/x"'
+      `xcrun simctl openurl booted 'https://grovs.link/x'`
+    );
+  });
+
+  it('quotes characters the shells would read', () => {
+    expect(openCommand(`https://grovs.link/x?a=1&b=it's`, 'android')).toBe(
+      `adb shell "am start -a android.intent.action.VIEW -d 'https://grovs.link/x?a=1&b=it'\\\\''s' io.grovs.example"`
+    );
+    expect(openCommand('https://grovs.link/x?a=$HOME', 'android')).toBe(
+      `adb shell "am start -a android.intent.action.VIEW -d 'https://grovs.link/x?a=\\$HOME' io.grovs.example"`
+    );
+    expect(openCommand(`https://grovs.link/x?b=it's`, 'ios')).toBe(
+      `xcrun simctl openurl booted 'https://grovs.link/x?b=it'\\''s'`
     );
   });
 });

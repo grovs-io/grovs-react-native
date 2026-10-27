@@ -15,7 +15,6 @@ import {
 } from '../../data/forms';
 import { keysSummary, toValueMap } from '../../data/keyValue';
 import { isWebUrl } from '../../data/linkTools';
-import type { Profile } from '../../data/profile';
 import { relativeTime } from '../../data/strings';
 import { exampleStore, NativeKeys } from '../../store/exampleStore';
 import { settingsStore, type Identity } from '../../store/settingsStore';
@@ -24,21 +23,6 @@ import { showToast } from '../controls/Toast';
 import { useLog, useSavedForm } from '../useStore';
 
 const TICK_MS = 30_000;
-
-export function startedProfile(): Profile | null {
-  try {
-    return exampleStore.startedProfile;
-  } catch {
-    return null;
-  }
-}
-
-type DeviceConstants = { Brand?: string; Model?: string };
-
-export function deviceName(): string {
-  const { Brand, Model } = Platform.constants as DeviceConstants;
-  return [Brand, Model].filter(Boolean).join(' ') || 'RN device';
-}
 
 export function randomId(): string {
   const hex = Array.from({ length: 8 }, () =>
@@ -95,7 +79,9 @@ function openLinkAction(url: string): TestAction {
 /** SDK switch, identity and quick actions, all kept in the settings store. */
 export function useHome() {
   const [sdkEnabled, setSdkState] = useState(
-    () => startedProfile()?.startEnabled !== false && settingsStore.sdkEnabled
+    () =>
+      exampleStore.startedProfile?.startEnabled !== false &&
+      settingsStore.sdkEnabled
   );
   const [identity, setIdentity] = useState(() => settingsStore.identity);
   const [editing, setEditing] = useState(false);

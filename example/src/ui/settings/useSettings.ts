@@ -13,7 +13,6 @@ import {
 } from '../../data/profile';
 import { exampleStore } from '../../store/exampleStore';
 import { settingsStore } from '../../store/settingsStore';
-import { startedProfile } from '../home/useHome';
 
 const RESTART_NOTICE_MS = 1500;
 
@@ -65,7 +64,7 @@ export function useSettings() {
   const profile = draft.id === activeId ? draft : saved;
   const errors = profileErrors(profile);
   const blockedBy = firstError(errors);
-  const started = startedProfile();
+  const started = exampleStore.startedProfile;
   const changes = started ? restartChanges(started, profile) : [];
 
   const saveProfiles = (next: Profile[], id: string) => {

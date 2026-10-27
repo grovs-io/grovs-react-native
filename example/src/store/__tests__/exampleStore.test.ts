@@ -15,6 +15,7 @@ const mockNative = {
   restart: jest.fn(),
   fetchPushToken: jest.fn(),
   startedProfile: JSON.stringify(startedProfile),
+  defaultProfile: JSON.stringify(startedProfile),
   configureError: null as string | null,
 };
 const native = mockNative;
@@ -77,6 +78,19 @@ describe('exampleStore', () => {
     expect(native.set).toHaveBeenCalledWith('debugLevel', 'info');
   });
 
+  it('keeps writes in memory until a load succeeds', async () => {
+    const store = freshStore();
+    store.set('debugLevel', 'info');
+    native.getAll.mockRejectedValueOnce(new Error('no native'));
+    await expect(store.load()).rejects.toThrow('no native');
+    store.set('debugLevel', 'info');
+    expect(store.get('debugLevel')).toBe('info');
+    expect(native.set).not.toHaveBeenCalled();
+    await store.load();
+    store.set('debugLevel', 'info');
+    expect(native.set).toHaveBeenCalledWith('debugLevel', 'info');
+  });
+
   it('removes a value when set to null', async () => {
     const store = freshStore();
     await store.load();
@@ -89,7 +103,18 @@ describe('exampleStore', () => {
     native.configureError = 'Enter an API key';
     const store = freshStore();
     expect(store.startedProfile).toEqual(startedProfile);
+    expect(store.defaultProfile).toEqual(startedProfile);
     expect(store.configureError).toBe('Enter an API key');
+  });
+
+  it('returns no started profile when native sends broken JSON', () => {
+    const saved = native.startedProfile;
+    native.startedProfile = '{nope';
+    try {
+      expect(freshStore().startedProfile).toBeNull();
+    } finally {
+      native.startedProfile = saved;
+    }
   });
 
   it('forwards restart and fetchPushToken to native', async () => {
@@ -111,6 +136,7 @@ describe('exampleStore', () => {
       expect(() => store.set('debugLevel', 'info')).not.toThrow();
       expect(store.get('debugLevel')).toBe('info');
       expect(store.startedProfile).toBeNull();
+      expect(store.defaultProfile).toBeNull();
       expect(store.configureError).toBeNull();
       expect(() => store.restart()).not.toThrow();
       await expect(store.fetchPushToken()).resolves.toBeNull();

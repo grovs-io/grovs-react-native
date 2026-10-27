@@ -118,12 +118,21 @@ export function startLogging(): void {
   logConfigure();
   exampleStore
     .load()
-    .catch(() => undefined)
-    .then(() => {
-      applySettingsOrLog();
-      appLog.restoreHistory();
-      return logPushToken();
-    })
+    .then(
+      () => {
+        applySettingsOrLog();
+        appLog.restoreHistory();
+      },
+      (e) => {
+        appLog.add(
+          'SDK',
+          'error',
+          'Saved data not read',
+          e instanceof Error ? e.message : String(e)
+        );
+      }
+    )
+    .then(logPushToken)
     .catch((e) => {
       appLog.add(
         'SDK',

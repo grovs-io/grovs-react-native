@@ -18,10 +18,10 @@ import { useNav } from '../nav';
 import { Screen } from '../Screen';
 import { ICON_PATHS, StrokeIcon } from '../TabIcons';
 import { QuickActionSheet, type QuickAction } from './QuickActionSheet';
+import { exampleStore } from '../../store/exampleStore';
+import { deviceModel } from '../logs/deviceInfo';
 import {
-  deviceName,
   randomId,
-  startedProfile,
   useHome,
   useLatestLink,
   useNotifications,
@@ -49,7 +49,8 @@ export function HomeScreen() {
 function Header() {
   const { colors } = useTheme();
   const { openSettings } = useNav();
-  const environment = startedProfile()?.test === false ? 'Prod' : 'Test';
+  const environment =
+    exampleStore.startedProfile?.test === false ? 'Prod' : 'Test';
   return (
     <View style={[styles.row, styles.header]}>
       <View style={[styles.logo, { backgroundColor: colors.accent }]}>
@@ -89,7 +90,7 @@ function StatusSection({ home }: { home: Home }) {
       />
       <SettingRow label="Project" onPress={openSettings}>
         <Text style={[type.body, { color: colors.textMuted }]}>
-          {startedProfile()?.name ?? 'unknown'}
+          {exampleStore.startedProfile?.name ?? 'unknown'}
         </Text>
         <StrokeIcon
           path={ICON_PATHS.chevronRight}
@@ -181,7 +182,7 @@ function IdentitySection({ home }: { home: Home }) {
       </>
     );
   }
-  const device = deviceName();
+  const device = deviceModel();
   const pick = (identifier: string) => setDraft({ ...draft, identifier });
   return (
     <>

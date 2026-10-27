@@ -16,9 +16,9 @@ import {
 } from '../data/forms';
 import type { KeyValueRow } from '../data/keyValue';
 import {
-  DEFAULT_PROFILES,
   decodeProfiles,
   encodeProfiles,
+  MISSING_NATIVE_PROFILE,
   type Profile,
 } from '../data/profile';
 import { exampleStore, NativeKeys } from './exampleStore';
@@ -100,13 +100,14 @@ function readIdentity(): Identity {
 }
 
 function readProfiles(): Profile[] {
+  const fallback = [exampleStore.defaultProfile ?? MISSING_NATIVE_PROFILE];
   try {
     const profiles = decodeProfiles(
       exampleStore.get(NativeKeys.profiles) ?? ''
     );
-    return profiles.length > 0 ? profiles : DEFAULT_PROFILES;
+    return profiles.length > 0 ? profiles : fallback;
   } catch {
-    return DEFAULT_PROFILES;
+    return fallback;
   }
 }
 

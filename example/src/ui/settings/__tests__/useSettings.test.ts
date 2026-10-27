@@ -1,12 +1,22 @@
 import { act, renderHook } from '@testing-library/react-native';
 import Grovs from 'react-native-grovs-wrapper';
-import { DEFAULT_PROFILES, type Profile } from '../../../data/profile';
+import type { Profile } from '../../../data/profile';
 import { exampleStore } from '../../../store/exampleStore';
 import { settingsStore } from '../../../store/settingsStore';
 import { useSettings } from '../useSettings';
 
 const mockValues: Record<string, string> = {};
-const mockStarted: { profile: Profile } = { profile: DEFAULT_PROFILES[0]! };
+const mockDefault = {
+  id: 'grovs-test',
+  name: 'Grovs test',
+  apiKey: 'grovst_key',
+  test: true,
+  baseUrl: null,
+  autoTrack: false,
+  startEnabled: true,
+  clipboardDomains: [] as string[],
+};
+const mockStarted: { profile: Profile } = { profile: mockDefault };
 
 jest.mock('../../../store/exampleStore', () => ({
   NativeKeys: jest.requireActual('../../../store/exampleStore').NativeKeys,
@@ -19,6 +29,9 @@ jest.mock('../../../store/exampleStore', () => ({
     get startedProfile() {
       return mockStarted.profile;
     },
+    get defaultProfile() {
+      return mockDefault;
+    },
     restart: jest.fn(),
   },
 }));
@@ -28,7 +41,7 @@ jest.mock('react-native-grovs-wrapper', () => ({
   default: { setDebug: jest.fn() },
 }));
 
-const started = DEFAULT_PROFILES[0]!;
+const started = mockDefault;
 
 beforeEach(() => {
   Object.keys(mockValues).forEach((key) => delete mockValues[key]);

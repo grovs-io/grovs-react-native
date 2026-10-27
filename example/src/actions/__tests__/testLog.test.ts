@@ -58,6 +58,12 @@ describe('TestLog', () => {
     expect(history.saved[0]?.link).toBe(`https://grovs.link/${MAX_LINKS + 9}`);
   });
 
+  it('names the last path segment of a link with a trailing slash', () => {
+    expect(log.recordLinkOpen('https://grovs.link/abc/?x=1').detail).toBe(
+      'abc'
+    );
+  });
+
   it('handles a link open without a link', () => {
     const entry = log.recordLinkOpen(undefined, undefined);
     expect(entry.detail).toBe('no link');

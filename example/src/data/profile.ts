@@ -12,19 +12,17 @@ export type Profile = {
   clipboardDomains: string[];
 };
 
-export const DEFAULT_PROFILES: Profile[] = [
-  {
-    id: 'grovs-test',
-    name: 'Grovs test',
-    apiKey:
-      'grovst_06e36086dad3e934289560e3ca59527282030868f8c844629516c6e6c67bbf1f',
-    test: true,
-    baseUrl: null,
-    autoTrack: false,
-    startEnabled: true,
-    clipboardDomains: [],
-  },
-];
+/** Stands in for the native default profile in a stale build without the native module. */
+export const MISSING_NATIVE_PROFILE: Profile = {
+  id: 'missing-native',
+  name: 'Rebuild the app',
+  apiKey: '',
+  test: true,
+  baseUrl: null,
+  autoTrack: false,
+  startEnabled: true,
+  clipboardDomains: [],
+};
 
 export const profileNameError = (name: string): string | null =>
   name.trim() === '' ? 'Enter a name' : null;
@@ -37,14 +35,6 @@ export const baseUrlError = (url: string): string | null =>
   url.trim() !== '' && !isWebUrl(url)
     ? 'Must start with http:// or https://'
     : null;
-
-/** Puts the built-in default profile back, replacing a stored profile with the same id. */
-export function withDefaultProfile(profiles: Profile[]): Profile[] {
-  const [fallback] = DEFAULT_PROFILES as [Profile];
-  return profiles.some((p) => p.id === fallback.id)
-    ? profiles.map((p) => (p.id === fallback.id ? fallback : p))
-    : [fallback, ...profiles];
-}
 
 const sameList = (a: string[], b: string[]) =>
   a.length === b.length && a.every((item, i) => item === b[i]);

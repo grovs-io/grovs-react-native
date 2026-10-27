@@ -21,7 +21,7 @@ yarn ios
 
 ### Android
 
-Use JDK 17 (`JAVA_HOME` must point to it). The app also needs a Firebase file at `android/app/google-services.json`. It is already in the repo. Replace it with your own if you change the application id (`io.grovs.example`).
+Use JDK 17 (`JAVA_HOME` must point to it). To get a push token on Android, add your own Firebase file at `android/app/google-services.json` for the application id `io.grovs.example`. The file is git ignored. Without it the app still builds and runs, but has no push token.
 
 ```sh
 yarn android

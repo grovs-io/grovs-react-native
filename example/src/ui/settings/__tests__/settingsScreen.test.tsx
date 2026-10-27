@@ -1,10 +1,19 @@
 import { Alert } from 'react-native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import Grovs from 'react-native-grovs-wrapper';
-import { DEFAULT_PROFILES } from '../../../data/profile';
 import { SettingsScreen } from '../SettingsScreen';
 
 const mockValues: Record<string, string> = {};
+const mockDefault = {
+  id: 'grovs-test',
+  name: 'Grovs test',
+  apiKey: 'grovst_key',
+  test: true,
+  baseUrl: null,
+  autoTrack: false,
+  startEnabled: true,
+  clipboardDomains: [] as string[],
+};
 
 jest.mock('../../../store/exampleStore', () => ({
   NativeKeys: jest.requireActual('../../../store/exampleStore').NativeKeys,
@@ -15,7 +24,10 @@ jest.mock('../../../store/exampleStore', () => ({
       else mockValues[key] = value;
     },
     get startedProfile() {
-      return jest.requireActual('../../../data/profile').DEFAULT_PROFILES[0];
+      return mockDefault;
+    },
+    get defaultProfile() {
+      return mockDefault;
     },
     restart: jest.fn(),
   },
@@ -57,7 +69,7 @@ describe('SettingsScreen', () => {
   it('+ New adds a selected copy and the bar names the project', () => {
     render(<SettingsScreen />);
     press('+ New');
-    const copy = `${DEFAULT_PROFILES[0]!.name} copy`;
+    const copy = `${mockDefault.name} copy`;
     expect(screen.getAllByText(copy)).toHaveLength(2);
     expect(screen.getAllByText('Project')).toHaveLength(2);
     expect(screen.getByText('Delete this profile')).toBeTruthy();
@@ -67,7 +79,7 @@ describe('SettingsScreen', () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
     render(<SettingsScreen />);
     press('+ New');
-    const copy = `${DEFAULT_PROFILES[0]!.name} copy`;
+    const copy = `${mockDefault.name} copy`;
     press('Delete this profile');
     expect(screen.getAllByText(copy)).toHaveLength(2);
     const buttons = alert.mock.calls[0]![2]!;

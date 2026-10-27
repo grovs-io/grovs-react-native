@@ -206,6 +206,17 @@ describe('startLogging', () => {
     ).toBe(true);
   });
 
+  it('does not overwrite saved link history when the load fails', async () => {
+    mockStore.load.mockRejectedValue(new Error('bridge down'));
+    const log = start();
+    listeners.link!({ link: 'https://grovs.link/cold' });
+    await flush();
+    expect(titles(log)).toContain('Saved data not read');
+    expect(mockStore.set).not.toHaveBeenCalled();
+    expect(mockGrovs.setIdentifier).not.toHaveBeenCalled();
+    expect(log.entries().some((e) => e.type === 'PUSH')).toBe(true);
+  });
+
   it('survives an empty in-app event type', () => {
     const log = start();
     expect(() => listeners.inApp!({ type: '', campaignId: 'c' })).not.toThrow();

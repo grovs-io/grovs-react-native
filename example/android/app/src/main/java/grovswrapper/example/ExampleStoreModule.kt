@@ -1,7 +1,6 @@
 package grovswrapper.example
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -9,6 +8,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
 import com.google.firebase.messaging.FirebaseMessaging
+import com.jakewharton.processphoenix.ProcessPhoenix
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -91,6 +91,7 @@ class ExampleStoreModule(context: ReactApplicationContext) : ReactContextBaseJav
 
   override fun getConstants(): Map<String, Any?> = mapOf(
     "startedProfile" to ExampleStore.startedProfile.toJson(),
+    "defaultProfile" to Profile.DEFAULT.toJson(),
     "configureError" to ExampleStore.configureError,
   )
 
@@ -105,16 +106,14 @@ class ExampleStoreModule(context: ReactApplicationContext) : ReactContextBaseJav
   fun set(key: String, value: String?) {
     val editor = prefs.edit()
     if (value == null) editor.remove(key) else editor.putString(key, value)
-    editor.commit()
+    editor.apply()
   }
 
   @ReactMethod
   fun restart() {
-    val context = reactApplicationContext
-    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-    context.startActivity(intent)
-    Runtime.getRuntime().exit(0)
+    // Writes pending from apply() must reach disk before the process dies.
+    prefs.edit().commit()
+    ProcessPhoenix.triggerRebirth(reactApplicationContext)
   }
 
   @ReactMethod
@@ -128,7 +127,7 @@ class ExampleStoreModule(context: ReactApplicationContext) : ReactContextBaseJav
         }
       }
     } catch (e: IllegalStateException) {
-      promise.reject("push_token", e.message ?: "Firebase is not set up", e)
+      promise.reject("push_token", "Firebase is not set up, add android/app/google-services.json", e)
     }
   }
 }

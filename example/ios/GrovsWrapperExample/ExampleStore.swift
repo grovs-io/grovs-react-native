@@ -118,6 +118,7 @@ final class ExampleStore: NSObject {
   @objc func constantsToExport() -> [AnyHashable: Any]! {
     [
       "startedProfile": Self.startedProfile.json,
+      "defaultProfile": Profile.default.json,
       "configureError": Self.configureError ?? NSNull(),
     ]
   }

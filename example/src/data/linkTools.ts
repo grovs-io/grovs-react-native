@@ -26,10 +26,15 @@ export function isWebUrl(input: string): boolean {
   return rest !== null && rest.split('/')[0]!.trim() !== '';
 }
 
+const singleQuoted = (text: string) => `'${text.replace(/'/g, `'\\''`)}'`;
+
+const doubleQuoted = (text: string) => `"${text.replace(/["$`\\]/g, '\\$&')}"`;
+
+/** adb runs the command through the device shell too, so the link is quoted for both shells. */
 export function openCommand(link: string, os: 'ios' | 'android'): string {
   return os === 'android'
-    ? `adb shell am start -a android.intent.action.VIEW -d "${link}" io.grovs.example`
-    : `xcrun simctl openurl booted "${link}"`;
+    ? `adb shell ${doubleQuoted(`am start -a android.intent.action.VIEW -d ${singleQuoted(link)} io.grovs.example`)}`
+    : `xcrun simctl openurl booted ${singleQuoted(link)}`;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

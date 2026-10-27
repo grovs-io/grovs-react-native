@@ -1,3 +1,4 @@
+import { extractLinkPath } from '../data/linkTools';
 import { exampleStore } from '../store/exampleStore';
 import { callCode } from './callCode';
 import type { LogEntry, LogState, LogType, TestAction } from './log';
@@ -94,7 +95,7 @@ export class TestLog {
   }
 
   recordLinkOpen(link?: string, data?: object): LogEntry {
-    const path = link?.split('/').pop() || 'no link';
+    const path = link ? (extractLinkPath(link) ?? link) : 'no link';
     const entry: LogEntry = {
       id: this.nextId++,
       time: this.clock(),

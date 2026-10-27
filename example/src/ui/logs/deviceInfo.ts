@@ -13,19 +13,13 @@ type PlatformConstants = {
 };
 
 /** iOS constants have no model name, so iOS reports the device kind. */
-function model(constants: PlatformConstants): string {
+export function deviceModel(): string {
+  const constants = Platform.constants as PlatformConstants;
   if (Platform.OS === 'android') {
-    return [constants.Manufacturer, constants.Model].filter(Boolean).join(' ');
+    const name = [constants.Manufacturer, constants.Model].filter(Boolean);
+    return name.join(' ') || 'unknown';
   }
   return constants.interfaceIdiom === 'pad' ? 'iPad' : 'iPhone';
-}
-
-function projectName(): string {
-  try {
-    return exampleStore.startedProfile?.name ?? 'unknown';
-  } catch {
-    return 'unknown';
-  }
 }
 
 export function deviceInfo(): DeviceInfo {
@@ -35,9 +29,9 @@ export function deviceInfo(): DeviceInfo {
       ? `Android ${constants.Release ?? Platform.Version}`
       : `${constants.systemName ?? 'iOS'} ${constants.osVersion ?? Platform.Version}`;
   return {
-    model: model(constants) || 'unknown',
+    model: deviceModel(),
     os,
     sdkVersion,
-    project: projectName(),
+    project: exampleStore.startedProfile?.name ?? 'unknown',
   };
 }

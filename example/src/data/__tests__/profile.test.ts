@@ -1,12 +1,10 @@
 import {
-  DEFAULT_PROFILES,
   apiKeyError,
   baseUrlError,
   decodeProfiles,
   encodeProfiles,
   profileNameError,
   restartChanges,
-  withDefaultProfile,
   type Profile,
 } from '../profile';
 
@@ -117,44 +115,12 @@ describe('json', () => {
   });
 });
 
-describe('default profile', () => {
-  it('does not auto track screens, as the old app did', () => {
-    expect(DEFAULT_PROFILES[0]?.autoTrack).toBe(false);
-  });
-});
-
 describe('validation', () => {
-  it('has valid defaults', () => {
-    expect(new Set(DEFAULT_PROFILES.map((p) => p.id)).size).toBe(
-      DEFAULT_PROFILES.length
-    );
-    DEFAULT_PROFILES.forEach((p) => {
-      expect(profileNameError(p.name)).toBeNull();
-      expect(apiKeyError(p.apiKey)).toBeNull();
-      expect(baseUrlError(p.baseUrl ?? '')).toBeNull();
-    });
-    expect(DEFAULT_PROFILES[0]).toMatchObject({
-      id: 'grovs-test',
-      name: 'Grovs test',
-      test: true,
-      baseUrl: null,
-    });
-  });
-
   it('validates settings', () => {
     expect(profileNameError(' ')).not.toBeNull();
     expect(apiKeyError('')).not.toBeNull();
     expect(baseUrlError('')).toBeNull();
     expect(baseUrlError('https://staging.grovs.io')).toBeNull();
     expect(baseUrlError('staging.grovs.io')).not.toBeNull();
-  });
-});
-
-describe('withDefaultProfile', () => {
-  it('restores the default profile', () => {
-    const [fallback] = DEFAULT_PROFILES;
-    const broken = { ...fallback!, baseUrl: 'staging.grovs.io' };
-    expect(withDefaultProfile([broken, base])).toEqual([fallback, base]);
-    expect(withDefaultProfile([base])).toEqual([fallback, base]);
   });
 });

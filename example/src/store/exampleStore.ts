@@ -15,27 +15,42 @@ type NativeExampleStore = {
   restart(): void;
   fetchPushToken(): Promise<string | null>;
   startedProfile: string;
+  defaultProfile: string;
   configureError: string | null;
 };
 
 const native = (): NativeExampleStore | undefined => NativeModules.ExampleStore;
 
+function parseProfile(json: string | undefined): Profile | null {
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
 class ExampleStore {
   private values: Record<string, string> = {};
   private loaded?: Promise<void>;
+  private canWrite = false;
 
   /** False in a stale native build; the store then stays empty and ignores writes. */
   get available(): boolean {
     return native() !== undefined;
   }
 
-  /** Reads native once; later calls wait for the same read. A failed read is retried on the next call. */
+  /**
+   * Reads native once; later calls wait for the same read. A failed read is retried on the next call.
+   * Until a read succeeds, writes stay in memory so defaults never replace what native has saved.
+   */
   load(): Promise<void> {
     const module = native();
     if (!module) return Promise.resolve();
     this.loaded ??= module.getAll().then(
       (all) => {
         this.values = { ...all };
+        this.canWrite = true;
       },
       (error) => {
         this.loaded = undefined;
@@ -55,12 +70,16 @@ class ExampleStore {
     } else {
       this.values[key] = value;
     }
-    native()?.set(key, value);
+    if (this.canWrite) native()?.set(key, value);
   }
 
   get startedProfile(): Profile | null {
-    const json = native()?.startedProfile;
-    return json ? JSON.parse(json) : null;
+    return parseProfile(native()?.startedProfile);
+  }
+
+  /** The built-in profile native falls back to. */
+  get defaultProfile(): Profile | null {
+    return parseProfile(native()?.defaultProfile);
   }
 
   get configureError(): string | null {
