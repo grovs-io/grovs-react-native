@@ -220,6 +220,10 @@ export class TurboModuleGrovs {
   }
 
   // Event subscription wrapper
+  markReadyToHandleDeeplinks() {
+    NativeModule?.markReadyToHandleDeeplinks();
+  }
+
   onDeeplinkReceived(callback: (data: DeeplinkResponse) => void): {
     remove: () => void;
   } {
