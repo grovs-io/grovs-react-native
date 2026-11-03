@@ -1,6 +1,7 @@
 export {};
 
 const mockMarkReadyForInAppEvents = jest.fn();
+const mockMarkReadyToHandleDeeplinks = jest.fn();
 const mockLinkDetails = jest.fn();
 const mockRemove = jest.fn();
 const mockEmitterAddListener = jest.fn(
@@ -14,6 +15,7 @@ jest.mock('react-native', () => ({
   TurboModuleRegistry: {
     get: () => ({
       markReadyForInAppEvents: mockMarkReadyForInAppEvents,
+      markReadyToHandleDeeplinks: mockMarkReadyToHandleDeeplinks,
       linkDetails: mockLinkDetails,
     }),
   },
@@ -69,6 +71,14 @@ describe('TurboModuleGrovs.onInAppMessage', () => {
     const subscription = Grovs.onInAppMessage(jest.fn());
     subscription.remove();
     expect(mockRemove).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('TurboModuleGrovs.markReadyToHandleDeeplinks', () => {
+  it('forwards the call to the native module', () => {
+    Grovs.markReadyToHandleDeeplinks();
+
+    expect(mockMarkReadyToHandleDeeplinks).toHaveBeenCalledTimes(1);
   });
 });
 

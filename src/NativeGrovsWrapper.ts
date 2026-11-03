@@ -299,6 +299,10 @@ export class TurboModuleGrovs {
     NativeModule?.markReadyForInAppEvents();
   }
 
+  markReadyToHandleDeeplinks() {
+    NativeModule?.markReadyToHandleDeeplinks();
+  }
+
   async handleNotificationOpen(data: {
     [key: string]: unknown;
   }): Promise<boolean> {
