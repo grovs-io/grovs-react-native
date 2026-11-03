@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
       s.source_files = "ios/code/**/*.{h,m,mm,cpp,swift}"
   end
 
-  s.dependency "Grovs", '~> 3.1'
+  s.dependency "Grovs", package["grovsIosSdkVersion"]
   # Lets GrovsWrapper.mm import the Grovs Swift header when Grovs is a static library.
   s.pod_target_xcconfig = {
     "HEADER_SEARCH_PATHS" => "\"${PODS_CONFIGURATION_BUILD_DIR}/Grovs/Swift Compatibility Header\""
